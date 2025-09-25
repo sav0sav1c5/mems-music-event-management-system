@@ -8,11 +8,13 @@ namespace MusicEventManagementSystem.Services.Auth
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IJwtService _jwtService;
         
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IJwtService jwtService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _jwtService = jwtService;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto)
@@ -95,10 +97,12 @@ namespace MusicEventManagementSystem.Services.Auth
                     };
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, false, false);
+                var passwordCheck = await _userManager.CheckPasswordAsync(user, loginDto.Password);
 
-                if (result.Succeeded)
+                if (passwordCheck)
                 {
+                    var token = _jwtService.GenerateToken(user);
+                    
                     var userDto = new UserDto
                     {
                         Id = user.Id,
@@ -114,6 +118,7 @@ namespace MusicEventManagementSystem.Services.Auth
                     {
                         Success = true,
                         Message = "User logged in successfully.",
+                        Token = token,
                         User = userDto
                     };
                 }

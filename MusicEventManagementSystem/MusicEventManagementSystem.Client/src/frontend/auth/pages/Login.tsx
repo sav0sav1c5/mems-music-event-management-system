@@ -55,7 +55,7 @@ const Login = () => {
       case 2: // EventOrganization
         return '/event-organization/dashboard';
       case 3: // ArtistCommunication
-        return '/artist-communication/dashboard';
+        return '/artist-communication/contracts';
       case 4: // MediaCampaign
         return '/media-campaign/dashboard';
       default:

@@ -15,6 +15,16 @@ import TicketSalesRecordedSales from './frontend/ticket-sales/pages/RecordedSale
 import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules';
 import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
 
+// Artist Communication / Performer Negotiations imports
+import PerformerDashboard from "./frontend/performer-negotations/pages/PerformerDashboard";
+import Performers from "./frontend/performer-negotations/pages/Performers";
+import Requirements from "./frontend/performer-negotations/pages/Requirements";
+import Phases from "./frontend/performer-negotations/pages/Phases";
+import Negotiations from "./frontend/performer-negotations/pages/Negotiations";
+import Contracts from "./frontend/performer-negotations/pages/Contracts";
+import Documents from "./frontend/performer-negotations/pages/Documents";
+import Communications from "./frontend/performer-negotations/pages/Communications";
+
 // Event Organization imports
 // ...
 
@@ -153,6 +163,95 @@ function App() {
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
                 <TicketSalesRecordedSales />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Artist Communication / Performer Negotiations routes */}
+        <Route 
+          path="/artist-communication/dashboard" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <PerformerDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/performers" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Performers />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/requirements" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Requirements />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/phases" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Phases />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/negotiations" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Negotiations />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/contracts" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Contracts />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/documents" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Documents />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/communications" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Communications />
               </Layout>
             </ProtectedRoute>
           } 

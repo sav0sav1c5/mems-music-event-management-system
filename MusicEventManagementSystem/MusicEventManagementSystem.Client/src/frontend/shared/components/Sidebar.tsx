@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  LogOut, CircleDollarSign, BarChart2, TrendingUp, Star, Bookmark, Clock, ChevronLeft, ChevronRight,
-  MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase
+ CircleDollarSign, BarChart2, TrendingUp, Star, Bookmark, Clock, ChevronLeft, ChevronRight,
+  MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, 
+  Mic2, Handshake, FileText, Layers, LogOut, MessageSquare, ClipboardList
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -50,10 +51,17 @@ const Sidebar = () => {
           { icon: <PieChart />, label: "Analytics", path: "/event-organization/analytics" },
         ];
       
-      // case 3: // ArtistCommunication
-      //   return [
-      //     { icon: <BarChart2 />, label: "Dashboard", path: "/artist-communication/dashboard" },
-      //   ];
+      case 3: // ArtistCommunication
+        return [
+          { icon: <BarChart2 />, label: "Dashboard", path: "/artist-communication/dashboard" },
+          { icon: <Mic2 />, label: "Performers", path: "/artist-communication/performers" },
+          { icon: <ClipboardList />, label: "Requirements", path: "/artist-communication/requirements" },
+          { icon: <Layers />, label: "Phases", path: "/artist-communication/phases" },
+          { icon: <Handshake />, label: "Negotiations", path: "/artist-communication/negotiations" },
+          { icon: <FileText />, label: "Contracts", path: "/artist-communication/contracts" },
+          { icon: <Bookmark />, label: "Documents", path: "/artist-communication/documents" },
+          { icon: <MessageSquare />, label: "Communications", path: "/artist-communication/communications" },
+        ];
       
       // case 4: // MediaCampaign
       //   return [
