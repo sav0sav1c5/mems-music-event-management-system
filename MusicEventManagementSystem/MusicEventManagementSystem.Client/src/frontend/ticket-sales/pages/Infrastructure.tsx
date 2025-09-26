@@ -1,352 +1,579 @@
-import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Save, X, MapPin, Users, DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Search, MapPin, Users, Calendar, Settings, Edit, Eye, 
+  ArrowLeft, Plus, RefreshCw, TrendingUp, DollarSign 
+} from 'lucide-react';
 
-// Koristi tvoje postojeće service-e
+// Import servisa
 import VenueService from '../types/services/venueService';
-import SegmentService from '../types/services/segmentService'; 
+import SegmentService from '../types/services/segmentService';
 import ZoneService from '../types/services/zoneService';
+import { EventService } from '../../event-organization/services/eventService';
 
-// API Response tipovi
+// Import tipova
 import type { VenueResponse } from '../types/api/venue';
 import type { SegmentResponse } from '../types/api/segment';
 import type { ZoneResponse } from '../types/api/zone';
+import type { EventResponse } from '../../event-organization/types/api/event';
+
+// Import enumova
+import { VenueType, SegmentType, ZonePosition } from '../types/enums/TicketSales';
+import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
 
 // Form tipovi
-import type { VenueCreateForm } from '../types/forms/venue';
+import type { VenueCreateForm, VenueUpdateForm } from '../types/forms/venue';
 import type { SegmentCreateForm } from '../types/forms/segment';
 import type { ZoneCreateForm } from '../types/forms/zone';
 
-// Enums
-import { VenueType, SegmentType, ZonePosition } from '../types/enums/TicketSales';
-
-// Venue Types mapping
-const VenueTypeLabels = {
-  [VenueType.Indoor]: 'Indoor',
-  [VenueType.Outdoor]: 'Outdoor', 
-  [VenueType.Stadium]: 'Stadium',
-  [VenueType.Arena]: 'Arena',
-  [VenueType.Theater]: 'Theater',
-  [VenueType.Club]: 'Club',
-  [VenueType.Festival]: 'Festival'
+// Helper funkcije za mappiranje enumova
+const getStatusColor = (status: EventStatus) => {
+  switch (status) {
+    case EventStatus.Planned: return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    case EventStatus.InProgress: return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    case EventStatus.Completed: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    case EventStatus.Cancelled: return 'bg-red-500/20 text-red-400 border-red-500/30';
+    default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+  }
 };
 
-const SegmentTypeLabels = {
-  [SegmentType.VIP]: 'VIP',
-  [SegmentType.Standard]: 'Standard',
-  [SegmentType.Premium]: 'Premium', 
-  [SegmentType.Standing]: 'Standing',
-  [SegmentType.Seated]: 'Seated'
+const getVenueTypeColor = (type: VenueType) => {
+  switch (type) {
+    case VenueType.Club: return 'bg-purple-500/20 text-purple-300';
+    case VenueType.Arena: return 'bg-orange-500/20 text-orange-300';
+    case VenueType.Outdoor: return 'bg-green-500/20 text-green-300';
+    case VenueType.Indoor: return 'bg-blue-500/20 text-blue-300';
+    case VenueType.Stadium: return 'bg-red-500/20 text-red-300';
+    case VenueType.Theater: return 'bg-pink-500/20 text-pink-300';
+    case VenueType.Festival: return 'bg-yellow-500/20 text-yellow-300';
+    default: return 'bg-gray-500/20 text-gray-300';
+  }
 };
 
-const ZonePositionLabels = {
-  [ZonePosition.Front]: 'Front',
-  [ZonePosition.Center]: 'Center',
-  [ZonePosition.Back]: 'Back',
-  [ZonePosition.Left]: 'Left',
-  [ZonePosition.Right]: 'Right',
-  [ZonePosition.Upper]: 'Upper',
-  [ZonePosition.Lower]: 'Lower',
-  [ZonePosition.Balcony]: 'Balcony'
-};
-
-// Venue List Component
-interface VenueListProps {
-  venues: VenueResponse[];
-  selectedVenue: VenueResponse | null;
-  onVenueSelect: (venue: VenueResponse) => void;
-  onCreateNew: () => void;
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-}
-
-const VenueList = ({ venues, selectedVenue, onVenueSelect, onCreateNew, searchTerm, onSearchChange }: VenueListProps) => {
-  return (
-    <div className="w-80 bg-neutral-900/80 border border-neutral-800 rounded-2xl p-4 h-[calc(100vh-8rem)] overflow-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">Venues</h2>
-        <button
-          onClick={onCreateNew}
-          className="px-3 py-2 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2"
-        >
-          <Plus size={16} />
-          New
-        </button>
-      </div>
-
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4" />
-        <input
-          type="text"
-          placeholder="Search venues..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all"
-        />
-      </div>
-
-      <div className="space-y-2">
-        {venues.map((venue) => (
-          <div
-            key={venue.venueId}
-            onClick={() => onVenueSelect(venue)}
-            className={`p-3 rounded-xl cursor-pointer transition-all duration-150 ${
-              selectedVenue?.venueId === venue.venueId
-                ? 'bg-lime-400/10 border border-lime-400/30 text-lime-400'
-                : 'bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60'
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-medium text-sm">{venue.name || 'Unnamed Venue'}</h3>
-                <p className="text-xs text-neutral-400 mt-1">{venue.city || 'Unknown City'}</p>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-xs text-neutral-500 flex items-center gap-1">
-                    <Users size={12} />
-                    {venue.capacity || 0}
-                  </span>
-                  <span className="text-xs text-neutral-500">
-                    {VenueTypeLabels[venue.venueType] || 'Unknown Type'}
-                  </span>
-                </div>
-              </div>
-              <MapPin size={16} className="text-neutral-400 flex-shrink-0" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Venue Detail Form Component
-interface VenueDetailFormProps {
-  venue: VenueResponse | null;
-  onSave: (data: VenueCreateForm) => Promise<void>;
-  onCancel: () => void;
-  isEditing: boolean;
-  onEdit: () => void;
-}
-
-const VenueDetailForm = ({ venue, onSave, onCancel, isEditing, onEdit }: VenueDetailFormProps) => {
-  const [formData, setFormData] = useState<VenueCreateForm>({
-    name: venue?.name || '',
-    description: venue?.description || '',
-    city: venue?.city || '',
-    address: venue?.address || '',
-    capacity: venue?.capacity || 0,
-    venueType: venue?.venueType || VenueType.Indoor
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (venue) {
-      setFormData({
-        name: venue.name || '',
-        description: venue.description || '',
-        city: venue.city || '',
-        address: venue.address || '',
-        capacity: venue.capacity || 0,
-        venueType: venue.venueType || VenueType.Indoor
-      });
-    }
-  }, [venue]);
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.name?.trim()) newErrors.name = 'Name is required';
-    if (!formData.city?.trim()) newErrors.city = 'City is required';
-    if (!formData.address?.trim()) newErrors.address = 'Address is required';
-    if (formData.capacity <= 0) newErrors.capacity = 'Capacity must be greater than 0';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+const getVenueTypeName = (type: VenueType): string => {
+  const typeMap = {
+    [VenueType.Indoor]: 'Indoor',
+    [VenueType.Outdoor]: 'Outdoor', 
+    [VenueType.Stadium]: 'Stadium',
+    [VenueType.Arena]: 'Arena',
+    [VenueType.Theater]: 'Theater',
+    [VenueType.Club]: 'Club',
+    [VenueType.Festival]: 'Festival'
   };
+  return typeMap[type] || 'Unknown';
+};
 
-  const handleSave = async () => {
-    if (!validateForm()) return;
-    
-    setLoading(true);
+const getSegmentTypeName = (type: SegmentType): string => {
+  const typeMap = {
+    [SegmentType.VIP]: 'VIP',
+    [SegmentType.Standard]: 'Standard',
+    [SegmentType.Premium]: 'Premium',
+    [SegmentType.Standing]: 'Standing',
+    [SegmentType.Seated]: 'Seated'
+  };
+  return typeMap[type] || 'Unknown';
+};
+
+const getEventStatusName = (status: EventStatus): string => {
+  switch (status) {
+    case EventStatus.Planned: return 'Planned';
+    case EventStatus.InProgress: return 'In Progress';
+    case EventStatus.Completed: return 'Completed';
+    case EventStatus.Cancelled: return 'Cancelled';
+    default: return 'Unknown';
+  }
+};
+
+const Infrastructure = () => {
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
+  const [selectedVenue, setSelectedVenue] = useState<VenueResponse | null>(null);
+  const [activeTab, setActiveTab] = useState('segments');
+  const [events, setEvents] = useState<EventResponse[]>([]);
+  const [venues, setVenues] = useState<VenueResponse[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Učitavanje podataka
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
     try {
-      await onSave(formData);
-      setErrors({});
+      setLoading(true);
+      const [eventsData, venuesData] = await Promise.all([
+        EventService.getAllEvents(),
+        VenueService.getAllVenues()
+      ]);
+      
+      setEvents(eventsData || []);
+      setVenues(venuesData || []);
+      
+      if (eventsData.length > 0) {
+        setSelectedEvent(eventsData[0]);
+      }
     } catch (error) {
-      setErrors({ submit: 'Failed to save venue' });
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!venue && !isEditing) {
+  const filteredVenues = venues.filter(venue =>
+    venue.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    venue.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    venue.address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
     return (
-      <div className="flex-1 bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6 flex items-center justify-center">
-        <div className="text-center text-neutral-400">
-          <MapPin size={48} className="mx-auto mb-4 opacity-50" />
-          <p>Select a venue to view details</p>
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="w-10 h-10 text-lime-400 animate-spin" />
+          <p className="text-neutral-400 text-lg">Loading infrastructure data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-white">
-          {isEditing && !venue ? 'Create New Venue' : venue?.name || 'Venue Details'}
-        </h2>
-        {venue && !isEditing && (
-          <button
-            onClick={onEdit}
-            className="px-3 py-2 rounded-xl bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60 transition-all duration-150 flex items-center gap-2"
-          >
-            <Edit size={16} />
-            Edit
-          </button>
-        )}
-      </div>
+    <div className="text-white h-full flex flex-col p-2">
+      {selectedVenue ? (
+        <VenueDetailView 
+          venue={selectedVenue}
+          onBack={() => setSelectedVenue(null)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      ) : (
+        <>
+          {/* Header - Usklađen sa Dashboard-om */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-[26px] font-bold text-white mb-1">Infrastructure Management</h1>
+                <p className="text-neutral-400 text-base">Manage venues, segments, and seating zones by event</p>
+              </div>
+              <button className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2 text-base">
+                <Plus size={20} />
+                New Venue
+              </button>
+            </div>
+            
+            {/* Search Bar - Usklađen stil */}
+            <div className="relative mt-4">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search venues by name, city, or address..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
+              />
+            </div>
+          </div>
 
-      {errors.submit && (
-        <div className="mb-4 p-3 rounded-xl bg-red-900/20 border border-red-700/30 text-red-400 text-sm">
-          {errors.submit}
-        </div>
-      )}
+          {/* Main Content Grid - Kompaktniji layout kao Dashboard */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
+            
+            {/* Venues Section - Takes 3/4 columns */}
+            <div className="xl:col-span-3">
+              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
+                <div className="flex items-center justify-between p-5 border-b border-neutral-800">
+                  <h3 className="text-xl font-semibold text-white">Venues</h3>
+                  <p className="text-neutral-400 text-sm">{filteredVenues.length} venue(s) found</p>
+                </div>
+                
+                <div className="p-5">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {filteredVenues.map((venue) => (
+                      <div
+                        key={venue.venueId}
+                        onClick={() => setSelectedVenue(venue)}
+                        className="group bg-neutral-800/50 border border-neutral-700 rounded-xl p-5 hover:border-lime-500/50 hover:bg-neutral-800/80 cursor-pointer transition-all duration-300"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="bg-lime-500/20 p-3 rounded-xl mr-4">
+                              <MapPin className="w-6 h-6 text-lime-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
+                                {venue.name || 'Unnamed Venue'}
+                              </h3>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getVenueTypeColor(venue.venueType)}`}>
+                                {getVenueTypeName(venue.venueType)}
+                              </span>
+                            </div>
+                          </div>
+                          <Edit className="w-5 h-5 text-neutral-400 group-hover:text-lime-400 transition-colors" />
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center text-neutral-300">
+                            <Users className="w-5 h-5 mr-3 text-neutral-400" />
+                            <span className="text-base">Capacity: {(venue.capacity || 0).toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center text-neutral-300">
+                            <MapPin className="w-5 h-5 mr-3 text-neutral-400" />
+                            <span className="text-base">{venue.city || 'Unknown City'}, {venue.address}</span>
+                          </div>
+                          <div className="text-sm text-neutral-500 mt-4 group-hover:text-lime-400/70 transition-colors">
+                            Click to configure seat layout and zones
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-xs text-neutral-400 mb-2">Name</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            disabled={!isEditing}
-            className={`w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all ${
-              !isEditing ? 'opacity-60' : ''
-            } ${errors.name ? 'border-red-500' : ''}`}
-          />
-          {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
-        </div>
+                  {filteredVenues.length === 0 && (
+                    <div className="text-center py-16 text-neutral-400">
+                      <MapPin size={64} className="mx-auto mb-4 opacity-50" />
+                      <h4 className="text-xl mb-2">No venues found</h4>
+                      <p className="text-base">
+                        {searchTerm ? 'Try adjusting your search criteria' : 'No venues available in the system'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-        <div>
-          <label className="block text-xs text-neutral-400 mb-2">City</label>
-          <input
-            type="text"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            disabled={!isEditing}
-            className={`w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all ${
-              !isEditing ? 'opacity-60' : ''
-            } ${errors.city ? 'border-red-500' : ''}`}
-          />
-          {errors.city && <p className="text-red-400 text-xs mt-1">{errors.city}</p>}
-        </div>
+            {/* Events Section - Takes 1/4 column */}
+            <div className="xl:col-span-1">
+              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden h-full">
+                <div className="flex items-center justify-between p-5 border-b border-neutral-800">
+                  <h3 className="text-xl font-semibold text-white">Upcoming Events</h3>
+                  <p className="text-neutral-400 text-sm">{events.length} total</p>
+                </div>
+                
+                <div 
+                  className="p-5 space-y-4 overflow-y-auto scrollbar-hide" 
+                  style={{
+                    scrollbarWidth: 'none', // Firefox
+                    msOverflowStyle: 'none'  // IE/Edge
+                  }}
+                >
+                  {events.map((event) => (
+                    <div
+                      key={event.id}
+                      onClick={() => setSelectedEvent(event)}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
+                        selectedEvent?.id === event.id
+                          ? 'bg-lime-500/20 border-lime-500/50 shadow-lg'
+                          : 'bg-neutral-800/50 border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/70'
+                      }`}
+                    >
+                      <div className="flex items-center mb-3">
+                        <Calendar className="w-4 h-4 text-neutral-400 mr-2" />
+                        <span className="text-sm text-neutral-400">
+                          {new Date(event.eventInterval).toLocaleDateString()}
+                        </span>
+                      </div>
+                      
+                      <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(event.status)}`}>
+                          {getEventStatusName(event.status)}
+                        </span>
+                        <span className="text-xs text-neutral-500">
+                          {venues.length} venue{venues.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
 
-        <div className="col-span-2">
-          <label className="block text-xs text-neutral-400 mb-2">Address</label>
-          <input
-            type="text"
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            disabled={!isEditing}
-            className={`w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all ${
-              !isEditing ? 'opacity-60' : ''
-            } ${errors.address ? 'border-red-500' : ''}`}
-          />
-          {errors.address && <p className="text-red-400 text-xs mt-1">{errors.address}</p>}
-        </div>
-
-        <div>
-          <label className="block text-xs text-neutral-400 mb-2">Capacity</label>
-          <input
-            type="number"
-            value={formData.capacity}
-            onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })}
-            disabled={!isEditing}
-            className={`w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all ${
-              !isEditing ? 'opacity-60' : ''
-            } ${errors.capacity ? 'border-red-500' : ''}`}
-          />
-          {errors.capacity && <p className="text-red-400 text-xs mt-1">{errors.capacity}</p>}
-        </div>
-
-        <div>
-          <label className="block text-xs text-neutral-400 mb-2">Venue Type</label>
-          <select
-            value={formData.venueType}
-            onChange={(e) => setFormData({ ...formData, venueType: parseInt(e.target.value) as VenueType })}
-            disabled={!isEditing}
-            className={`w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all ${
-              !isEditing ? 'opacity-60' : ''
-            }`}
-          >
-            {Object.entries(VenueTypeLabels).map(([value, label]) => (
-              <option key={value} value={value} className="bg-neutral-800">
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="col-span-2">
-          <label className="block text-xs text-neutral-400 mb-2">Description</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            disabled={!isEditing}
-            rows={3}
-            className={`w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all resize-none ${
-              !isEditing ? 'opacity-60' : ''
-            }`}
-          />
-        </div>
-      </div>
-
-      {isEditing && (
-        <div className="flex gap-2">
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="px-4 py-2 rounded-2xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2 disabled:opacity-50"
-          >
-            <Save size={16} />
-            {loading ? 'Saving...' : 'Save'}
-          </button>
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="px-4 py-2 rounded-2xl bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60 transition-all duration-150 flex items-center gap-2"
-          >
-            <X size={16} />
-            Cancel
-          </button>
-        </div>
+                  {events.length === 0 && (
+                    <div className="text-center py-12 text-neutral-400">
+                      <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+                      <p className="text-base">No events available</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
 };
 
-// Seat Plan Editor Component
-interface SeatPlanEditorProps {
-  venue: VenueResponse | null;
-}
-
-const SeatPlanEditor = ({ venue }: SeatPlanEditorProps) => {
-  const [activeTab, setActiveTab] = useState('segments');
+// Venue Detail Component - Prilagođen Dashboard stilu
+const VenueDetailView = ({ venue, onBack, activeTab, setActiveTab }: { 
+  venue: VenueResponse; 
+  onBack: () => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}) => {
   const [segments, setSegments] = useState<SegmentResponse[]>([]);
   const [zones, setZones] = useState<ZoneResponse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showCreateSegment, setShowCreateSegment] = useState(false);
-  const [showCreateZone, setShowCreateZone] = useState(false);
-  const [selectedSegment, setSelectedSegment] = useState<SegmentResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    loadVenueData();
+  }, [venue]);
+
+  const loadVenueData = async () => {
+    try {
+      setLoading(true);
+      const [segmentsData, allZones] = await Promise.all([
+        SegmentService.getSegmentsByVenueId(venue.venueId).catch(() => []),
+        ZoneService.getAllZones().catch(() => [])
+      ]);
+      
+      setSegments(segmentsData || []);
+      
+      // Filter zones for the current venue's segments
+      const venueZones = allZones.filter(zone => 
+        segmentsData.some(segment => segment.segmentId === zone.segmentId)
+      );
+      setZones(venueZones || []);
+    } catch (error) {
+      console.error('Error loading venue data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="text-white h-full flex flex-col">
+      {/* Header - Kompaktniji kao Dashboard */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <button
+              onClick={onBack}
+              className="bg-neutral-800 hover:bg-neutral-700 px-4 py-2 rounded-xl mr-6 transition-colors flex items-center gap-2 text-sm"
+            >
+              <ArrowLeft size={18} />
+              Back
+            </button>
+            <div>
+              <h1 className="text-[26px] font-bold text-white">{venue.name}</h1>
+              <div className="flex items-center mt-1 text-neutral-400">
+                <Users className="w-4 h-4 mr-2" />
+                <span className="text-sm">Capacity: {(venue.capacity || 0).toLocaleString()}</span>
+                <span className="mx-3">•</span>
+                <span className="text-sm">{getVenueTypeName(venue.venueType)}</span>
+                <span className="mx-3">•</span>
+                <span className="text-sm">{venue.city}, {venue.address}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button className="bg-neutral-800 hover:bg-neutral-700 px-4 py-2 rounded-xl transition-colors font-medium flex items-center gap-2 text-sm">
+              <Settings size={18} />
+              Settings
+            </button>
+            <button className="bg-lime-500 hover:bg-lime-600 px-4 py-2 rounded-xl transition-colors font-medium text-sm">
+              Save Layout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid - Kao Dashboard */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        
+        {/* Seat Plan Editor - Left Half */}
+        <div className="xl:col-span-1">
+          <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden h-full">
+            <div className="p-5 border-b border-neutral-800">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Seat Plan Editor</h2>
+                <div className="flex bg-neutral-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setActiveTab('segments')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'segments'
+                        ? 'bg-lime-500 text-white'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    Segments
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('zones')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'zones'
+                        ? 'bg-lime-500 text-white'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    Zones
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 overflow-y-auto" style={{ maxHeight: '600px' }}>
+              {activeTab === 'segments' ? 
+                <SegmentEditor segments={segments} venueId={venue.venueId} onSegmentsUpdate={setSegments} /> : 
+                <ZoneEditor zones={zones} segments={segments} onZonesUpdate={setZones} />
+              }
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Seat Map - Right Half */}
+        <div className="xl:col-span-1">
+          <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden h-full">
+            <div className="p-5 border-b border-neutral-800">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Interactive Seat Map</h2>
+                <div className="flex items-center space-x-3">
+                  <button className="bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded-xl transition-colors flex items-center gap-2 text-sm">
+                    <Eye size={16} />
+                    View Mode
+                  </button>
+                  <button className="bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded-xl transition-colors flex items-center gap-2 text-sm">
+                    <Settings size={16} />
+                    Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-5">
+              <VenueLayoutPreview venue={venue} segments={segments} zones={zones} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Segment Editor - Kompaktniji
+const SegmentEditor = ({ segments, venueId, onSegmentsUpdate }: { 
+  segments: SegmentResponse[]; 
+  venueId: number;
+  onSegmentsUpdate: (segments: SegmentResponse[]) => void;
+}) => {
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [segmentForm, setSegmentForm] = useState<SegmentCreateForm>({
     name: '',
     description: '',
     capacity: 0,
     segmentType: SegmentType.Standard,
-    venueId: venue?.venueId || 0
+    venueId: venueId
   });
 
+  const handleCreateSegment = async () => {
+    try {
+      const created = await SegmentService.createSegment(segmentForm);
+      onSegmentsUpdate([...segments, created]);
+      setShowCreateForm(false);
+      setSegmentForm({
+        name: '',
+        description: '',
+        capacity: 0,
+        segmentType: SegmentType.Standard,
+        venueId: venueId
+      });
+    } catch (error) {
+      console.error('Failed to create segment:', error);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Segments Configuration</h3>
+          <p className="text-neutral-400 text-sm">Manage seating segments</p>
+        </div>
+        <button 
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="bg-lime-500 hover:bg-lime-600 px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2"
+        >
+          <Plus size={18} />
+          Add
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4">
+          <h4 className="font-semibold text-white mb-3">Create New Segment</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-neutral-400 mb-1 block">Name</label>
+              <input
+                type="text"
+                placeholder="VIP Section"
+                value={segmentForm.name}
+                onChange={(e) => setSegmentForm({ ...segmentForm, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-neutral-400 mb-1 block">Capacity</label>
+              <input
+                type="number"
+                placeholder="100"
+                value={segmentForm.capacity}
+                onChange={(e) => setSegmentForm({ ...segmentForm, capacity: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleCreateSegment}
+              className="px-4 py-2 rounded-lg bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all text-sm"
+            >
+              Create
+            </button>
+            <button
+              onClick={() => setShowCreateForm(false)}
+              className="px-4 py-2 rounded-lg bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60 transition-all text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div className="space-y-3">
+        {segments.map((segment) => (
+          <div key={segment.segmentId} className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4 hover:border-neutral-600 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded bg-lime-500 mr-3"></div>
+                <div>
+                  <h4 className="font-semibold text-white">{segment.name}</h4>
+                  <p className="text-neutral-400 text-sm">
+                    {segment.capacity} seats • {getSegmentTypeName(segment.segmentType)}
+                  </p>
+                </div>
+              </div>
+              <button className="text-neutral-400 hover:text-lime-400 transition-colors p-1">
+                <Edit className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {segments.length === 0 && (
+          <div className="text-center py-8 text-neutral-400 bg-neutral-800/30 rounded-lg border border-neutral-700">
+            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <h4 className="text-base mb-1">No segments configured</h4>
+            <p className="text-sm">Create your first segment to get started</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Zone Editor - Kompaktniji
+const ZoneEditor = ({ zones, segments, onZonesUpdate }: { 
+  zones: ZoneResponse[]; 
+  segments: SegmentResponse[];
+  onZonesUpdate: (zones: ZoneResponse[]) => void;
+}) => {
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [zoneForm, setZoneForm] = useState<ZoneCreateForm>({
     name: '',
     description: '',
@@ -356,486 +583,134 @@ const SeatPlanEditor = ({ venue }: SeatPlanEditorProps) => {
     segmentId: 0
   });
 
-  useEffect(() => {
-    if (venue) {
-      loadSegments();
-    }
-  }, [venue]);
-
-  useEffect(() => {
-    if (selectedSegment) {
-      loadZonesForSegment(selectedSegment.segmentId);
-    }
-  }, [selectedSegment]);
-
-  const loadSegments = async () => {
-    try {
-      setLoading(true);
-      const data = await SegmentService.getSegmentsByVenueId(venue!.venueId);
-      setSegments(data || []);
-    } catch (error) {
-      console.error('Failed to load segments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadZonesForSegment = async (segmentId: number) => {
-    try {
-      const data = await ZoneService.getZonesBySegmentId(segmentId);
-      setZones(data || []);
-    } catch (error) {
-      console.error('Failed to load zones:', error);
-    }
-  };
-
-  const handleCreateSegment = async () => {
-    try {
-      const segmentData = {
-        ...segmentForm,
-        venueId: venue!.venueId
-      };
-      await SegmentService.createSegment(segmentData);
-      setShowCreateSegment(false);
-      setSegmentForm({ 
-        name: '', 
-        description: '', 
-        capacity: 0, 
-        segmentType: SegmentType.Standard,
-        venueId: venue!.venueId 
-      });
-      loadSegments();
-    } catch (error) {
-      console.error('Failed to create segment:', error);
-    }
-  };
-
   const handleCreateZone = async () => {
     try {
-      await ZoneService.createZone(zoneForm);
-      setShowCreateZone(false);
-      setZoneForm({ 
-        name: '', 
-        description: '', 
-        capacity: 0, 
-        basePrice: 0, 
-        position: ZonePosition.Center, 
-        segmentId: 0 
+      const created = await ZoneService.createZone(zoneForm);
+      onZonesUpdate([...zones, created]);
+      setShowCreateForm(false);
+      setZoneForm({
+        name: '',
+        description: '',
+        capacity: 0,
+        basePrice: 0,
+        position: ZonePosition.Center,
+        segmentId: 0
       });
-      if (selectedSegment) {
-        loadZonesForSegment(selectedSegment.segmentId);
-      }
     } catch (error) {
       console.error('Failed to create zone:', error);
     }
   };
 
-  const deleteSegment = async (segmentId: number) => {
-    try {
-      await SegmentService.deleteSegment(segmentId);
-      loadSegments();
-    } catch (error) {
-      console.error('Failed to delete segment:', error);
-    }
-  };
-
-  const deleteZone = async (zoneId: number) => {
-    try {
-      await ZoneService.deleteZone(zoneId);
-      if (selectedSegment) {
-        loadZonesForSegment(selectedSegment.segmentId);
-      }
-    } catch (error) {
-      console.error('Failed to delete zone:', error);
-    }
-  };
-
-  if (!venue) {
-    return (
-      <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6 mt-4">
-        <div className="text-center text-neutral-400">
-          <p>Select a venue to manage seat plan</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6 mt-4">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white">Seat Plan Editor</h3>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setActiveTab('segments')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all duration-150 ${
-            activeTab === 'segments'
-              ? 'bg-lime-400/10 border border-lime-400/30 text-lime-400'
-              : 'bg-neutral-800/60 border border-neutral-700 text-neutral-400 hover:text-white'
-          }`}
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Pricing Zones</h3>
+          <p className="text-neutral-400 text-sm">Configure pricing zones</p>
+        </div>
+        <button 
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="bg-lime-500 hover:bg-lime-600 px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2"
         >
-          Segments
-        </button>
-        <button
-          onClick={() => setActiveTab('zones')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all duration-150 ${
-            activeTab === 'zones'
-              ? 'bg-lime-400/10 border border-lime-400/30 text-lime-400'
-              : 'bg-neutral-800/60 border border-neutral-700 text-neutral-400 hover:text-white'
-          }`}
-        >
-          Zones
+          <Plus size={18} />
+          Add
         </button>
       </div>
 
-      {activeTab === 'segments' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-medium text-white">Segments</h4>
-            <button
-              onClick={() => setShowCreateSegment(!showCreateSegment)}
-              className="px-3 py-2 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Add Segment
-            </button>
-          </div>
-
-          {showCreateSegment && (
-            <div className="p-4 bg-neutral-800/40 border border-neutral-700 rounded-xl">
-              <h5 className="font-medium text-white mb-3">Create New Segment</h5>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="Segment name"
-                  value={segmentForm.name}
-                  onChange={(e) => setSegmentForm({ ...segmentForm, name: e.target.value })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-                <input
-                  type="number"
-                  placeholder="Capacity"
-                  value={segmentForm.capacity}
-                  onChange={(e) => setSegmentForm({ ...segmentForm, capacity: parseInt(e.target.value) || 0 })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-                <select
-                  value={segmentForm.segmentType}
-                  onChange={(e) => setSegmentForm({ ...segmentForm, segmentType: parseInt(e.target.value) as SegmentType })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
-                >
-                  {Object.entries(SegmentTypeLabels).map(([value, label]) => (
-                    <option key={value} value={value} className="bg-neutral-800">{label}</option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={segmentForm.description}
-                  onChange={(e) => setSegmentForm({ ...segmentForm, description: e.target.value })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-              </div>
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={handleCreateSegment}
-                  className="px-3 py-2 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150"
-                >
-                  Create
-                </button>
-                <button
-                  onClick={() => setShowCreateSegment(false)}
-                  className="px-3 py-2 rounded-xl bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60 transition-all duration-150"
-                >
-                  Cancel
-                </button>
-              </div>
+      {showCreateForm && (
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4">
+          <h4 className="font-semibold text-white mb-3">Create New Zone</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-neutral-400 mb-1 block">Name</label>
+              <input
+                type="text"
+                placeholder="Front Row"
+                value={zoneForm.name}
+                onChange={(e) => setZoneForm({ ...zoneForm, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm"
+              />
             </div>
-          )}
-
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {segments.map((segment) => (
-              <div
-                key={segment.segmentId}
-                className="p-3 bg-neutral-800/40 border border-neutral-700 rounded-xl flex items-center justify-between hover:bg-neutral-700/40 transition-all duration-150"
+            <div>
+              <label className="text-xs text-neutral-400 mb-1 block">Capacity</label>
+              <input
+                type="number"
+                placeholder="50"
+                value={zoneForm.capacity}
+                onChange={(e) => setZoneForm({ ...zoneForm, capacity: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-neutral-400 mb-1 block">Base Price ($)</label>
+              <input
+                type="number"
+                placeholder="99.99"
+                value={zoneForm.basePrice}
+                onChange={(e) => setZoneForm({ ...zoneForm, basePrice: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-neutral-400 mb-1 block">Segment</label>
+              <select
+                value={zoneForm.segmentId}
+                onChange={(e) => setZoneForm({ ...zoneForm, segmentId: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm"
               >
-                <div>
-                  <h5 className="font-medium text-white">{segment.name}</h5>
-                  <div className="flex items-center gap-4 mt-1">
-                    <span className="text-xs text-neutral-400">{SegmentTypeLabels[segment.segmentType]}</span>
-                    <span className="text-xs text-neutral-400 flex items-center gap-1">
-                      <Users size={12} />
-                      {segment.capacity}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelectedSegment(segment)}
-                    className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 text-neutral-400 hover:text-white transition-all duration-150"
-                  >
-                    <Edit size={14} />
-                  </button>
-                  <button
-                    onClick={() => deleteSegment(segment.segmentId)}
-                    className="p-2 rounded-xl bg-red-900/20 border border-red-700/30 text-red-400 hover:bg-red-900/30 transition-all duration-150"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            ))}
+                <option value={0}>Select Segment</option>
+                {segments.map((segment) => (
+                  <option key={segment.segmentId} value={segment.segmentId}>
+                    {segment.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleCreateZone}
+              className="px-4 py-2 rounded-lg bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all text-sm"
+            >
+              Create
+            </button>
+            <button
+              onClick={() => setShowCreateForm(false)}
+              className="px-4 py-2 rounded-lg bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60 transition-all text-sm"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
-
-      {activeTab === 'zones' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-medium text-white">Zones</h4>
-            <button
-              onClick={() => setShowCreateZone(!showCreateZone)}
-              className="px-3 py-2 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Add Zone
-            </button>
-          </div>
-
-          {showCreateZone && (
-            <div className="p-4 bg-neutral-800/40 border border-neutral-700 rounded-xl">
-              <h5 className="font-medium text-white mb-3">Create New Zone</h5>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="Zone name"
-                  value={zoneForm.name}
-                  onChange={(e) => setZoneForm({ ...zoneForm, name: e.target.value })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-                <input
-                  type="number"
-                  placeholder="Capacity"
-                  value={zoneForm.capacity}
-                  onChange={(e) => setZoneForm({ ...zoneForm, capacity: parseInt(e.target.value) || 0 })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-                <input
-                  type="number"
-                  placeholder="Base Price"
-                  value={zoneForm.basePrice}
-                  onChange={(e) => setZoneForm({ ...zoneForm, basePrice: parseFloat(e.target.value) || 0 })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-                <select
-                  value={zoneForm.position}
-                  onChange={(e) => setZoneForm({ ...zoneForm, position: parseInt(e.target.value) as ZonePosition })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
-                >
-                  {Object.entries(ZonePositionLabels).map(([value, label]) => (
-                    <option key={value} value={value} className="bg-neutral-800">{label}</option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={zoneForm.description}
-                  onChange={(e) => setZoneForm({ ...zoneForm, description: e.target.value })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                />
-                <select
-                  value={zoneForm.segmentId}
-                  onChange={(e) => setZoneForm({ ...zoneForm, segmentId: parseInt(e.target.value) })}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
-                >
-                  <option value={0}>Select Segment</option>
-                  {segments.map((segment) => (
-                    <option key={segment.segmentId} value={segment.segmentId} className="bg-neutral-800">
-                      {segment.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={handleCreateZone}
-                  className="px-3 py-2 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150"
-                >
-                  Create
-                </button>
-                <button
-                  onClick={() => setShowCreateZone(false)}
-                  className="px-3 py-2 rounded-xl bg-neutral-800/60 border border-neutral-700 text-white hover:bg-neutral-700/60 transition-all duration-150"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {zones.map((zone) => (
-              <div
-                key={zone.zoneId}
-                className="p-3 bg-neutral-800/40 border border-neutral-700 rounded-xl flex items-center justify-between hover:bg-neutral-700/40 transition-all duration-150"
-              >
+      
+      <div className="space-y-3">
+        {zones.map((zone) => (
+          <div key={zone.zoneId} className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4 hover:border-neutral-600 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="bg-blue-500/20 p-2 rounded-lg mr-3">
+                  <DollarSign className="w-4 h-4 text-blue-400" />
+                </div>
                 <div>
-                  <h5 className="font-medium text-white">{zone.name}</h5>
-                  <div className="flex items-center gap-4 mt-1">
-                    <span className="text-xs text-neutral-400">{ZonePositionLabels[zone.position]}</span>
-                    <span className="text-xs text-neutral-400 flex items-center gap-1">
-                      <Users size={12} />
-                      {zone.capacity}
-                    </span>
-                    <span className="text-xs text-neutral-400 flex items-center gap-1">
-                      <DollarSign size={12} />
-                      {zone.basePrice}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 text-neutral-400 hover:text-white transition-all duration-150">
-                    <Edit size={14} />
-                  </button>
-                  <button
-                    onClick={() => deleteZone(zone.zoneId)}
-                    className="p-2 rounded-xl bg-red-900/20 border border-red-700/30 text-red-400 hover:bg-red-900/30 transition-all duration-150"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <h4 className="font-semibold text-white">{zone.name}</h4>
+                  <p className="text-neutral-400 text-sm">
+                    ${zone.basePrice} • {zone.capacity} seats
+                  </p>
                 </div>
               </div>
-            ))}
+              <button className="text-neutral-400 hover:text-blue-400 transition-colors p-1">
+                <Edit className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
+        ))}
 
-// Main Infrastructure Page Component
-const InfrastructurePage = () => {
-const [venues, setVenues] = useState<VenueResponse[]>([]);
-  const [selectedVenue, setSelectedVenue] = useState<VenueResponse | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [successMessage, setSuccessMessage] = useState('');
-
-  useEffect(() => {
-    loadVenues();
-  }, []);
-
-  const loadVenues = async () => {
-    try {
-      setLoading(true);
-      const data = await VenueService.getAllVenues();
-      setVenues(data || []);
-    } catch (error) {
-      console.error('Failed to load venues:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredVenues = venues.filter(venue =>
-    venue.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    venue.city?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleVenueSelect = (venue: VenueResponse): void => {
-    setSelectedVenue(venue);
-    setIsEditing(false);
-  };
-
-  const handleCreateNew = () => {
-    setSelectedVenue(null);
-    setIsEditing(true);
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleSave = async (venueData: VenueCreateForm) => {
-    try {
-      if (selectedVenue) {
-        // Update postojeći venue - možda trebate kreirati VenueUpdateForm
-        const updated = await VenueService.updateVenue(selectedVenue.venueId, venueData);
-        setSelectedVenue(updated);
-        setVenues(venues.map(v => v.venueId === updated.venueId ? updated : v));
-      } else {
-        // Kreiraj novi venue
-        const created = await VenueService.createVenue(venueData);
-        setVenues([...venues, created]);
-        setSelectedVenue(created);
-      }
-      setIsEditing(false);
-      setSuccessMessage(selectedVenue ? 'Venue updated successfully' : 'Venue created successfully');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    if (!selectedVenue) {
-      // If we were creating a new venue, clear selection
-      setSelectedVenue(null);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex bg-neutral-950 min-h-screen">
-        <div className="flex-1 p-4">
-          <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-6 h-full shadow-xl flex items-center justify-center">
-            <div className="text-neutral-400">Loading venues...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex bg-neutral-950 min-h-screen p-4 gap-4">
-      {/* Left Column - Venue List */}
-      <VenueList
-        venues={filteredVenues}
-        selectedVenue={selectedVenue}
-        onVenueSelect={handleVenueSelect}
-        onCreateNew={handleCreateNew}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
-
-      {/* Right Column - Details and Seat Plan */}
-      <div className="flex-1 flex flex-col gap-4 h-[calc(100vh-2rem)] overflow-hidden">
-        {/* Success Message */}
-        {successMessage && (
-          <div className="px-4 py-3 rounded-xl bg-lime-400/10 border border-lime-400/30 text-lime-400 text-sm">
-            {successMessage}
-          </div>
-        )}
-
-        {/* Venue Details Form */}
-        <div className="flex-1">
-          <VenueDetailForm
-            venue={selectedVenue}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            isEditing={isEditing}
-            onEdit={handleEdit}
-          />
-        </div>
-
-        {/* Seat Plan Editor */}
-        {(selectedVenue || isEditing) && (
-          <div className="flex-shrink-0">
-            <SeatPlanEditor venue={selectedVenue} />
+        {zones.length === 0 && (
+          <div className="text-center py-8 text-neutral-400 bg-neutral-800/30 rounded-lg border border-neutral-700">
+            <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <h4 className="text-base mb-1">No zones configured</h4>
+            <p className="text-sm">Create pricing zones to manage different ticket prices</p>
           </div>
         )}
       </div>
@@ -843,4 +718,98 @@ const [venues, setVenues] = useState<VenueResponse[]>([]);
   );
 };
 
-export default InfrastructurePage;
+// Venue Layout Preview - Kompaktniji
+const VenueLayoutPreview = ({ venue, segments, zones }: { 
+  venue: VenueResponse;
+  segments: SegmentResponse[];
+  zones: ZoneResponse[];
+}) => {
+  return (
+    <div className="bg-neutral-800/30 border border-neutral-700 rounded-xl p-5 h-full">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Venue Layout</h3>
+          <div className="text-sm text-neutral-400">
+            {segments.length} segments • {zones.length} zones
+          </div>
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            {/* Enhanced venue visualization */}
+            <div className="bg-neutral-700 rounded-2xl p-6 mb-4 relative max-w-sm mx-auto">
+              <div className="text-xs text-neutral-300 absolute top-3 left-3">STAGE</div>
+              <div className="bg-neutral-600 h-2 w-32 mx-auto mb-6 rounded-lg"></div>
+              
+              {/* Enhanced seat sections visualization */}
+              <div className="space-y-2">
+                {/* VIP Section */}
+                <div className="flex justify-center space-x-1">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="w-2 h-2 bg-lime-500 rounded-sm"></div>
+                  ))}
+                </div>
+                {/* Premium Section */}
+                <div className="flex justify-center space-x-1">
+                  {[...Array(12)].map((_, i) => (
+                    <div key={i} className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                  ))}
+                </div>
+                <div className="flex justify-center space-x-1">
+                  {[...Array(12)].map((_, i) => (
+                    <div key={i} className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                  ))}
+                </div>
+                {/* Standard Section */}
+                <div className="flex justify-center space-x-1">
+                  {[...Array(16)].map((_, i) => (
+                    <div key={i} className="w-2 h-2 bg-purple-500 rounded-sm"></div>
+                  ))}
+                </div>
+                <div className="flex justify-center space-x-1">
+                  {[...Array(16)].map((_, i) => (
+                    <div key={i} className="w-2 h-2 bg-purple-500 rounded-sm"></div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Standing Area */}
+              <div className="mt-4 bg-green-500/20 rounded-lg p-2 border border-green-500/30">
+                <div className="text-xs text-green-400 font-medium">Standing Area</div>
+              </div>
+            </div>
+            
+            <div className="text-sm text-neutral-400 mb-2">
+              Interactive seat map preview for <span className="text-white font-medium">{venue.name}</span>
+            </div>
+            <div className="text-xs text-neutral-500">
+              Total capacity: {(venue.capacity || 0).toLocaleString()} seats
+            </div>
+          </div>
+        </div>
+
+        {/* Legend - Kompaktniji */}
+        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-neutral-700">
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-lime-500 rounded-sm mr-2"></div>
+            <span className="text-xs text-neutral-400">VIP Sections</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-blue-500 rounded-sm mr-2"></div>
+            <span className="text-xs text-neutral-400">Premium Seating</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-purple-500 rounded-sm mr-2"></div>
+            <span className="text-xs text-neutral-400">Standard Seating</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-green-500 rounded-sm mr-2"></div>
+            <span className="text-xs text-neutral-400">Standing Area</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Infrastructure;
