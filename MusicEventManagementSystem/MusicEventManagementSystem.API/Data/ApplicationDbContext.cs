@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.Models.Auth;
+using System.Threading.Channels;
 using System.Reflection.Emit;
 
 namespace MusicEventManagementSystem.Data
@@ -20,6 +21,17 @@ namespace MusicEventManagementSystem.Data
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<RecordedSale> RecordedSales { get; set; }
         public DbSet<PricingRule> PricingRules { get; set; }
+
+        // DbSets for Media-Campaign Subsystem
+        public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<Ad> Ads { get; set; }
+        public DbSet<MediaTask> MediaTasks { get; set; }
+        public DbSet<MediaWorkflow> MediaWorkflows { get; set; }
+        public DbSet<AdType> AdTypes { get; set; }
+        public DbSet<MediaVersion> MediaVersions { get; set; }
+        public DbSet<MediaChannel> Channels { get; set; }
+        //public DbSet<IntegrationStatus> IntegrationStatuses { get; set; }
+        public DbSet<Approval> Approvals { get; set; }
 
         // DbSets for Performer Subsystem
         public DbSet<Performer> Performers { get; set; }
@@ -43,7 +55,7 @@ namespace MusicEventManagementSystem.Data
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<Infrastructure> Infrastructures { get; set; }
-
+         
         protected override void OnModelCreating(ModelBuilder builder)
         {
             // Ticket-Sales Subsystem configurations

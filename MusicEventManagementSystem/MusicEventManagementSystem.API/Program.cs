@@ -40,7 +40,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 4. Register repositories
+// 4. Register repositories for Ticket-Sales Subsystem
 builder.Services.AddScoped<IVenueRepository, VenueRepository>();
 builder.Services.AddScoped<ISegmentRepository, SegmentRepository>();
 builder.Services.AddScoped<IZoneRepository, ZoneRepository>();
@@ -62,6 +62,19 @@ builder.Services.AddScoped<IInfrastructureRepository, InfrastructureRepository>(
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IPerformanceResourceRepository, PerformanceResourceRepository>();
 
+// 5. Register Media Campaign repositories
+builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+builder.Services.AddScoped<IAdTypeRepository, AdTypeRepository>();
+builder.Services.AddScoped<IMediaWorkflowRepository, MediaWorkflowRepository>();
+builder.Services.AddScoped<IMediaTaskRepository, MediaTaskRepository>();
+builder.Services.AddScoped<IAdRepository, AdRepository>();
+builder.Services.AddScoped<IMediaVersionRepository, MediaVersionRepository>();
+builder.Services.AddScoped<IMediaChannelRepository, MediaChannelRepository>();
+//builder.Services.AddScoped<IIntegrationStatusRepository, IntegrationStatusRepository>();
+builder.Services.AddScoped<IApprovalRepository, ApprovalRepository>();
+
+
+// 6. Register services for Ticket-sales Subsystem
 // Performer subsystem repositories
 builder.Services.AddScoped<IPerformerRepository, PerformerRepository>();
 builder.Services.AddScoped<IRequirementRepository, RequirementRepository>();
@@ -93,6 +106,19 @@ builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IInfrastructureService, InfrastructureService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPerformanceResourceService, PerformanceResourceService>();
+
+// 8. Register Media Campaign services
+builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<IAdTypeService, AdTypeService>();
+builder.Services.AddScoped<IMediaWorkflowService, MediaWorkflowService>();
+builder.Services.AddScoped<IMediaTaskService, MediaTaskService>();
+builder.Services.AddScoped<IAdService, AdService>();
+builder.Services.AddScoped<IMediaVersionService, MediaVersionService>();
+builder.Services.AddScoped<IMediaChannelService, MediaChannelService>();
+//builder.Services.AddScoped<IIntegrationStatusService, IntegrationStatusService>();
+builder.Services.AddScoped<IApprovalService, ApprovalService>();
+
+builder.Services.AddControllers();
 
 // Performer subsystem services
 builder.Services.AddScoped<IPerformerService, PerformerService>();
