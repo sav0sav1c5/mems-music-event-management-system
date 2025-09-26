@@ -1,14 +1,13 @@
-﻿// MusicEventManagementSystem.API/Services/IServices/ICampaignService.cs
-using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 
 namespace MusicEventManagementSystem.API.Services.IService
 {
     public interface ICampaignService
     {
-        Task<IEnumerable<Campaign>> GetAllCampaignsAsync();
-        Task<Campaign?> GetCampaignByIdAsync(int id);
-        Task<Campaign> CreateCampaignAsync(Campaign campaign);
-        Task<Campaign?> UpdateCampaignAsync(int id, Campaign campaign);
+        Task<IEnumerable<CampaignResponseDto>> GetAllCampaignsAsync();
+        Task<CampaignResponseDto?> GetCampaignByIdAsync(int id);
+        Task<CampaignResponseDto> CreateCampaignAsync(CampaignCreateDto createDto);
+        Task<CampaignResponseDto?> UpdateCampaignAsync(int id, CampaignUpdateDto updateDto);
         Task<bool> DeleteCampaignAsync(int id);
     }
 }

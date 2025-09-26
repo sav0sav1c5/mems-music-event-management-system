@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -16,8 +15,9 @@ namespace MusicEventManagementSystem.API.Controllers
             _adTypeService = adTypeService;
         }
 
+        // GET: api/adtype
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AdType>>> GetAllAdTypes()
+        public async Task<ActionResult<IEnumerable<AdTypeResponseDto>>> GetAllAdTypes()
         {
             try
             {
@@ -30,16 +30,16 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        // GET: api/adtype/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<AdType>> GetAdTypeById(int id)
+        public async Task<ActionResult<AdTypeResponseDto>> GetAdTypeById(int id)
         {
             try
             {
                 var adType = await _adTypeService.GetAdTypeByIdAsync(id);
                 if (adType == null)
-                {
                     return NotFound($"AdType with ID {id} not found.");
-                }
+
                 return Ok(adType);
             }
             catch (Exception ex)
@@ -48,8 +48,9 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        // POST: api/adtype
         [HttpPost]
-        public async Task<ActionResult<AdType>> CreateAdType([FromBody] AdType adType)
+        public async Task<ActionResult<AdTypeResponseDto>> CreateAdType([FromBody] AdTypeCreateDto adTypeCreateDto)
         {
             try
             {
@@ -58,7 +59,8 @@ namespace MusicEventManagementSystem.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var createdAdType = await _adTypeService.CreateAdTypeAsync(adType);
+                var createdAdType = await _adTypeService.CreateAdTypeAsync(adTypeCreateDto);
+
                 return CreatedAtAction(nameof(GetAdTypeById), new { id = createdAdType.AdTypeId }, createdAdType);
             }
             catch (Exception ex)
@@ -67,8 +69,9 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        // PUT: api/adtype/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<AdType>> UpdateAdType(int id, [FromBody] AdType adType)
+        public async Task<ActionResult<AdTypeResponseDto>> UpdateAdType(int id, [FromBody] AdTypeUpdateDto adTypeUpdateDto)
         {
             try
             {
@@ -77,7 +80,8 @@ namespace MusicEventManagementSystem.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var updatedAdType = await _adTypeService.UpdateAdTypeAsync(id, adType);
+                var updatedAdType = await _adTypeService.UpdateAdTypeAsync(id, adTypeUpdateDto);
+
                 if (updatedAdType == null)
                 {
                     return NotFound($"AdType with ID {id} not found.");
@@ -91,12 +95,14 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        // DELETE: api/adtype/{id}
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAdType(int id)
         {
             try
             {
                 var isDeleted = await _adTypeService.DeleteAdTypeAsync(id);
+
                 if (!isDeleted)
                 {
                     return NotFound($"AdType with ID {id} not found.");

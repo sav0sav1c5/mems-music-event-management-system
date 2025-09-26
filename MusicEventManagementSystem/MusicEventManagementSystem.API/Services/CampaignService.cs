@@ -1,4 +1,4 @@
-﻿// MusicEventManagementSystem.API/Services/CampaignService.cs
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Repositories.IRepositories;
 using MusicEventManagementSystem.API.Services.IService;
@@ -14,53 +14,68 @@ namespace MusicEventManagementSystem.API.Services
             _campaignRepository = campaignRepository;
         }
 
-        public async Task<IEnumerable<Campaign>> GetAllCampaignsAsync()
+        public async Task<IEnumerable<CampaignResponseDto>> GetAllCampaignsAsync()
         {
-            return await _campaignRepository.GetAllAsync();
+            var campaigns = await _campaignRepository.GetAllAsync();
+            return campaigns.Select(MapToResponseDto);
         }
 
-        public async Task<Campaign?> GetCampaignByIdAsync(int id)
+        public async Task<CampaignResponseDto?> GetCampaignByIdAsync(int id)
         {
-            return await _campaignRepository.GetByIdAsync(id);
+            var campaign = await _campaignRepository.GetByIdAsync(id);
+            return campaign == null ? null : MapToResponseDto(campaign);
         }
 
-        public async Task<Campaign> CreateCampaignAsync(Campaign campaign)
+        public async Task<CampaignResponseDto> CreateCampaignAsync(CampaignCreateDto dto)
         {
+            var campaign = MapToEntity(dto);
             await _campaignRepository.AddAsync(campaign);
             await _campaignRepository.SaveChangesAsync();
-            return campaign;
+            return MapToResponseDto(campaign);
         }
 
-        public async Task<Campaign?> UpdateCampaignAsync(int id, Campaign campaign)
+        public async Task<CampaignResponseDto?> UpdateCampaignAsync(int id, CampaignUpdateDto dto)
         {
-            var existingCampaign = await _campaignRepository.GetByIdAsync(id);
-            if (existingCampaign == null)
-            {
-                return null;
-            }
+            var campaign = await _campaignRepository.GetByIdAsync(id);
+            if (campaign == null) return null;
 
-            existingCampaign.EventId = campaign.EventId;
-            existingCampaign.Name = campaign.Name;
-            existingCampaign.StartDate = campaign.StartDate;
-            existingCampaign.EndDate = campaign.EndDate;
-            existingCampaign.TotalBudget = campaign.TotalBudget;
+            if (dto.EventId.HasValue) campaign.EventId = dto.EventId.Value;
+            if (dto.Name != null) campaign.Name = dto.Name;
+            if (dto.StartDate.HasValue) campaign.StartDate = dto.StartDate.Value;
+            if (dto.EndDate.HasValue) campaign.EndDate = dto.EndDate.Value;
+            if (dto.TotalBudget.HasValue) campaign.TotalBudget = dto.TotalBudget.Value;
 
-            _campaignRepository.Update(existingCampaign);
+            _campaignRepository.Update(campaign);
             await _campaignRepository.SaveChangesAsync();
-            return existingCampaign;
+            return MapToResponseDto(campaign);
         }
 
         public async Task<bool> DeleteCampaignAsync(int id)
         {
             var campaign = await _campaignRepository.GetByIdAsync(id);
-            if (campaign == null)
-            {
-                return false;
-            }
-
+            if (campaign == null) return false;
             _campaignRepository.Delete(campaign);
             await _campaignRepository.SaveChangesAsync();
             return true;
         }
+
+        private static CampaignResponseDto MapToResponseDto(Campaign campaign) => new()
+        {
+            CampaignId = campaign.CampaignId,
+            EventId = campaign.EventId,
+            Name = campaign.Name,
+            StartDate = campaign.StartDate,
+            EndDate = campaign.EndDate,
+            TotalBudget = campaign.TotalBudget
+        };
+
+        private static Campaign MapToEntity(CampaignCreateDto dto) => new()
+        {
+            EventId = dto.EventId,
+            Name = dto.Name,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            TotalBudget = dto.TotalBudget
+        };
     }
 }

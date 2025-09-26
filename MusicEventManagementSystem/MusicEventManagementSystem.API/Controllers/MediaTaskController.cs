@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -16,11 +16,11 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MediaTask>>> GetAllTasks()
+        public async Task<ActionResult<IEnumerable<MediaTaskResponseDto>>> GetAllMediaTasks()
         {
             try
             {
-                var tasks = await _mediaTaskService.GetAllTasksAsync();
+                var tasks = await _mediaTaskService.GetAllMediaTasksAsync();
                 return Ok(tasks);
             }
             catch (Exception ex)
@@ -30,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<MediaTask>> GetTaskById(int id)
+        public async Task<ActionResult<MediaTaskResponseDto>> GetMediaTaskById(int id)
         {
             try
             {
-                var task = await _mediaTaskService.GetTaskByIdAsync(id);
+                var task = await _mediaTaskService.GetMediaTaskByIdAsync(id);
                 if (task == null)
-                {
-                    return NotFound($"Task with ID {id} not found.");
-                }
+                    return NotFound($"MediaTask with ID {id} not found.");
                 return Ok(task);
             }
             catch (Exception ex)
@@ -48,17 +46,15 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<MediaTask>> CreateTask([FromBody] MediaTask task)
+        public async Task<ActionResult<MediaTaskResponseDto>> CreateMediaTask([FromBody] MediaTaskCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdTask = await _mediaTaskService.CreateTaskAsync(task);
-                return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.MediaTaskId }, createdTask);
+                var createdTask = await _mediaTaskService.CreateMediaTaskAsync(createDto);
+                return CreatedAtAction(nameof(GetMediaTaskById), new { id = createdTask.MediaTaskId }, createdTask);
             }
             catch (Exception ex)
             {
@@ -67,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<MediaTask>> UpdateTask(int id, [FromBody] MediaTask task)
+        public async Task<ActionResult<MediaTaskResponseDto>> UpdateMediaTask(int id, [FromBody] MediaTaskUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedTask = await _mediaTaskService.UpdateTaskAsync(id, task);
+                var updatedTask = await _mediaTaskService.UpdateMediaTaskAsync(id, updateDto);
                 if (updatedTask == null)
-                {
-                    return NotFound($"Task with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaTask with ID {id} not found.");
                 return Ok(updatedTask);
             }
             catch (Exception ex)
@@ -91,16 +82,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTask(int id)
+        public async Task<ActionResult> DeleteMediaTask(int id)
         {
             try
             {
-                var isDeleted = await _mediaTaskService.DeleteTaskAsync(id);
+                var isDeleted = await _mediaTaskService.DeleteMediaTaskAsync(id);
                 if (!isDeleted)
-                {
-                    return NotFound($"Task with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaTask with ID {id} not found.");
                 return NoContent();
             }
             catch (Exception ex)

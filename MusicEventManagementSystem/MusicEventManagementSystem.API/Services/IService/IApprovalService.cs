@@ -1,13 +1,13 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 
 namespace MusicEventManagementSystem.API.Services.IService
 {
     public interface IApprovalService
     {
-        Task<IEnumerable<Approval>> GetAllApprovalsAsync();
-        Task<Approval?> GetApprovalByIdAsync(int id);
-        Task<Approval> CreateApprovalAsync(Approval approval);
-        Task<Approval?> UpdateApprovalAsync(int id, Approval approval);
+        Task<IEnumerable<ApprovalResponseDto>> GetAllApprovalsAsync();
+        Task<ApprovalResponseDto?> GetApprovalByIdAsync(int id);
+        Task<ApprovalResponseDto> CreateApprovalAsync(ApprovalCreateDto createDto);
+        Task<ApprovalResponseDto?> UpdateApprovalAsync(int id, ApprovalUpdateDto updateDto);
         Task<bool> DeleteApprovalAsync(int id);
     }
 }

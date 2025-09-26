@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -16,7 +16,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Approval>>> GetAllApprovals()
+        public async Task<ActionResult<IEnumerable<ApprovalResponseDto>>> GetAllApprovals()
         {
             try
             {
@@ -30,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Approval>> GetApprovalById(int id)
+        public async Task<ActionResult<ApprovalResponseDto>> GetApprovalById(int id)
         {
             try
             {
                 var approval = await _approvalService.GetApprovalByIdAsync(id);
                 if (approval == null)
-                {
                     return NotFound($"Approval with ID {id} not found.");
-                }
                 return Ok(approval);
             }
             catch (Exception ex)
@@ -48,16 +46,14 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Approval>> CreateApproval([FromBody] Approval approval)
+        public async Task<ActionResult<ApprovalResponseDto>> CreateApproval([FromBody] ApprovalCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdApproval = await _approvalService.CreateApprovalAsync(approval);
+                var createdApproval = await _approvalService.CreateApprovalAsync(createDto);
                 return CreatedAtAction(nameof(GetApprovalById), new { id = createdApproval.ApprovalId }, createdApproval);
             }
             catch (Exception ex)
@@ -67,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Approval>> UpdateApproval(int id, [FromBody] Approval approval)
+        public async Task<ActionResult<ApprovalResponseDto>> UpdateApproval(int id, [FromBody] ApprovalUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedApproval = await _approvalService.UpdateApprovalAsync(id, approval);
+                var updatedApproval = await _approvalService.UpdateApprovalAsync(id, updateDto);
                 if (updatedApproval == null)
-                {
                     return NotFound($"Approval with ID {id} not found.");
-                }
-
                 return Ok(updatedApproval);
             }
             catch (Exception ex)
@@ -97,10 +88,7 @@ namespace MusicEventManagementSystem.API.Controllers
             {
                 var isDeleted = await _approvalService.DeleteApprovalAsync(id);
                 if (!isDeleted)
-                {
                     return NotFound($"Approval with ID {id} not found.");
-                }
-
                 return NoContent();
             }
             catch (Exception ex)

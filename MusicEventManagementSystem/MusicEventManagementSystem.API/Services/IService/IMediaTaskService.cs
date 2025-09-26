@@ -1,12 +1,13 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
+
 namespace MusicEventManagementSystem.API.Services.IService
 {
-        public interface IMediaTaskService
-        {
-            Task<IEnumerable<MediaTask>> GetAllTasksAsync();
-            Task<MediaTask?> GetTaskByIdAsync(int id);
-            Task<MediaTask> CreateTaskAsync(MediaTask task);
-            Task<MediaTask?> UpdateTaskAsync(int id, MediaTask task);
-            Task<bool> DeleteTaskAsync(int id);
-        }
+    public interface IMediaTaskService
+    {
+        Task<IEnumerable<MediaTaskResponseDto>> GetAllMediaTasksAsync();
+        Task<MediaTaskResponseDto?> GetMediaTaskByIdAsync(int id);
+        Task<MediaTaskResponseDto> CreateMediaTaskAsync(MediaTaskCreateDto createDto);
+        Task<MediaTaskResponseDto?> UpdateMediaTaskAsync(int id, MediaTaskUpdateDto updateDto);
+        Task<bool> DeleteMediaTaskAsync(int id);
     }
+}

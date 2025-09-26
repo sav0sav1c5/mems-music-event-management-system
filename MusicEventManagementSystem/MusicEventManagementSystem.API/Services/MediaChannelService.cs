@@ -1,4 +1,5 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
+using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Repositories.IRepositories;
 using MusicEventManagementSystem.API.Services.IService;
 
@@ -6,59 +7,72 @@ namespace MusicEventManagementSystem.API.Services
 {
     public class MediaChannelService : IMediaChannelService
     {
-        private readonly IMediaChannelRepository _channelRepository;
+        private readonly IMediaChannelRepository _mediaChannelRepository;
 
-        public MediaChannelService(IMediaChannelRepository channelRepository)
+        public MediaChannelService(IMediaChannelRepository mediaChannelRepository)
         {
-            _channelRepository = channelRepository;
+            _mediaChannelRepository = mediaChannelRepository;
         }
 
-        public async Task<IEnumerable<MediaChannel>> GetAllChannelsAsync()
+        public async Task<IEnumerable<MediaChannelResponseDto>> GetAllMediaChannelsAsync()
         {
-            return await _channelRepository.GetAllAsync();
+            var channels = await _mediaChannelRepository.GetAllAsync();
+            return channels.Select(MapToResponseDto);
         }
 
-        public async Task<MediaChannel?> GetChannelByIdAsync(int id)
+        public async Task<MediaChannelResponseDto?> GetMediaChannelByIdAsync(int id)
         {
-            return await _channelRepository.GetByIdAsync(id);
+            var channel = await _mediaChannelRepository.GetByIdAsync(id);
+            return channel == null ? null : MapToResponseDto(channel);
         }
 
-        public async Task<MediaChannel> CreateChannelAsync(MediaChannel channel)
+        public async Task<MediaChannelResponseDto> CreateMediaChannelAsync(MediaChannelCreateDto dto)
         {
-            await _channelRepository.AddAsync(channel);
-            await _channelRepository.SaveChangesAsync();
-            return channel;
+            var channel = MapToEntity(dto);
+            await _mediaChannelRepository.AddAsync(channel);
+            await _mediaChannelRepository.SaveChangesAsync();
+            return MapToResponseDto(channel);
         }
 
-        public async Task<MediaChannel?> UpdateChannelAsync(int id, MediaChannel channel)
+        public async Task<MediaChannelResponseDto?> UpdateMediaChannelAsync(int id, MediaChannelUpdateDto dto)
         {
-            var existingChannel = await _channelRepository.GetByIdAsync(id);
-            if (existingChannel == null)
-            {
-                return null;
-            }
+            var channel = await _mediaChannelRepository.GetByIdAsync(id);
+            if (channel == null) return null;
 
-            existingChannel.PlatformType = channel.PlatformType;
-            existingChannel.APIKey = channel.APIKey;
-            existingChannel.APIURL = channel.APIURL;
-            existingChannel.APIVersion = channel.APIVersion;
+            if (dto.PlatformType != null) channel.PlatformType = dto.PlatformType;
+            if (dto.APIKey != null) channel.APIKey = dto.APIKey;
+            if (dto.APIURL != null) channel.APIURL = dto.APIURL;
+            if (dto.APIVersion != null) channel.APIVersion = dto.APIVersion;
 
-            _channelRepository.Update(existingChannel);
-            await _channelRepository.SaveChangesAsync();
-            return existingChannel;
+            _mediaChannelRepository.Update(channel);
+            await _mediaChannelRepository.SaveChangesAsync();
+            return MapToResponseDto(channel);
         }
 
-        public async Task<bool> DeleteChannelAsync(int id)
+        public async Task<bool> DeleteMediaChannelAsync(int id)
         {
-            var channel = await _channelRepository.GetByIdAsync(id);
-            if (channel == null)
-            {
-                return false;
-            }
-
-            _channelRepository.Delete(channel);
-            await _channelRepository.SaveChangesAsync();
+            var channel = await _mediaChannelRepository.GetByIdAsync(id);
+            if (channel == null) return false;
+            _mediaChannelRepository.Delete(channel);
+            await _mediaChannelRepository.SaveChangesAsync();
             return true;
         }
+
+        private static MediaChannelResponseDto MapToResponseDto(MediaChannel channel) => new()
+        {
+            MediaChannelId = channel.MediaChannelId,
+            PlatformType = channel.PlatformType,
+            APIKey = channel.APIKey,
+            APIURL = channel.APIURL,
+            APIVersion = channel.APIVersion
+        };
+
+        private static MediaChannel MapToEntity(MediaChannelCreateDto dto) => new()
+        {
+            PlatformType = dto.PlatformType,
+            APIKey = dto.APIKey,
+            APIURL = dto.APIURL,
+            APIVersion = dto.APIVersion
+        };
     }
 }

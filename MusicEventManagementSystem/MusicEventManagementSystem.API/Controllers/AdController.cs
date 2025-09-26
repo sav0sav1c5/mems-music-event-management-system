@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -16,7 +16,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ad>>> GetAllAds()
+        public async Task<ActionResult<IEnumerable<AdResponseDto>>> GetAllAds()
         {
             try
             {
@@ -30,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Ad>> GetAdById(int id)
+        public async Task<ActionResult<AdResponseDto>> GetAdById(int id)
         {
             try
             {
                 var ad = await _adService.GetAdByIdAsync(id);
                 if (ad == null)
-                {
                     return NotFound($"Ad with ID {id} not found.");
-                }
                 return Ok(ad);
             }
             catch (Exception ex)
@@ -48,16 +46,14 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Ad>> CreateAd([FromBody] Ad ad)
+        public async Task<ActionResult<AdResponseDto>> CreateAd([FromBody] AdCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdAd = await _adService.CreateAdAsync(ad);
+                var createdAd = await _adService.CreateAdAsync(createDto);
                 return CreatedAtAction(nameof(GetAdById), new { id = createdAd.AdId }, createdAd);
             }
             catch (Exception ex)
@@ -67,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Ad>> UpdateAd(int id, [FromBody] Ad ad)
+        public async Task<ActionResult<AdResponseDto>> UpdateAd(int id, [FromBody] AdUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedAd = await _adService.UpdateAdAsync(id, ad);
+                var updatedAd = await _adService.UpdateAdAsync(id, updateDto);
                 if (updatedAd == null)
-                {
                     return NotFound($"Ad with ID {id} not found.");
-                }
-
                 return Ok(updatedAd);
             }
             catch (Exception ex)
@@ -97,10 +88,7 @@ namespace MusicEventManagementSystem.API.Controllers
             {
                 var isDeleted = await _adService.DeleteAdAsync(id);
                 if (!isDeleted)
-                {
                     return NotFound($"Ad with ID {id} not found.");
-                }
-
                 return NoContent();
             }
             catch (Exception ex)

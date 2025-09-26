@@ -1,10 +1,6 @@
-﻿// MusicEventManagementSystem.API/Controllers/CampaignController.cs
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MusicEventManagementSystem.API.Models;
-using MusicEventManagementSystem.API.Repositories.IRepositories;
+﻿using Microsoft.AspNetCore.Mvc;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
-using MusicEventManagementSystem.Data;
 
 namespace MusicEventManagementSystem.API.Controllers
 {
@@ -20,7 +16,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Campaign>>> GetAllCampaigns()
+        public async Task<ActionResult<IEnumerable<CampaignResponseDto>>> GetAllCampaigns()
         {
             try
             {
@@ -34,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Campaign>> GetCampaignById(int id)
+        public async Task<ActionResult<CampaignResponseDto>> GetCampaignById(int id)
         {
             try
             {
                 var campaign = await _campaignService.GetCampaignByIdAsync(id);
                 if (campaign == null)
-                {
                     return NotFound($"Campaign with ID {id} not found.");
-                }
                 return Ok(campaign);
             }
             catch (Exception ex)
@@ -52,16 +46,14 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Campaign>> CreateCampaign([FromBody] Campaign campaign)
+        public async Task<ActionResult<CampaignResponseDto>> CreateCampaign([FromBody] CampaignCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdCampaign = await _campaignService.CreateCampaignAsync(campaign);
+                var createdCampaign = await _campaignService.CreateCampaignAsync(createDto);
                 return CreatedAtAction(nameof(GetCampaignById), new { id = createdCampaign.CampaignId }, createdCampaign);
             }
             catch (Exception ex)
@@ -71,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Campaign>> UpdateCampaign(int id, [FromBody] Campaign campaign)
+        public async Task<ActionResult<CampaignResponseDto>> UpdateCampaign(int id, [FromBody] CampaignUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedCampaign = await _campaignService.UpdateCampaignAsync(id, campaign);
+                var updatedCampaign = await _campaignService.UpdateCampaignAsync(id, updateDto);
                 if (updatedCampaign == null)
-                {
                     return NotFound($"Campaign with ID {id} not found.");
-                }
-
                 return Ok(updatedCampaign);
             }
             catch (Exception ex)
@@ -101,10 +88,7 @@ namespace MusicEventManagementSystem.API.Controllers
             {
                 var isDeleted = await _campaignService.DeleteCampaignAsync(id);
                 if (!isDeleted)
-                {
                     return NotFound($"Campaign with ID {id} not found.");
-                }
-
                 return NoContent();
             }
             catch (Exception ex)

@@ -1,13 +1,13 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 
 namespace MusicEventManagementSystem.API.Services.IService
 {
     public interface IMediaVersionService
     {
-        Task<IEnumerable<MediaVersion>> GetAllVersionsAsync();
-        Task<MediaVersion?> GetVersionByIdAsync(int id);
-        Task<MediaVersion> CreateVersionAsync(MediaVersion mediaVersion);
-        Task<MediaVersion?> UpdateVersionAsync(int id, MediaVersion mediaVersion);
-        Task<bool> DeleteVersionAsync(int id);
+        Task<IEnumerable<MediaVersionResponseDto>> GetAllMediaVersionsAsync();
+        Task<MediaVersionResponseDto?> GetMediaVersionByIdAsync(int id);
+        Task<MediaVersionResponseDto> CreateMediaVersionAsync(MediaVersionCreateDto createDto);
+        Task<MediaVersionResponseDto?> UpdateMediaVersionAsync(int id, MediaVersionUpdateDto updateDto);
+        Task<bool> DeleteMediaVersionAsync(int id);
     }
 }

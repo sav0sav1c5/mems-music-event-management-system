@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -8,19 +8,19 @@ namespace MusicEventManagementSystem.API.Controllers
     [ApiController]
     public class MediaChannelController : ControllerBase
     {
-        private readonly IMediaChannelService _channelService;
+        private readonly IMediaChannelService _mediaChannelService;
 
-        public MediaChannelController(IMediaChannelService channelService)
+        public MediaChannelController(IMediaChannelService mediaChannelService)
         {
-            _channelService = channelService;
+            _mediaChannelService = mediaChannelService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MediaChannel>>> GetAllChannels()
+        public async Task<ActionResult<IEnumerable<MediaChannelResponseDto>>> GetAllMediaChannels()
         {
             try
             {
-                var channels = await _channelService.GetAllChannelsAsync();
+                var channels = await _mediaChannelService.GetAllMediaChannelsAsync();
                 return Ok(channels);
             }
             catch (Exception ex)
@@ -30,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<MediaChannel>> GetChannelById(int id)
+        public async Task<ActionResult<MediaChannelResponseDto>> GetMediaChannelById(int id)
         {
             try
             {
-                var channel = await _channelService.GetChannelByIdAsync(id);
+                var channel = await _mediaChannelService.GetMediaChannelByIdAsync(id);
                 if (channel == null)
-                {
-                    return NotFound($"Channel with ID {id} not found.");
-                }
+                    return NotFound($"MediaChannel with ID {id} not found.");
                 return Ok(channel);
             }
             catch (Exception ex)
@@ -48,17 +46,15 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<MediaChannel>> CreateChannel([FromBody] MediaChannel channel)
+        public async Task<ActionResult<MediaChannelResponseDto>> CreateMediaChannel([FromBody] MediaChannelCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdChannel = await _channelService.CreateChannelAsync(channel);
-                return CreatedAtAction(nameof(GetChannelById), new { id = createdChannel.MediaChannelId }, createdChannel);
+                var createdChannel = await _mediaChannelService.CreateMediaChannelAsync(createDto);
+                return CreatedAtAction(nameof(GetMediaChannelById), new { id = createdChannel.MediaChannelId }, createdChannel);
             }
             catch (Exception ex)
             {
@@ -67,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<MediaChannel>> UpdateChannel(int id, [FromBody] MediaChannel channel)
+        public async Task<ActionResult<MediaChannelResponseDto>> UpdateMediaChannel(int id, [FromBody] MediaChannelUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedChannel = await _channelService.UpdateChannelAsync(id, channel);
+                var updatedChannel = await _mediaChannelService.UpdateMediaChannelAsync(id, updateDto);
                 if (updatedChannel == null)
-                {
-                    return NotFound($"Channel with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaChannel with ID {id} not found.");
                 return Ok(updatedChannel);
             }
             catch (Exception ex)
@@ -91,16 +82,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteChannel(int id)
+        public async Task<ActionResult> DeleteMediaChannel(int id)
         {
             try
             {
-                var isDeleted = await _channelService.DeleteChannelAsync(id);
+                var isDeleted = await _mediaChannelService.DeleteMediaChannelAsync(id);
                 if (!isDeleted)
-                {
-                    return NotFound($"Channel with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaChannel with ID {id} not found.");
                 return NoContent();
             }
             catch (Exception ex)
