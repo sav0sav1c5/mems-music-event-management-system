@@ -1,26 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class VersionController : ControllerBase
+    public class MediaVersionController : ControllerBase
     {
-        private readonly IMediaVersionService _versionService;
+        private readonly IMediaVersionService _mediaVersionService;
 
-        public VersionController(IMediaVersionService versionService)
+        public MediaVersionController(IMediaVersionService mediaVersionService)
         {
-            _versionService = versionService;
+            _mediaVersionService = mediaVersionService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MediaVersion>>> GetAllVersions()
+        public async Task<ActionResult<IEnumerable<MediaVersionResponseDto>>> GetAllMediaVersions()
         {
             try
             {
-                var versions = await _versionService.GetAllVersionsAsync();
+                var versions = await _mediaVersionService.GetAllMediaVersionsAsync();
                 return Ok(versions);
             }
             catch (Exception ex)
@@ -30,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<MediaVersion>> GetVersionById(int id)
+        public async Task<ActionResult<MediaVersionResponseDto>> GetMediaVersionById(int id)
         {
             try
             {
-                var version = await _versionService.GetVersionByIdAsync(id);
+                var version = await _mediaVersionService.GetMediaVersionByIdAsync(id);
                 if (version == null)
-                {
-                    return NotFound($"Version with ID {id} not found.");
-                }
+                    return NotFound($"MediaVersion with ID {id} not found.");
                 return Ok(version);
             }
             catch (Exception ex)
@@ -48,17 +46,15 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<MediaVersion>> CreateVersion([FromBody] MediaVersion version)
+        public async Task<ActionResult<MediaVersionResponseDto>> CreateMediaVersion([FromBody] MediaVersionCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdVersion = await _versionService.CreateVersionAsync(version);
-                return CreatedAtAction(nameof(GetVersionById), new { id = createdVersion.MediaVersionId }, createdVersion);
+                var createdVersion = await _mediaVersionService.CreateMediaVersionAsync(createDto);
+                return CreatedAtAction(nameof(GetMediaVersionById), new { id = createdVersion.MediaVersionId }, createdVersion);
             }
             catch (Exception ex)
             {
@@ -67,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<MediaVersion>> UpdateVersion(int id, [FromBody] MediaVersion version)
+        public async Task<ActionResult<MediaVersionResponseDto>> UpdateMediaVersion(int id, [FromBody] MediaVersionUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedVersion = await _versionService.UpdateVersionAsync(id, version);
+                var updatedVersion = await _mediaVersionService.UpdateMediaVersionAsync(id, updateDto);
                 if (updatedVersion == null)
-                {
-                    return NotFound($"Version with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaVersion with ID {id} not found.");
                 return Ok(updatedVersion);
             }
             catch (Exception ex)
@@ -91,16 +82,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteVersion(int id)
+        public async Task<ActionResult> DeleteMediaVersion(int id)
         {
             try
             {
-                var isDeleted = await _versionService.DeleteVersionAsync(id);
+                var isDeleted = await _mediaVersionService.DeleteMediaVersionAsync(id);
                 if (!isDeleted)
-                {
-                    return NotFound($"Version with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaVersion with ID {id} not found.");
                 return NoContent();
             }
             catch (Exception ex)

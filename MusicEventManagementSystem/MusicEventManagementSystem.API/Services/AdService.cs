@@ -1,4 +1,5 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
+using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Repositories.IRepositories;
 using MusicEventManagementSystem.API.Services.IService;
 
@@ -13,55 +14,77 @@ namespace MusicEventManagementSystem.API.Services
             _adRepository = adRepository;
         }
 
-        public async Task<IEnumerable<Ad>> GetAllAdsAsync()
+        public async Task<IEnumerable<AdResponseDto>> GetAllAdsAsync()
         {
-            return await _adRepository.GetAllAsync();
+            var ads = await _adRepository.GetAllAsync();
+            return ads.Select(MapToResponseDto);
         }
 
-        public async Task<Ad?> GetAdByIdAsync(int id)
+        public async Task<AdResponseDto?> GetAdByIdAsync(int id)
         {
-            return await _adRepository.GetByIdAsync(id);
+            var ad = await _adRepository.GetByIdAsync(id);
+            return ad == null ? null : MapToResponseDto(ad);
         }
 
-        public async Task<Ad> CreateAdAsync(Ad ad)
+        public async Task<AdResponseDto> CreateAdAsync(AdCreateDto dto)
         {
+            var ad = MapToEntity(dto);
             await _adRepository.AddAsync(ad);
             await _adRepository.SaveChangesAsync();
-            return ad;
+            return MapToResponseDto(ad);
         }
 
-        public async Task<Ad?> UpdateAdAsync(int id, Ad ad)
+        public async Task<AdResponseDto?> UpdateAdAsync(int id, AdUpdateDto dto)
         {
-            var existingAd = await _adRepository.GetByIdAsync(id);
-            if (existingAd == null)
-            {
-                return null;
-            }
+            var ad = await _adRepository.GetByIdAsync(id);
+            if (ad == null) return null;
 
-            existingAd.Deadline = ad.Deadline;
-            existingAd.Title = ad.Title;
-            existingAd.CurrentPhase = ad.CurrentPhase;
-            existingAd.PublicationDate = ad.PublicationDate;
-            existingAd.MediaWorkflowId = ad.MediaWorkflowId;
-            existingAd.CampaignId = ad.CampaignId;
-            existingAd.AdTypeId = ad.AdTypeId;
+            if (dto.Deadline.HasValue) ad.Deadline = dto.Deadline.Value;
+            if (dto.Title != null) ad.Title = dto.Title;
+            if (dto.CreationDate.HasValue) ad.CreationDate = dto.CreationDate.Value;
+            if (dto.CurrentPhase.HasValue) ad.CurrentPhase = dto.CurrentPhase.Value;
+            if (dto.PublicationDate.HasValue) ad.PublicationDate = dto.PublicationDate.Value;
+            if (dto.MediaWorkflowId.HasValue) ad.MediaWorkflowId = dto.MediaWorkflowId.Value;
+            if (dto.CampaignId.HasValue) ad.CampaignId = dto.CampaignId.Value;
+            if (dto.AdTypeId.HasValue) ad.AdTypeId = dto.AdTypeId.Value;
 
-            _adRepository.Update(existingAd);
+            _adRepository.Update(ad);
             await _adRepository.SaveChangesAsync();
-            return existingAd;
+            return MapToResponseDto(ad);
         }
 
         public async Task<bool> DeleteAdAsync(int id)
         {
             var ad = await _adRepository.GetByIdAsync(id);
-            if (ad == null)
-            {
-                return false;
-            }
-
+            if (ad == null) return false;
             _adRepository.Delete(ad);
             await _adRepository.SaveChangesAsync();
             return true;
         }
+
+        private static AdResponseDto MapToResponseDto(Ad ad) => new()
+        {
+            AdId = ad.AdId,
+            Deadline = ad.Deadline,
+            Title = ad.Title,
+            CreationDate = ad.CreationDate,
+            CurrentPhase = ad.CurrentPhase,
+            PublicationDate = ad.PublicationDate,
+            MediaWorkflowId = ad.MediaWorkflowId,
+            CampaignId = ad.CampaignId,
+            AdTypeId = ad.AdTypeId
+        };
+
+        private static Ad MapToEntity(AdCreateDto dto) => new()
+        {
+            Deadline = dto.Deadline,
+            Title = dto.Title,
+            CreationDate = dto.CreationDate,
+            CurrentPhase = dto.CurrentPhase,
+            PublicationDate = dto.PublicationDate,
+            MediaWorkflowId = dto.MediaWorkflowId,
+            CampaignId = dto.CampaignId,
+            AdTypeId = dto.AdTypeId
+        };
     }
 }

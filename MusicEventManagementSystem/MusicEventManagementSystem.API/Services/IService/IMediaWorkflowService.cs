@@ -1,13 +1,13 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 
 namespace MusicEventManagementSystem.API.Services.IService
 {
     public interface IMediaWorkflowService
     {
-        Task<IEnumerable<MediaWorkflow>> GetAllWorkflowsAsync();
-        Task<MediaWorkflow?> GetWorkflowByIdAsync(int id);
-        Task<MediaWorkflow> CreateWorkflowAsync(MediaWorkflow workflow);
-        Task<MediaWorkflow?> UpdateWorkflowAsync(int id, MediaWorkflow workflow);
-        Task<bool> DeleteWorkflowAsync(int id);
+        Task<IEnumerable<MediaWorkflowResponseDto>> GetAllMediaWorkflowsAsync();
+        Task<MediaWorkflowResponseDto?> GetMediaWorkflowByIdAsync(int id);
+        Task<MediaWorkflowResponseDto> CreateMediaWorkflowAsync(MediaWorkflowCreateDto createDto);
+        Task<MediaWorkflowResponseDto?> UpdateMediaWorkflowAsync(int id, MediaWorkflowUpdateDto updateDto);
+        Task<bool> DeleteMediaWorkflowAsync(int id);
     }
 }

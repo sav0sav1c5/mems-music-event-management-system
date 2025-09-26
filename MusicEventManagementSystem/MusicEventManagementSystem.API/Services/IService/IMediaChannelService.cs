@@ -1,13 +1,13 @@
-﻿using MusicEventManagementSystem.API.Models;
+﻿using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 
 namespace MusicEventManagementSystem.API.Services.IService
 {
     public interface IMediaChannelService
     {
-        Task<IEnumerable<MediaChannel>> GetAllChannelsAsync();
-        Task<MediaChannel?> GetChannelByIdAsync(int id);
-        Task<MediaChannel> CreateChannelAsync(MediaChannel channel);
-        Task<MediaChannel?> UpdateChannelAsync(int id, MediaChannel channel);
-        Task<bool> DeleteChannelAsync(int id);
+        Task<IEnumerable<MediaChannelResponseDto>> GetAllMediaChannelsAsync();
+        Task<MediaChannelResponseDto?> GetMediaChannelByIdAsync(int id);
+        Task<MediaChannelResponseDto> CreateMediaChannelAsync(MediaChannelCreateDto createDto);
+        Task<MediaChannelResponseDto?> UpdateMediaChannelAsync(int id, MediaChannelUpdateDto updateDto);
+        Task<bool> DeleteMediaChannelAsync(int id);
     }
 }

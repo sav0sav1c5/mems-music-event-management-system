@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Models;
-using MusicEventManagementSystem.API.Models;
+using MusicEventManagementSystem.API.DTOs.MediaCampaign;
 using MusicEventManagementSystem.API.Services.IService;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -17,11 +16,11 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MediaWorkflow>>> GetAllWorkflows()
+        public async Task<ActionResult<IEnumerable<MediaWorkflowResponseDto>>> GetAllMediaWorkflows()
         {
             try
             {
-                var workflows = await _mediaWorkflowService.GetAllWorkflowsAsync();
+                var workflows = await _mediaWorkflowService.GetAllMediaWorkflowsAsync();
                 return Ok(workflows);
             }
             catch (Exception ex)
@@ -31,15 +30,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<MediaWorkflow>> GetWorkflowById(int id)
+        public async Task<ActionResult<MediaWorkflowResponseDto>> GetMediaWorkflowById(int id)
         {
             try
             {
-                var workflow = await _mediaWorkflowService.GetWorkflowByIdAsync(id);
+                var workflow = await _mediaWorkflowService.GetMediaWorkflowByIdAsync(id);
                 if (workflow == null)
-                {
-                    return NotFound($"Workflow with ID {id} not found.");
-                }
+                    return NotFound($"MediaWorkflow with ID {id} not found.");
                 return Ok(workflow);
             }
             catch (Exception ex)
@@ -49,17 +46,15 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<MediaWorkflow>> CreateWorkflow([FromBody] MediaWorkflow workflow)
+        public async Task<ActionResult<MediaWorkflowResponseDto>> CreateMediaWorkflow([FromBody] MediaWorkflowCreateDto createDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var createdWorkflow = await _mediaWorkflowService.CreateWorkflowAsync(workflow);
-                return CreatedAtAction(nameof(GetWorkflowById), new { id = createdWorkflow.MediaWorkflowId }, createdWorkflow);
+                var createdWorkflow = await _mediaWorkflowService.CreateMediaWorkflowAsync(createDto);
+                return CreatedAtAction(nameof(GetMediaWorkflowById), new { id = createdWorkflow.MediaWorkflowId }, createdWorkflow);
             }
             catch (Exception ex)
             {
@@ -68,21 +63,16 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<MediaWorkflow>> UpdateWorkflow(int id, [FromBody] MediaWorkflow workflow)
+        public async Task<ActionResult<MediaWorkflowResponseDto>> UpdateMediaWorkflow(int id, [FromBody] MediaWorkflowUpdateDto updateDto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
 
-                var updatedWorkflow = await _mediaWorkflowService.UpdateWorkflowAsync(id, workflow);
+                var updatedWorkflow = await _mediaWorkflowService.UpdateMediaWorkflowAsync(id, updateDto);
                 if (updatedWorkflow == null)
-                {
-                    return NotFound($"Workflow with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaWorkflow with ID {id} not found.");
                 return Ok(updatedWorkflow);
             }
             catch (Exception ex)
@@ -92,16 +82,13 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteWorkflow(int id)
+        public async Task<ActionResult> DeleteMediaWorkflow(int id)
         {
             try
             {
-                var isDeleted = await _mediaWorkflowService.DeleteWorkflowAsync(id);
+                var isDeleted = await _mediaWorkflowService.DeleteMediaWorkflowAsync(id);
                 if (!isDeleted)
-                {
-                    return NotFound($"Workflow with ID {id} not found.");
-                }
-
+                    return NotFound($"MediaWorkflow with ID {id} not found.");
                 return NoContent();
             }
             catch (Exception ex)
