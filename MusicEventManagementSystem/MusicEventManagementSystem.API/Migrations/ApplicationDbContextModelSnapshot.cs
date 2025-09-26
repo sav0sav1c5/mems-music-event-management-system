@@ -1941,7 +1941,6 @@ namespace MusicEventManagementSystem.API.Migrations
                     b.Navigation("TicketTypes");
                 });
 #pragma warning restore 612, 618
-        
         }
     }
 }
