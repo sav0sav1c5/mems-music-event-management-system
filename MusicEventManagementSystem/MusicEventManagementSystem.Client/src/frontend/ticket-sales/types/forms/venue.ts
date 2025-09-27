@@ -1,4 +1,4 @@
-import { VenueType } from '../enums/TicketSales';
+import { VenueType } from '../enums/ticketSales';
 
 export interface VenueCreateForm {
   name: string;

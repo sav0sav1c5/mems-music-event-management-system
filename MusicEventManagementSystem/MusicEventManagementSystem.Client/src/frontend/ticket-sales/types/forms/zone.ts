@@ -1,4 +1,4 @@
-import { ZonePosition } from '../enums/TicketSales';
+import { ZonePosition } from '../enums/ticketSales';
 
 export interface ZoneCreateForm {
   name: string;

@@ -17,7 +17,7 @@ import type { ZoneResponse } from '../types/api/zone';
 import type { EventResponse } from '../../event-organization/types/api/event';
 
 // Import enumova
-import { VenueType, SegmentType, ZonePosition } from '../types/enums/TicketSales';
+import { VenueType, SegmentType, ZonePosition } from '../types/enums/ticketSales';
 import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
 
 // Form tipovi

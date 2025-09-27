@@ -1,4 +1,4 @@
-import { TicketStatus } from '../enums/TicketSales';
+import { TicketStatus } from '../enums/ticketSales';
 
 export interface TicketCreateForm {
   uniqueCode?: string;
