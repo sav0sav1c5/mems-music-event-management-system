@@ -17,8 +17,10 @@ namespace MusicEventManagementSystem.API.Repositories
                 .Include(n => n.Event)
                 .Include(n => n.Performer)
                 .Include(n => n.Communication)
-                .Include(n => n.Phases)
-                    .ThenInclude(p => p.Requirements)
+                .Include(n => n.NegotiationPhases)
+                    .ThenInclude(np => np.Phase)
+                        .ThenInclude(p => p.Requirements)
+                .Include(n => n.RequirementFulfillments)
                 .Include(n => n.Documents)
                 .Include(n => n.Users)
                     .ThenInclude(nu => nu.User)
@@ -30,7 +32,8 @@ namespace MusicEventManagementSystem.API.Repositories
             return await _dbSet
                 .Include(n => n.Event)
                 .Include(n => n.Performer)
-                .Include(n => n.Phases)
+                .Include(n => n.NegotiationPhases)
+                    .ThenInclude(np => np.Phase)
                 .Include(n => n.Documents)
                 .ToListAsync();
         }

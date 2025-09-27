@@ -4,42 +4,33 @@ namespace MusicEventManagementSystem.API.DTOs
     {
         public int PhaseId { get; set; }
         public string PhaseName { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public int OrderNumber { get; set; }
-        public TimeSpan EstimatedDuration { get; set; }
-        
-        // Related entities
-        public int NegotiationId { get; set; }
-        public int? ContractId { get; set; }
-        
-        // Related collections
-        public List<RequirementDto>? Requirements { get; set; }
+        public int EstimatedDuration { get; set; } // Duration in days
+        public bool IsGlobal { get; set; } = true;
     }
 
     public class CreatePhaseDto
     {
         public string PhaseName { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public int OrderNumber { get; set; }
-        public TimeSpan EstimatedDuration { get; set; }
-        
-        // Required foreign key
-        public int NegotiationId { get; set; }
-        public int? ContractId { get; set; }
+        public int EstimatedDuration { get; set; } // Duration in days
+        public bool IsGlobal { get; set; } = true;
     }
 
     public class UpdatePhaseDto
     {
         public string PhaseName { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public int OrderNumber { get; set; }
-        public TimeSpan EstimatedDuration { get; set; }
-        
-        // Allow updating foreign keys
-        public int NegotiationId { get; set; }
-        public int? ContractId { get; set; }
+        public int EstimatedDuration { get; set; } // Duration in days
+        public bool IsGlobal { get; set; } = true;
     }
 
-    public class PhaseWithDetailsDto : PhaseDto
+    public class PhaseWithRequirementsDto : PhaseDto
     {
-        // Extended version with full related entity details
-        public ContractDto? Contract { get; set; }
+        // Extended version with requirements but no circular references
+        public List<RequirementDto>? Requirements { get; set; }
     }
 }

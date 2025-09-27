@@ -408,6 +408,9 @@ namespace MusicEventManagementSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NegotiationId"));
 
+                    b.Property<int>("CurrentPhaseOrder")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -436,6 +439,77 @@ namespace MusicEventManagementSystem.Migrations
                         .IsUnique();
 
                     b.ToTable("Negotiations");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationPhase", b =>
+                {
+                    b.Property<int>("NegotiationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PhaseId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("NegotiationId", "PhaseId");
+
+                    b.HasIndex("PhaseId");
+
+                    b.ToTable("NegotiationPhases");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationRequirementFulfillment", b =>
+                {
+                    b.Property<int>("FulfillmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("FulfillmentId"));
+
+                    b.Property<string>("Evidence")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FulfilledBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FulfilledDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsFulfilled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("NegotiationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PhaseId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequirementId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("FulfillmentId");
+
+                    b.HasIndex("NegotiationId", "PhaseId");
+
+                    b.HasIndex("PhaseId");
+
+                    b.HasIndex("RequirementId");
+
+                    b.ToTable("NegotiationRequirementFulfillments");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationUser", b =>
@@ -533,6 +607,35 @@ namespace MusicEventManagementSystem.Migrations
                     b.ToTable("PerformanceResources");
                 });
 
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.Phase", b =>
+                {
+                    b.Property<int>("PhaseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PhaseId"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EstimatedDuration")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsGlobal")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PhaseName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PhaseId");
+
+                    b.ToTable("Phases");
+                });
+
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Performer", b =>
                 {
                     b.Property<int>("PerformerId")
@@ -592,14 +695,8 @@ namespace MusicEventManagementSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PhaseId"));
 
-                    b.Property<int?>("ContractId")
-                        .HasColumnType("integer");
-
                     b.Property<TimeSpan>("EstimatedDuration")
                         .HasColumnType("interval");
-
-                    b.Property<int>("NegotiationId")
-                        .HasColumnType("integer");
 
                     b.Property<int>("OrderNumber")
                         .HasColumnType("integer");
@@ -609,11 +706,6 @@ namespace MusicEventManagementSystem.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("PhaseId");
-
-                    b.HasIndex("ContractId")
-                        .IsUnique();
-
-                    b.HasIndex("NegotiationId");
 
                     b.ToTable("Phases");
                 });
@@ -710,7 +802,7 @@ namespace MusicEventManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Fulfilled")
+                    b.Property<bool>("IsRequired")
                         .HasColumnType("boolean");
 
                     b.Property<int>("PhaseId")
@@ -719,6 +811,9 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("RequirementId");
 
@@ -1390,8 +1485,6 @@ namespace MusicEventManagementSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
-
-                    b.Navigation("Performer");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationUser", b =>
@@ -1413,22 +1506,50 @@ namespace MusicEventManagementSystem.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MusicEventManagementSystem.API.Models.Phase", b =>
-                {
-                    b.HasOne("MusicEventManagementSystem.API.Models.Contract", "Contract")
-                        .WithOne("Phase")
-                        .HasForeignKey("MusicEventManagementSystem.API.Models.Phase", "ContractId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationPhase", b =>
+                {
                     b.HasOne("MusicEventManagementSystem.API.Models.Negotiation", "Negotiation")
-                        .WithMany("Phases")
+                        .WithMany("NegotiationPhases")
                         .HasForeignKey("NegotiationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Contract");
+                    b.HasOne("MusicEventManagementSystem.API.Models.Phase", "Phase")
+                        .WithMany("NegotiationPhases")
+                        .HasForeignKey("PhaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Negotiation");
+
+                    b.Navigation("Phase");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationRequirementFulfillment", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.API.Models.NegotiationPhase", null)
+                        .WithMany("RequirementFulfillments")
+                        .HasForeignKey("NegotiationId", "PhaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.API.Models.Phase", "Phase")
+                        .WithMany()
+                        .HasForeignKey("PhaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.API.Models.Requirement", "Requirement")
+                        .WithMany("Fulfillments")
+                        .HasForeignKey("RequirementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Phase");
+
+                    b.Navigation("Requirement");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Requirement", b =>
@@ -1459,6 +1580,8 @@ namespace MusicEventManagementSystem.Migrations
 
                     b.Navigation("Documents");
 
+                    b.Navigation("NegotiationPhases");
+
                     b.Navigation("Phases");
 
                     b.Navigation("Users");
@@ -1473,9 +1596,19 @@ namespace MusicEventManagementSystem.Migrations
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Phase", b =>
                 {
-                    b.Navigation("Requirements");
+                    b.Navigation("NegotiationPhases");
 
-                    b.Navigation("Zone");
+                    b.Navigation("Requirements");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.NegotiationPhase", b =>
+                {
+                    b.Navigation("RequirementFulfillments");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.Requirement", b =>
+                {
+                    b.Navigation("Fulfillments");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Zone", b =>

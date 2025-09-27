@@ -11,7 +11,7 @@ namespace MusicEventManagementSystem.API.Services.IService
         Task<Negotiation?> UpdateNegotiationAsync(int id, Negotiation negotiation);
         Task<bool> DeleteNegotiationAsync(int id);
 
-        // New methods for handling relationships
+        // Existing relationship methods
         Task<NegotiationWithDetailsDto?> GetNegotiationWithDetailsAsync(int id);
         Task<IEnumerable<NegotiationDto>> GetNegotiationsWithBasicDetailsAsync();
         Task<IEnumerable<NegotiationDto>> GetNegotiationsByEventIdAsync(int eventId);
@@ -20,5 +20,18 @@ namespace MusicEventManagementSystem.API.Services.IService
         Task<bool> RemoveUserFromNegotiationAsync(int negotiationId, string userId);
         Task<Negotiation> CreateNegotiationWithRelationshipsAsync(CreateNegotiationDto createDto);
         Task<Negotiation?> UpdateNegotiationWithRelationshipsAsync(int id, UpdateNegotiationDto updateDto);
+
+        // Phase management methods
+        Task<int> GetCurrentPhaseOrderAsync(int negotiationId);
+        Task<bool> AdvanceNegotiationPhaseAsync(int negotiationId);
+        Task<bool> UpdateNegotiationPhaseOrderAsync(int negotiationId, int newPhaseOrder);
+        Task<NegotiationPhase?> GetCurrentPhaseAsync(int negotiationId);
+        Task<IEnumerable<NegotiationPhase>> GetNegotiationPhaseHistoryAsync(int negotiationId);
+
+        // Requirement fulfillment methods
+        Task<IEnumerable<NegotiationRequirementFulfillment>> GetNegotiationRequirementsAsync(int negotiationId);
+        Task<bool> FulfillRequirementAsync(int negotiationId, int requirementId, bool isFulfilled = true);
+        Task<bool> AreAllRequirementsFulfilledForPhaseAsync(int negotiationId, int phaseId);
+        Task<decimal> GetPhaseCompletionPercentageAsync(int negotiationId, int phaseId);
     }
 }

@@ -8,10 +8,12 @@ namespace MusicEventManagementSystem.API.Services
     public class NegotiationService : INegotiationService
     {
         private readonly INegotiationRepository _negotiationRepository;
+        private readonly IPhaseService _phaseService;
 
-        public NegotiationService(INegotiationRepository negotiationRepository)
+        public NegotiationService(INegotiationRepository negotiationRepository, IPhaseService phaseService)
         {
             _negotiationRepository = negotiationRepository;
+            _phaseService = phaseService;
         }
 
         public async Task<IEnumerable<Negotiation>> GetAllNegotiationsAsync()
@@ -121,11 +123,16 @@ namespace MusicEventManagementSystem.API.Services
                 StartDate = createDto.StartDate,
                 EndDate = createDto.EndDate,
                 EventId = createDto.EventId,
-                PerformerId = createDto.PerformerId
+                PerformerId = createDto.PerformerId,
+                CurrentPhaseOrder = 1 // Start at first phase
             };
 
             await _negotiationRepository.AddAsync(negotiation);
             await _negotiationRepository.SaveChangesAsync();
+
+            // Initialize phases and requirements for the new negotiation
+            await _phaseService.InitializeNegotiationPhasesAsync(negotiation.NegotiationId);
+
             return negotiation;
         }
 
@@ -163,15 +170,8 @@ namespace MusicEventManagementSystem.API.Services
                 EventName = negotiation.Event?.Name,
                 PerformerId = negotiation.PerformerId,
                 PerformerName = negotiation.Performer?.Name,
-                Phases = negotiation.Phases?.Select(p => new PhaseDto
-                {
-                    PhaseId = p.PhaseId,
-                    PhaseName = p.PhaseName,
-                    OrderNumber = p.OrderNumber,
-                    EstimatedDuration = p.EstimatedDuration,
-                    NegotiationId = p.NegotiationId,
-                    ContractId = p.ContractId
-                }).ToList(),
+                // TODO: Update to use NegotiationPhases instead of direct Phases
+                Phases = new List<PhaseDto>(),
                 Documents = negotiation.Documents?.Select(d => new DocumentDto
                 {
                     DocumentId = d.DocumentId,
@@ -229,5 +229,77 @@ namespace MusicEventManagementSystem.API.Services
                 UserEmails = negotiation.Users?.Select(nu => nu.User.Email ?? string.Empty).ToList()
             };
         }
+
+        #region Phase Management Methods
+
+        public async Task<int> GetCurrentPhaseOrderAsync(int negotiationId)
+        {
+            var negotiation = await _negotiationRepository.GetByIdAsync(negotiationId);
+            return negotiation?.CurrentPhaseOrder ?? 1;
+        }
+
+        public async Task<bool> AdvanceNegotiationPhaseAsync(int negotiationId)
+        {
+            return await _phaseService.AdvanceToNextPhaseAsync(negotiationId);
+        }
+
+        public async Task<bool> UpdateNegotiationPhaseOrderAsync(int negotiationId, int newPhaseOrder)
+        {
+            var negotiation = await _negotiationRepository.GetByIdAsync(negotiationId);
+            if (negotiation == null)
+            {
+                return false;
+            }
+
+            negotiation.CurrentPhaseOrder = newPhaseOrder;
+
+            _negotiationRepository.Update(negotiation);
+            await _negotiationRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<NegotiationPhase?> GetCurrentPhaseAsync(int negotiationId)
+        {
+            return await _phaseService.GetCurrentNegotiationPhaseAsync(negotiationId);
+        }
+
+        public async Task<IEnumerable<NegotiationPhase>> GetNegotiationPhaseHistoryAsync(int negotiationId)
+        {
+            return await _phaseService.GetNegotiationPhasesAsync(negotiationId);
+        }
+
+        #endregion
+
+        #region Requirement Fulfillment Methods
+
+        public Task<IEnumerable<NegotiationRequirementFulfillment>> GetNegotiationRequirementsAsync(int negotiationId)
+        {
+            // This method will need to be implemented when the repository interface is updated
+            // For now, return empty list
+            return Task.FromResult<IEnumerable<NegotiationRequirementFulfillment>>(new List<NegotiationRequirementFulfillment>());
+        }
+
+        public Task<bool> FulfillRequirementAsync(int negotiationId, int requirementId, bool isFulfilled = true)
+        {
+            // This method will need to be implemented when the repository interface is updated
+            // For now, return true as placeholder
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> AreAllRequirementsFulfilledForPhaseAsync(int negotiationId, int phaseId)
+        {
+            // This method will need to be implemented when the repository interface is updated
+            // For now, return true as placeholder
+            return Task.FromResult(true);
+        }
+
+        public Task<decimal> GetPhaseCompletionPercentageAsync(int negotiationId, int phaseId)
+        {
+            // This method will need to be implemented when the repository interface is updated
+            // For now, return 0 as placeholder
+            return Task.FromResult(0m);
+        }
+
+        #endregion
     }
 }

@@ -1,62 +1,69 @@
 import { api } from '../../shared/services/apiService';
 
-// Requirement interfaces
-export interface RequirementDto {
+// Global Phase interfaces (matching backend models)
+export interface Phase {
+  phaseId: number;
+  phaseName: string;
+  description?: string;
+  orderNumber: number;
+  estimatedDuration: number; // Duration in days
+  isGlobal: boolean;
+  requirements?: Requirement[];
+  negotiationPhases?: NegotiationPhase[];
+}
+
+export interface Requirement {
   requirementId: number;
   title: string;
   description: string;
-  fulfilled: boolean;
+  isRequired: boolean;
   createdAt: string;
+  updatedAt?: string;
   phaseId: number;
-  phaseName?: string;
+  phase?: Phase;
 }
 
-export interface CreateRequirementDto {
-  title: string;
-  description: string;
-  fulfilled: boolean;
-  phaseId: number;
-}
-
-export interface UpdateRequirementDto {
-  title: string;
-  description: string;
-  fulfilled: boolean;
-  phaseId: number;
-}
-
-// Phase DTO interfaces matching backend
-export interface PhaseDto {
-  phaseId: number;
-  phaseName: string;
-  orderNumber: number;
-  estimatedDuration: string; // TimeSpan as string from backend
+export interface NegotiationPhase {
   negotiationId: number;
-  contractId?: number | null;
-  requirements?: RequirementDto[];
+  phaseId: number;
+  status: string;
+  startDate?: string;
+  completedDate?: string;
+  isActive: boolean;
+  negotiation?: any;
+  phase?: Phase;
 }
 
+export interface NegotiationRequirementFulfillment {
+  fulfillmentId: number;
+  negotiationId: number;
+  phaseId: number;
+  requirementId: number;
+  isFulfilled: boolean;
+  evidence?: string;
+  notes?: string;
+  fulfilledDate?: string;
+  fulfilledBy?: string;
+}
+
+// Create DTOs
 export interface CreatePhaseDto {
   phaseName: string;
+  description?: string;
   orderNumber: number;
-  estimatedDuration: string;
-  negotiationId: number;
-  contractId?: number | null;
+  estimatedDuration: number;
+  isGlobal: boolean;
 }
 
 export interface UpdatePhaseDto {
   phaseName: string;
+  description?: string;
   orderNumber: number;
-  estimatedDuration: string;
-  negotiationId: number;
-  contractId?: number | null;
+  estimatedDuration: number;
+  isGlobal: boolean;
 }
 
-export interface PhaseWithDetailsDto extends PhaseDto {
-  contract?: any; // ContractDto would be defined elsewhere
-}
-
-// Fixed phase template for initialization
+// Legacy interface for backward compatibility with existing components
 export interface FixedPhaseTemplate {
   name: string;
   description: string;
@@ -67,73 +74,11 @@ export interface FixedPhaseTemplate {
 
 const API_ENDPOINT = '/phase';
 
-// Fixed 5 phases template
-export const FIXED_PHASES: FixedPhaseTemplate[] = [
-  {
-    name: "Initial Outreach",
-    description: "First contact and introduction to the performer or their management team",
-    orderNumber: 1,
-    estimatedDuration: "3.00:00:00", // 3 days in TimeSpan format
-    defaultRequirements: [
-      "Contact performer's management team",
-      "Send initial proposal",
-      "Schedule preliminary meeting"
-    ]
-  },
-  {
-    name: "Preliminary Negotiations",
-    description: "Initial discussion of terms, availability, and basic requirements",
-    orderNumber: 2,
-    estimatedDuration: "7.00:00:00", // 7 days
-    defaultRequirements: [
-      "Discuss performance date and venue",
-      "Review basic technical requirements",
-      "Negotiate preliminary fee structure"
-    ]
-  },
-  {
-    name: "Contract Negotiations",
-    description: "Detailed negotiation of contract terms and specific requirements",
-    orderNumber: 3,
-    estimatedDuration: "14.00:00:00", // 14 days
-    defaultRequirements: [
-      "Finalize performance fee and payment terms",
-      "Define technical and staging requirements",
-      "Establish cancellation and force majeure clauses",
-      "Review rider requirements"
-    ]
-  },
-  {
-    name: "Contract Draft",
-    description: "Preparation and review of the formal contract document",
-    orderNumber: 4,
-    estimatedDuration: "5.00:00:00", // 5 days
-    defaultRequirements: [
-      "Prepare formal contract document",
-      "Legal review of contract terms",
-      "Send contract to performer for review",
-      "Address any contract revisions"
-    ]
-  },
-  {
-    name: "Final Agreement",
-    description: "Contract signing and final confirmation of all arrangements",
-    orderNumber: 5,
-    estimatedDuration: "3.00:00:00", // 3 days
-    defaultRequirements: [
-      "Obtain signed contract from all parties",
-      "Confirm final logistics and timeline",
-      "Set up performance coordination",
-      "Archive signed contracts"
-    ]
-  }
-];
-
 export const phaseService = {
-  // Get all phases
-  getAllPhases: async (): Promise<PhaseDto[]> => {
+  // Global Phase Management
+  getAllPhases: async (): Promise<Phase[]> => {
     try {
-      const response = await api.get<PhaseDto[]>(API_ENDPOINT);
+      const response = await api.get<Phase[]>(API_ENDPOINT);
       return response.data;
     } catch (error) {
       console.error('Error fetching phases:', error);
@@ -141,26 +86,19 @@ export const phaseService = {
     }
   },
 
-  // Get the 5 fixed phases (hardcoded for now, will integrate with backend later)
-  getFixedPhases: (): FixedPhaseTemplate[] => {
-    return FIXED_PHASES;
-  },
-
-  // Convert fixed phase template to create DTO
-  createPhaseFromTemplate: (template: FixedPhaseTemplate, negotiationId: number, contractId?: number): CreatePhaseDto => {
-    return {
-      phaseName: template.name,
-      orderNumber: template.orderNumber,
-      estimatedDuration: template.estimatedDuration,
-      negotiationId,
-      contractId: contractId || null
-    };
-  },
-
-  // Get phase by ID with requirements
-  getPhaseById: async (id: number): Promise<PhaseDto> => {
+  getGlobalPhaseTemplates: async (): Promise<Phase[]> => {
     try {
-      const response = await api.get<PhaseDto>(`${API_ENDPOINT}/${id}`);
+      const response = await api.get<Phase[]>(`${API_ENDPOINT}/global`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching global phase templates:', error);
+      throw error;
+    }
+  },
+
+  getPhaseById: async (id: number): Promise<Phase> => {
+    try {
+      const response = await api.get<Phase>(`${API_ENDPOINT}/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching phase:', error);
@@ -168,21 +106,19 @@ export const phaseService = {
     }
   },
 
-  // Get phase with detailed information
-  getPhaseWithDetails: async (id: number): Promise<PhaseWithDetailsDto> => {
+  getPhaseByOrder: async (orderNumber: number): Promise<Phase> => {
     try {
-      const response = await api.get<PhaseWithDetailsDto>(`${API_ENDPOINT}/${id}`);
+      const response = await api.get<Phase>(`${API_ENDPOINT}/by-order/${orderNumber}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching phase details:', error);
+      console.error('Error fetching phase by order:', error);
       throw error;
     }
   },
 
-  // Create new phase
-  createPhase: async (phase: CreatePhaseDto): Promise<PhaseDto> => {
+  createPhase: async (phase: CreatePhaseDto): Promise<Phase> => {
     try {
-      const response = await api.post<PhaseDto>(API_ENDPOINT, phase);
+      const response = await api.post<Phase>(API_ENDPOINT, phase);
       return response.data;
     } catch (error) {
       console.error('Error creating phase:', error);
@@ -190,10 +126,9 @@ export const phaseService = {
     }
   },
 
-  // Update phase
-  updatePhase: async (id: number, phase: UpdatePhaseDto): Promise<PhaseDto> => {
+  updatePhase: async (id: number, phase: UpdatePhaseDto): Promise<Phase> => {
     try {
-      const response = await api.put<PhaseDto>(`${API_ENDPOINT}/${id}`, phase);
+      const response = await api.put<Phase>(`${API_ENDPOINT}/${id}`, phase);
       return response.data;
     } catch (error) {
       console.error('Error updating phase:', error);
@@ -201,7 +136,6 @@ export const phaseService = {
     }
   },
 
-  // Delete phase
   deletePhase: async (id: number): Promise<void> => {
     try {
       await api.delete(`${API_ENDPOINT}/${id}`);
@@ -211,54 +145,208 @@ export const phaseService = {
     }
   },
 
-  // Get phases ordered by orderNumber
-  getPhasesOrdered: async (): Promise<PhaseDto[]> => {
+  initializeGlobalPhases: async (): Promise<void> => {
     try {
-      const response = await api.get<PhaseDto[]>(`${API_ENDPOINT}/ordered`);
-      return response.data;
+      await api.post(`${API_ENDPOINT}/initialize-global`);
     } catch (error) {
-      console.error('Error fetching ordered phases:', error);
+      console.error('Error initializing global phases:', error);
       throw error;
     }
   },
 
-  // Requirements management
-  getPhaseRequirements: async (phaseId: number): Promise<RequirementDto[]> => {
+  // Negotiation Phase Management
+  getNegotiationPhases: async (negotiationId: number): Promise<NegotiationPhase[]> => {
     try {
-      const response = await api.get<RequirementDto[]>(`${API_ENDPOINT}/${phaseId}/requirements`);
+      const response = await api.get<NegotiationPhase[]>(`${API_ENDPOINT}/negotiation/${negotiationId}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching phase requirements:', error);
+      console.error('Error fetching negotiation phases:', error);
       throw error;
     }
   },
 
-  createRequirement: async (requirement: CreateRequirementDto): Promise<RequirementDto> => {
+  getCurrentNegotiationPhase: async (negotiationId: number): Promise<NegotiationPhase> => {
     try {
-      const response = await api.post<RequirementDto>('/requirement', requirement);
+      const response = await api.get<NegotiationPhase>(`${API_ENDPOINT}/negotiation/${negotiationId}/current`);
       return response.data;
     } catch (error) {
-      console.error('Error creating requirement:', error);
+      console.error('Error fetching current negotiation phase:', error);
       throw error;
     }
   },
 
-  updateRequirement: async (id: number, requirement: UpdateRequirementDto): Promise<RequirementDto> => {
+  initializeNegotiationPhases: async (negotiationId: number): Promise<void> => {
     try {
-      const response = await api.put<RequirementDto>(`/requirement/${id}`, requirement);
-      return response.data;
+      await api.post(`${API_ENDPOINT}/negotiation/${negotiationId}/initialize`);
     } catch (error) {
-      console.error('Error updating requirement:', error);
+      console.error('Error initializing negotiation phases:', error);
       throw error;
     }
   },
 
-  deleteRequirement: async (id: number): Promise<void> => {
+  advanceToNextPhase: async (negotiationId: number): Promise<void> => {
     try {
-      await api.delete(`/requirement/${id}`);
+      await api.post(`${API_ENDPOINT}/negotiation/${negotiationId}/advance`);
     } catch (error) {
-      console.error('Error deleting requirement:', error);
+      console.error('Error advancing to next phase:', error);
       throw error;
+    }
+  },
+
+  completePhase: async (negotiationId: number, phaseId: number): Promise<void> => {
+    try {
+      await api.post(`${API_ENDPOINT}/negotiation/${negotiationId}/phase/${phaseId}/complete`);
+    } catch (error) {
+      console.error('Error completing phase:', error);
+      throw error;
+    }
+  },
+
+  canAdvanceToNextPhase: async (negotiationId: number): Promise<boolean> => {
+    try {
+      const response = await api.get<{canAdvance: boolean}>(`${API_ENDPOINT}/negotiation/${negotiationId}/can-advance`);
+      return response.data.canAdvance;
+    } catch (error) {
+      console.error('Error checking if can advance to next phase:', error);
+      throw error;
+    }
+  },
+
+  // Helper function to convert database phases to legacy format for backward compatibility
+  convertToLegacyFormat: (phases: Phase[]): FixedPhaseTemplate[] => {
+    return phases.map(phase => ({
+      name: phase.phaseName,
+      description: phase.description || '',
+      orderNumber: phase.orderNumber,
+      estimatedDuration: `${phase.estimatedDuration}.00:00:00`, // Convert days to TimeSpan format
+      defaultRequirements: phase.requirements?.map(req => req.title) || []
+    }));
+  },
+
+  // Backward compatibility - returns phases in legacy format
+  getFixedPhases: async (): Promise<FixedPhaseTemplate[]> => {
+    try {
+      const phases = await phaseService.getGlobalPhaseTemplates();
+      return phaseService.convertToLegacyFormat(phases);
+    } catch (error) {
+      console.error('Error fetching fixed phases:', error);
+      // Fallback to hardcoded phases if API fails
+      return [
+        {
+          name: "Initial Contact",
+          description: "First contact and initial negotiations",
+          orderNumber: 1,
+          estimatedDuration: "3.00:00:00",
+          defaultRequirements: [
+            "Contact performer's management team",
+            "Send initial proposal",
+            "Schedule preliminary meeting"
+          ]
+        },
+        {
+          name: "Proposal Review",
+          description: "Review and evaluation of proposals",
+          orderNumber: 2,
+          estimatedDuration: "5.00:00:00",
+          defaultRequirements: [
+            "Discuss performance date and venue",
+            "Review basic technical requirements",
+            "Negotiate initial fee structure"
+          ]
+        },
+        {
+          name: "Contract Negotiation",
+          description: "Contract terms and conditions negotiation",
+          orderNumber: 3,
+          estimatedDuration: "7.00:00:00",
+          defaultRequirements: [
+            "Draft contract terms",
+            "Review technical riders",
+            "Finalize payment schedule"
+          ]
+        },
+        {
+          name: "Final Approval",
+          description: "Final approval and sign-off",
+          orderNumber: 4,
+          estimatedDuration: "3.00:00:00",
+          defaultRequirements: [
+            "Obtain final approvals",
+            "Sign contracts",
+            "Process initial payment"
+          ]
+        },
+        {
+          name: "Event Preparation",
+          description: "Final preparations before the event",
+          orderNumber: 5,
+          estimatedDuration: "10.00:00:00",
+          defaultRequirements: [
+            "Coordinate event logistics",
+            "Confirm technical setup",
+            "Final sound check"
+          ]
+        }
+      ];
     }
   }
 };
+
+// Export FIXED_PHASES for backward compatibility
+export const FIXED_PHASES: FixedPhaseTemplate[] = [
+  {
+    name: "Initial Contact",
+    description: "First contact and initial negotiations",
+    orderNumber: 1,
+    estimatedDuration: "3.00:00:00",
+    defaultRequirements: [
+      "Contact performer's management team",
+      "Send initial proposal",
+      "Schedule preliminary meeting"
+    ]
+  },
+  {
+    name: "Proposal Review",
+    description: "Review and evaluation of proposals",
+    orderNumber: 2,
+    estimatedDuration: "5.00:00:00",
+    defaultRequirements: [
+      "Discuss performance date and venue",
+      "Review basic technical requirements",
+      "Negotiate initial fee structure"
+    ]
+  },
+  {
+    name: "Contract Negotiation",
+    description: "Contract terms and conditions negotiation",
+    orderNumber: 3,
+    estimatedDuration: "7.00:00:00",
+    defaultRequirements: [
+      "Draft contract terms",
+      "Review technical riders",
+      "Finalize payment schedule"
+    ]
+  },
+  {
+    name: "Final Approval",
+    description: "Final approval and sign-off",
+    orderNumber: 4,
+    estimatedDuration: "3.00:00:00",
+    defaultRequirements: [
+      "Obtain final approvals",
+      "Sign contracts",
+      "Process initial payment"
+    ]
+  },
+  {
+    name: "Event Preparation",
+    description: "Final preparations before the event",
+    orderNumber: 5,
+    estimatedDuration: "10.00:00:00",
+    defaultRequirements: [
+      "Coordinate event logistics",
+      "Confirm technical setup",
+      "Final sound check"
+    ]
+  }
+];

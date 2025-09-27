@@ -18,7 +18,7 @@ import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer
 // Artist Communication / Performer Negotiations imports
 import PerformerDashboard from "./frontend/performer-negotations/pages/PerformerDashboard";
 import Performers from "./frontend/performer-negotations/pages/Performers";
-import Requirements from "./frontend/performer-negotations/pages/Requirements";
+
 import Phases from "./frontend/performer-negotations/pages/Phases";
 import Negotiations from "./frontend/performer-negotations/pages/Negotiations";
 import Contracts from "./frontend/performer-negotations/pages/Contracts";
@@ -191,16 +191,7 @@ function App() {
           } 
         />
 
-        <Route 
-          path="/artist-communication/requirements" 
-          element={
-            <ProtectedRoute allowedDepartments={[3]}>
-              <Layout>
-                <Requirements />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
+
 
         <Route 
           path="/artist-communication/phases" 

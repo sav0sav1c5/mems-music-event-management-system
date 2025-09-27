@@ -90,8 +90,7 @@ builder.Services.AddScoped<IInfrastructureRepository, InfrastructureRepository>(
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IPerformanceResourceRepository, PerformanceResourceRepository>();
 
-// Performer subsystem repositories
-builder.Services.AddScoped<IPerformerRepository, PerformerRepository>();
+// Performer subsystem repositories (remove duplicate IPerformerRepository)
 builder.Services.AddScoped<IRequirementRepository, RequirementRepository>();
 builder.Services.AddScoped<IPhaseRepository, PhaseRepository>();
 builder.Services.AddScoped<INegotiationRepository, NegotiationRepository>();
@@ -123,8 +122,7 @@ builder.Services.AddScoped<IInfrastructureService, InfrastructureService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPerformanceResourceService, PerformanceResourceService>();
 
-// Performer subsystem services
-builder.Services.AddScoped<IPerformerService, PerformerService>();
+// Performer subsystem services (remove duplicate IPerformerService)
 builder.Services.AddScoped<IRequirementService, RequirementService>();
 builder.Services.AddScoped<IPhaseService, PhaseService>();
 builder.Services.AddScoped<INegotiationService, NegotiationService>();
@@ -132,7 +130,12 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

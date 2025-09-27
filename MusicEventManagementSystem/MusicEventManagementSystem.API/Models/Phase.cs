@@ -4,18 +4,16 @@ namespace MusicEventManagementSystem.API.Models
     {
         public int PhaseId { get; set; }
         public string PhaseName { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public int OrderNumber { get; set; }
-        public TimeSpan EstimatedDuration { get; set; }
+        public int EstimatedDuration { get; set; } // Duration in days
+        public bool IsGlobal { get; set; } = true; // Indicates this is a global template phase
 
-        // Foreign Keys
-        public int NegotiationId { get; set; }
-        public int? ContractId { get; set; } // Nullable - not every Phase has a Contract
-
-        // Navigation Properties
-        public Negotiation Negotiation { get; set; } = null!;
-        public Contract? Contract { get; set; }
-        
-        // One-to-Many relationship
+        // Global phase - no longer tied to specific negotiation
+        // One-to-Many relationship with global requirements
         public ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
+        
+        // Many-to-Many relationship with negotiations through NegotiationPhase
+        public ICollection<NegotiationPhase> NegotiationPhases { get; set; } = new List<NegotiationPhase>();
     }
 }

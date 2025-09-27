@@ -25,6 +25,8 @@ namespace MusicEventManagementSystem.Data
         public DbSet<Requirement> Requirements { get; set; }
         public DbSet<Phase> Phases { get; set; }
         public DbSet<Negotiation> Negotiations { get; set; }
+        public DbSet<NegotiationPhase> NegotiationPhases { get; set; }
+        public DbSet<NegotiationRequirementFulfillment> NegotiationRequirementFulfillments { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Communication> Communications { get; set; }
@@ -107,11 +109,22 @@ namespace MusicEventManagementSystem.Data
                 .HasForeignKey<Communication>(c => c.NegotiationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-Many: Negotiation has many Phases
-            builder.Entity<Phase>()
-                .HasOne(p => p.Negotiation)
-                .WithMany(n => n.Phases)
-                .HasForeignKey(p => p.NegotiationId)
+            // Configure new phase relationships
+            
+            // Many-to-Many: Negotiation and Phases through NegotiationPhase
+            builder.Entity<NegotiationPhase>()
+                .HasKey(np => new { np.NegotiationId, np.PhaseId });
+
+            builder.Entity<NegotiationPhase>()
+                .HasOne(np => np.Negotiation)
+                .WithMany(n => n.NegotiationPhases)
+                .HasForeignKey(np => np.NegotiationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<NegotiationPhase>()
+                .HasOne(np => np.Phase)
+                .WithMany(p => p.NegotiationPhases)
+                .HasForeignKey(np => np.PhaseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-Many: Negotiation has many Documents
@@ -144,12 +157,33 @@ namespace MusicEventManagementSystem.Data
                 .HasForeignKey(c => c.PerformerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // One-to-One (optional): Contract has one Phase (nullable)
-            builder.Entity<Phase>()
-                .HasOne(p => p.Contract)
-                .WithOne(c => c.Phase)
-                .HasForeignKey<Phase>(p => p.ContractId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // Configure NegotiationRequirementFulfillment
+            builder.Entity<NegotiationRequirementFulfillment>()
+                .HasKey(nrf => nrf.FulfillmentId);
+
+            builder.Entity<NegotiationRequirementFulfillment>()
+                .HasOne(nrf => nrf.Negotiation)
+                .WithMany(n => n.RequirementFulfillments)
+                .HasForeignKey(nrf => nrf.NegotiationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<NegotiationRequirementFulfillment>()
+                .HasOne(nrf => nrf.Phase)
+                .WithMany()
+                .HasForeignKey(nrf => nrf.PhaseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<NegotiationRequirementFulfillment>()
+                .HasOne(nrf => nrf.Requirement)
+                .WithMany(r => r.Fulfillments)
+                .HasForeignKey(nrf => nrf.RequirementId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<NegotiationRequirementFulfillment>()
+                .HasOne(nrf => nrf.NegotiationPhase)
+                .WithMany(np => np.RequirementFulfillments)
+                .HasForeignKey(nrf => new { nrf.NegotiationId, nrf.PhaseId })
+                .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-Many: Phase has many Requirements
             builder.Entity<Requirement>()
@@ -188,7 +222,86 @@ namespace MusicEventManagementSystem.Data
                 .WithMany(so => so.RecordedSales)
                 .UsingEntity(j => j.ToTable("RecordedSaleSpecialOffers"));
 
+            // Seed data for fixed phases
+            SeedPhases(builder);
+
             base.OnModelCreating(builder);
+        }
+
+        private void SeedPhases(ModelBuilder builder)
+        {
+            // Seed the 5 fixed phases
+            builder.Entity<Phase>().HasData(
+                new Phase
+                {
+                    PhaseId = 1,
+                    PhaseName = "Initial Outreach",
+                    OrderNumber = 1,
+                    EstimatedDuration = 7,
+                    IsGlobal = true
+                },
+                new Phase
+                {
+                    PhaseId = 2,
+                    PhaseName = "Preliminary Negotiations",
+                    OrderNumber = 2,
+                    EstimatedDuration = 14,
+                    IsGlobal = true
+                },
+                new Phase
+                {
+                    PhaseId = 3,
+                    PhaseName = "Contract Negotiations",
+                    OrderNumber = 3,
+                    EstimatedDuration = 21,
+                    IsGlobal = true
+                },
+                new Phase
+                {
+                    PhaseId = 4,
+                    PhaseName = "Contract Draft",
+                    OrderNumber = 4,
+                    EstimatedDuration = 10,
+                    IsGlobal = true
+                },
+                new Phase
+                {
+                    PhaseId = 5,
+                    PhaseName = "Final Agreement",
+                    OrderNumber = 5,
+                    EstimatedDuration = 5,
+                    IsGlobal = true
+                }
+            );
+
+            // Seed default requirements for each phase
+            var now = DateTime.UtcNow;
+            builder.Entity<Requirement>().HasData(
+                // Phase 1: Initial Outreach
+                new Requirement { RequirementId = 1, PhaseId = 1, Title = "Contact Performer", Description = "Initial contact with performer representatives", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 2, PhaseId = 1, Title = "Verify Availability", Description = "Confirm performer availability for event dates", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 3, PhaseId = 1, Title = "Provide Event Details", Description = "Share comprehensive event information", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+
+                // Phase 2: Preliminary Negotiations
+                new Requirement { RequirementId = 4, PhaseId = 2, Title = "Fee Discussion", Description = "Initial fee and compensation discussions", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 5, PhaseId = 2, Title = "Technical Requirements", Description = "Discuss technical and venue requirements", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 6, PhaseId = 2, Title = "Schedule Coordination", Description = "Coordinate scheduling and logistics", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+
+                // Phase 3: Contract Negotiations
+                new Requirement { RequirementId = 7, PhaseId = 3, Title = "Contract Terms", Description = "Negotiate detailed contract terms", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 8, PhaseId = 3, Title = "Legal Review", Description = "Legal team review of contract terms", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 9, PhaseId = 3, Title = "Rider Negotiations", Description = "Negotiate technical and hospitality riders", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+
+                // Phase 4: Contract Draft
+                new Requirement { RequirementId = 10, PhaseId = 4, Title = "Draft Preparation", Description = "Prepare final contract draft", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 11, PhaseId = 4, Title = "Stakeholder Review", Description = "All stakeholders review draft", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 12, PhaseId = 4, Title = "Revisions", Description = "Incorporate any necessary revisions", IsRequired = false, CreatedAt = now, UpdatedAt = now },
+
+                // Phase 5: Final Agreement
+                new Requirement { RequirementId = 13, PhaseId = 5, Title = "Contract Signing", Description = "All parties sign the final contract", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 14, PhaseId = 5, Title = "Payment Schedule Setup", Description = "Establish payment schedule and methods", IsRequired = true, CreatedAt = now, UpdatedAt = now },
+                new Requirement { RequirementId = 15, PhaseId = 5, Title = "Documentation Filing", Description = "File and distribute final documentation", IsRequired = true, CreatedAt = now, UpdatedAt = now }
+            );
 
         }
     }

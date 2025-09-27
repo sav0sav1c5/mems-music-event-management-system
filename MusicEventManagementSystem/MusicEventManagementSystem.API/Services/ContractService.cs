@@ -25,7 +25,7 @@ namespace MusicEventManagementSystem.API.Services
 
         public async Task<Contract> CreateContractAsync(Contract contract)
         {
-            contract.CreatedAt = DateTime.Now;
+            contract.CreatedAt = DateTime.UtcNow;
             await _contractRepository.AddAsync(contract);
             await _contractRepository.SaveChangesAsync();
             return contract;

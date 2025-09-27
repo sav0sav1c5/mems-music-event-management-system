@@ -1,4 +1,5 @@
 import { api } from '../../shared/services/apiService';
+import type { NegotiationPhase } from './phaseService';
 
 // DTO interfaces matching backend
 export interface NegotiationDto {
@@ -12,6 +13,7 @@ export interface NegotiationDto {
   performer?: any;
   communications?: any[];
   documents?: any[];
+  negotiationPhases?: NegotiationPhase[];
 }
 
 export interface CreateNegotiationDto {
@@ -97,6 +99,74 @@ export const negotiationService = {
       return response.data;
     } catch (error) {
       console.error('Error updating negotiation status:', error);
+      throw error;
+    }
+  },
+
+  // ============ NEW PHASE-RELATED METHODS ============
+
+  // Get negotiation phases for a negotiation
+  getNegotiationPhases: async (negotiationId: number): Promise<NegotiationPhase[]> => {
+    try {
+      const response = await api.get<NegotiationPhase[]>(`${API_ENDPOINT}/${negotiationId}/phases`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching negotiation phases:', error);
+      throw error;
+    }
+  },
+
+  // Initialize phases for a negotiation (creates NegotiationPhase records from global templates)
+  initializeNegotiationPhases: async (negotiationId: number): Promise<NegotiationPhase[]> => {
+    try {
+      const response = await api.post<NegotiationPhase[]>(`${API_ENDPOINT}/${negotiationId}/phases/initialize`);
+      return response.data;
+    } catch (error) {
+      console.error('Error initializing negotiation phases:', error);
+      throw error;
+    }
+  },
+
+  // Advance to next phase
+  advanceToNextPhase: async (negotiationId: number): Promise<NegotiationDto> => {
+    try {
+      const response = await api.post<NegotiationDto>(`${API_ENDPOINT}/${negotiationId}/phases/advance`);
+      return response.data;
+    } catch (error) {
+      console.error('Error advancing negotiation phase:', error);
+      throw error;
+    }
+  },
+
+  // Set specific phase as completed
+  markPhaseCompleted: async (negotiationId: number, phaseId: number): Promise<NegotiationPhase> => {
+    try {
+      const response = await api.put<NegotiationPhase>(`${API_ENDPOINT}/${negotiationId}/phases/${phaseId}/complete`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking phase as completed:', error);
+      throw error;
+    }
+  },
+
+  // Get current active phase for negotiation
+  getCurrentPhase: async (negotiationId: number): Promise<NegotiationPhase | null> => {
+    try {
+      const response = await api.get<NegotiationPhase>(`${API_ENDPOINT}/${negotiationId}/phases/current`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching current phase:', error);
+      return null; // Return null if no active phase
+    }
+  },
+
+  // Get negotiation with phases included
+  getNegotiationWithPhases: async (id: number): Promise<NegotiationDto> => {
+    try {
+      const response = await api.get<NegotiationDto>(`${API_ENDPOINT}/${id}?includePhases=true`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching negotiation with phases:', error);
       throw error;
     }
   },

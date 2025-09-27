@@ -1,22 +1,24 @@
 import { api } from '../../shared/services/apiService';
+import type { Phase } from './phaseService';
 
 // DTO interfaces matching backend
 export interface RequirementDto {
   requirementId: number;
   title: string;
   description: string;
-  fulfilled: boolean;
+  isRequired: boolean; // Updated to match backend
   createdAt: Date;
-  phaseId?: number;
+  updatedAt?: Date;
+  phaseId: number; // Now required
   // Navigation properties
-  phase?: any;
+  phase?: Phase;
 }
 
 export interface CreateRequirementDto {
   title: string;
   description: string;
-  fulfilled: boolean;
-  phaseId?: number;
+  isRequired: boolean; // Updated to match backend
+  phaseId: number; // Now required
 }
 
 const API_ENDPOINT = '/requirement';

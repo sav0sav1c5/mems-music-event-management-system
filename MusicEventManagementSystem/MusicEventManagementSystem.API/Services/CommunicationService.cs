@@ -25,7 +25,7 @@ namespace MusicEventManagementSystem.API.Services
 
         public async Task<Communication> CreateCommunicationAsync(Communication communication)
         {
-            communication.SentAt = DateTime.Now;
+            communication.SentAt = DateTime.UtcNow;
             await _communicationRepository.AddAsync(communication);
             await _communicationRepository.SaveChangesAsync();
             return communication;

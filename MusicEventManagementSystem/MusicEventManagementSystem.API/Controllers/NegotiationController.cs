@@ -205,5 +205,160 @@ namespace MusicEventManagementSystem.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        #region Phase Management Methods
+
+        [HttpGet("{id}/current-phase-order")]
+        public async Task<ActionResult<int>> GetCurrentPhaseOrder(int id)
+        {
+            try
+            {
+                var currentPhaseOrder = await _negotiationService.GetCurrentPhaseOrderAsync(id);
+                return Ok(new { negotiationId = id, currentPhaseOrder = currentPhaseOrder });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id}/advance-phase")]
+        public async Task<ActionResult> AdvanceNegotiationPhase(int id)
+        {
+            try
+            {
+                var advanced = await _negotiationService.AdvanceNegotiationPhaseAsync(id);
+                if (!advanced)
+                {
+                    return BadRequest(new { message = "Cannot advance phase. Requirements may not be fulfilled or already at final phase." });
+                }
+
+                return Ok(new { message = $"Successfully advanced negotiation {id} to next phase." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}/phase-order")]
+        public async Task<ActionResult> UpdateNegotiationPhaseOrder(int id, [FromBody] int newPhaseOrder)
+        {
+            try
+            {
+                var updated = await _negotiationService.UpdateNegotiationPhaseOrderAsync(id, newPhaseOrder);
+                if (!updated)
+                {
+                    return NotFound($"Negotiation with ID {id} not found.");
+                }
+
+                return Ok(new { message = $"Updated negotiation {id} to phase order {newPhaseOrder}." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/current-phase")]
+        public async Task<ActionResult<NegotiationPhase>> GetCurrentPhase(int id)
+        {
+            try
+            {
+                var currentPhase = await _negotiationService.GetCurrentPhaseAsync(id);
+                if (currentPhase == null)
+                {
+                    return NotFound($"No current phase found for negotiation {id}.");
+                }
+
+                return Ok(currentPhase);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/phase-history")]
+        public async Task<ActionResult<IEnumerable<NegotiationPhase>>> GetNegotiationPhaseHistory(int id)
+        {
+            try
+            {
+                var phaseHistory = await _negotiationService.GetNegotiationPhaseHistoryAsync(id);
+                return Ok(phaseHistory);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Requirement Fulfillment Methods
+
+        [HttpGet("{id}/requirements")]
+        public async Task<ActionResult<IEnumerable<NegotiationRequirementFulfillment>>> GetNegotiationRequirements(int id)
+        {
+            try
+            {
+                var requirements = await _negotiationService.GetNegotiationRequirementsAsync(id);
+                return Ok(requirements);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id}/requirements/{requirementId}/fulfill")]
+        public async Task<ActionResult> FulfillRequirement(int id, int requirementId, [FromQuery] bool isFulfilled = true)
+        {
+            try
+            {
+                var fulfilled = await _negotiationService.FulfillRequirementAsync(id, requirementId, isFulfilled);
+                if (!fulfilled)
+                {
+                    return BadRequest(new { message = "Failed to update requirement fulfillment." });
+                }
+
+                var status = isFulfilled ? "fulfilled" : "unfulfilled";
+                return Ok(new { message = $"Requirement {requirementId} marked as {status} for negotiation {id}." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/phase/{phaseId}/requirements-fulfilled")]
+        public async Task<ActionResult<bool>> AreAllRequirementsFulfilledForPhase(int id, int phaseId)
+        {
+            try
+            {
+                var allFulfilled = await _negotiationService.AreAllRequirementsFulfilledForPhaseAsync(id, phaseId);
+                return Ok(new { negotiationId = id, phaseId = phaseId, allRequirementsFulfilled = allFulfilled });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/phase/{phaseId}/completion-percentage")]
+        public async Task<ActionResult<decimal>> GetPhaseCompletionPercentage(int id, int phaseId)
+        {
+            try
+            {
+                var percentage = await _negotiationService.GetPhaseCompletionPercentageAsync(id, phaseId);
+                return Ok(new { negotiationId = id, phaseId = phaseId, completionPercentage = percentage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

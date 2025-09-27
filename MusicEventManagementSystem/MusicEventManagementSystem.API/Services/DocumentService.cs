@@ -25,7 +25,7 @@ namespace MusicEventManagementSystem.API.Services
 
         public async Task<Document> CreateDocumentAsync(Document document)
         {
-            document.UpdatedAt = DateTime.Now;
+            document.UpdatedAt = DateTime.UtcNow;
             await _documentRepository.AddAsync(document);
             await _documentRepository.SaveChangesAsync();
             return document;
@@ -43,7 +43,7 @@ namespace MusicEventManagementSystem.API.Services
             existingDocument.Type = document.Type;
             existingDocument.Path = document.Path;
             existingDocument.Version = document.Version;
-            existingDocument.UpdatedAt = DateTime.Now;
+            existingDocument.UpdatedAt = DateTime.UtcNow;
 
             _documentRepository.Update(existingDocument);
             await _documentRepository.SaveChangesAsync();

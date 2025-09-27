@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { 
  CircleDollarSign, BarChart2, TrendingUp, Star, Bookmark, Clock, ChevronLeft, ChevronRight,
   MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, 
-  Mic2, Handshake, FileText, Layers, LogOut, MessageSquare, ClipboardList
+  Mic2, Handshake, FileText, Layers, LogOut, MessageSquare
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -55,7 +55,6 @@ const Sidebar = () => {
         return [
           { icon: <BarChart2 />, label: "Dashboard", path: "/artist-communication/dashboard" },
           { icon: <Mic2 />, label: "Performers", path: "/artist-communication/performers" },
-          { icon: <ClipboardList />, label: "Requirements", path: "/artist-communication/requirements" },
           { icon: <Layers />, label: "Phases", path: "/artist-communication/phases" },
           { icon: <Handshake />, label: "Negotiations", path: "/artist-communication/negotiations" },
           { icon: <FileText />, label: "Contracts", path: "/artist-communication/contracts" },
