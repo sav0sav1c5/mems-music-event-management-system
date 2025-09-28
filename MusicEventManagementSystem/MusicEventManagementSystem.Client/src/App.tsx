@@ -16,6 +16,7 @@ import TicketSalesRecordedSales from './frontend/ticket-sales/pages/RecordedSale
 // import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules';
 // import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
 import TicketSalesTicketing from './frontend/ticket-sales/pages/Ticketing';
+import TicketSalesAnalytics from './frontend/ticket-sales/pages/Analytics';
 
 // Event Organization imports
 // ...
@@ -186,6 +187,17 @@ function App() {
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
                 <TicketSalesRecordedSales />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/ticket-sales/analytics" 
+          element={
+            <ProtectedRoute allowedDepartments={[1]}>
+              <Layout>
+                <TicketSalesAnalytics />
               </Layout>
             </ProtectedRoute>
           } 

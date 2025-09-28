@@ -33,6 +33,8 @@ const Sidebar = () => {
           { icon: <Settings />, label: "Ticketing", path: "/ticket-sales/ticketing" },
           { icon: <Ticket />, label: "Tickets", path: "/ticket-sales/tickets" },
           { icon: <CircleDollarSign />, label: "Recorded Sales", path: "/ticket-sales/recorded-sales" },
+          { icon: <PieChart />, label: "Analytics", path: "/ticket-sales/analytics" },
+        
         ];
       
       case 2: // EventOrganization
