@@ -20,7 +20,8 @@ import PerformerDashboard from "./frontend/performer-negotations/pages/Performer
 import Performers from "./frontend/performer-negotations/pages/Performers";
 
 import Phases from "./frontend/performer-negotations/pages/Phases";
-import Negotiations from "./frontend/performer-negotations/pages/Negotiations";
+import NegotiationsNew from "./frontend/performer-negotations/pages/NegotiationsNew";
+import NegotiationWorkflow from "./frontend/performer-negotations/pages/NegotiationWorkflow";
 import Contracts from "./frontend/performer-negotations/pages/Contracts";
 import Documents from "./frontend/performer-negotations/pages/Documents";
 import Communications from "./frontend/performer-negotations/pages/Communications";
@@ -209,7 +210,18 @@ function App() {
           element={
             <ProtectedRoute allowedDepartments={[3]}>
               <Layout>
-                <Negotiations />
+                <NegotiationsNew />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/negotiations/:id/workflow" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <NegotiationWorkflow />
               </Layout>
             </ProtectedRoute>
           } 

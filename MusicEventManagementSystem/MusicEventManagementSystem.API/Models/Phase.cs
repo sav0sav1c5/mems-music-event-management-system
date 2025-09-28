@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MusicEventManagementSystem.API.Models
 {
     public class Phase
@@ -11,9 +13,11 @@ namespace MusicEventManagementSystem.API.Models
 
         // Global phase - no longer tied to specific negotiation
         // One-to-Many relationship with global requirements
+        [JsonIgnore]
         public ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
         
         // Many-to-Many relationship with negotiations through NegotiationPhase
+        [JsonIgnore]
         public ICollection<NegotiationPhase> NegotiationPhases { get; set; } = new List<NegotiationPhase>();
     }
 }

@@ -9,6 +9,9 @@ export interface NegotiationDto {
   startDate: Date;
   endDate: Date;
   performerId?: number;
+  eventId?: number;
+  eventName?: string;
+  performerName?: string;
   // Navigation properties
   performer?: any;
   communications?: any[];
@@ -21,7 +24,84 @@ export interface CreateNegotiationDto {
   status: string;
   startDate: Date;
   endDate: Date;
-  performerId?: number;
+  performerId: number;
+  eventId: number;
+}
+
+export interface NegotiationPhaseDto {
+  negotiationId: number;
+  phaseId: number;
+  phaseName: string;
+  phaseDescription?: string;
+  orderNumber: number;
+  status: string;
+  startDate?: Date;
+  completedDate?: Date;
+  isActive: boolean;
+  completionPercentage: number;
+  fulfilledRequirementsCount: number;
+  totalRequirementsCount: number;
+  requirementFulfillments?: NegotiationRequirementFulfillmentDto[];
+}
+
+export interface NegotiationRequirementFulfillmentDto {
+  fulfillmentId: number;
+  negotiationId: number;
+  phaseId: number;
+  requirementId: number;
+  requirementTitle: string;
+  requirementDescription: string;
+  isRequired: boolean;
+  isFulfilled: boolean;
+  evidence?: string;
+  notes?: string;
+  fulfilledDate?: Date;
+  fulfilledBy?: string;
+}
+
+export interface NegotiationWorkflowDto {
+  negotiationId: number;
+  proposedFee: number;
+  status: string;
+  startDate: Date;
+  endDate: Date;
+  currentPhaseOrder: number;
+  
+  // Related entities
+  eventId: number;
+  eventName?: string;
+  performerId: number;
+  performerName?: string;
+  
+  // Workflow data
+  phases: NegotiationPhaseDto[];
+  currentPhase?: NegotiationPhaseDto;
+  communication?: CommunicationDto;
+  canAdvanceToNextPhase: boolean;
+  overallCompletionPercentage: number;
+}
+
+export interface CommunicationDto {
+  communicationId: number;
+  type: string;
+  direction: string;
+  content: string;
+  sentAt: Date;
+  repliedAt?: Date;
+  negotiationId: number;
+}
+
+export interface FulfillRequirementDto {
+  isFulfilled: boolean;
+  fulfilledBy?: string;
+  notes?: string;
+  evidence?: string;
+}
+
+export interface AddCommunicationDto {
+  type: string;
+  direction: string;
+  content: string;
 }
 
 const API_ENDPOINT = '/negotiation';
@@ -167,6 +247,92 @@ export const negotiationService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching negotiation with phases:', error);
+      throw error;
+    }
+  },
+
+  // ============ NEW WORKFLOW METHODS ============
+
+  // Get complete negotiation workflow
+  getNegotiationWorkflow: async (negotiationId: number): Promise<NegotiationWorkflowDto> => {
+    try {
+      const response = await api.get<NegotiationWorkflowDto>(`${API_ENDPOINT}/${negotiationId}/workflow`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching negotiation workflow:', error);
+      throw error;
+    }
+  },
+
+  // Get requirements by phase
+  getRequirementsByPhase: async (negotiationId: number, phaseId: number): Promise<NegotiationRequirementFulfillmentDto[]> => {
+    try {
+      const response = await api.get<NegotiationRequirementFulfillmentDto[]>(`${API_ENDPOINT}/${negotiationId}/requirements/phase/${phaseId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching requirements by phase:', error);
+      throw error;
+    }
+  },
+
+  // Fulfill/unfulfill a requirement
+  fulfillRequirement: async (negotiationId: number, requirementId: number, fulfillDto: FulfillRequirementDto): Promise<void> => {
+    try {
+      await api.put(`${API_ENDPOINT}/${negotiationId}/requirements/${requirementId}/fulfill`, fulfillDto);
+    } catch (error) {
+      console.error('Error fulfilling requirement:', error);
+      throw error;
+    }
+  },
+
+  // Add communication
+  addCommunication: async (negotiationId: number, communicationDto: AddCommunicationDto): Promise<void> => {
+    try {
+      await api.post(`${API_ENDPOINT}/${negotiationId}/communications`, communicationDto);
+    } catch (error) {
+      console.error('Error adding communication:', error);
+      throw error;
+    }
+  },
+
+  // Get communication for negotiation
+  getNegotiationCommunication: async (negotiationId: number): Promise<CommunicationDto | null> => {
+    try {
+      const response = await api.get<CommunicationDto>(`${API_ENDPOINT}/${negotiationId}/communications`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching communication:', error);
+      return null;
+    }
+  },
+
+  // Check if can advance to next phase
+  canAdvanceToNextPhase: async (negotiationId: number): Promise<boolean> => {
+    try {
+      const response = await api.get<{ canAdvanceToNextPhase: boolean }>(`${API_ENDPOINT}/${negotiationId}/can-advance`);
+      return response.data.canAdvanceToNextPhase;
+    } catch (error) {
+      console.error('Error checking if can advance:', error);
+      return false;
+    }
+  },
+
+  // Advance negotiation phase
+  advanceNegotiationPhase: async (negotiationId: number): Promise<void> => {
+    try {
+      await api.post(`${API_ENDPOINT}/${negotiationId}/advance-phase`);
+    } catch (error) {
+      console.error('Error advancing negotiation phase:', error);
+      throw error;
+    }
+  },
+
+  // Complete negotiation
+  completeNegotiation: async (negotiationId: number): Promise<void> => {
+    try {
+      await api.post(`${API_ENDPOINT}/${negotiationId}/complete`);
+    } catch (error) {
+      console.error('Error completing negotiation:', error);
       throw error;
     }
   },

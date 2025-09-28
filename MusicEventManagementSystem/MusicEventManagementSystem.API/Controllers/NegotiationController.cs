@@ -360,5 +360,198 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         #endregion
+
+        #region Enhanced Workflow Methods
+
+        [HttpGet("{id}/workflow")]
+        public async Task<ActionResult<NegotiationWorkflowDto>> GetNegotiationWorkflow(int id)
+        {
+            try
+            {
+                var workflow = await _negotiationService.GetNegotiationWorkflowAsync(id);
+                if (workflow == null)
+                {
+                    return NotFound($"Negotiation with ID {id} not found.");
+                }
+
+                // Debug logging
+                Console.WriteLine($"DEBUG: Workflow for negotiation {id}:");
+                Console.WriteLine($"  - Current Phase: {workflow.CurrentPhase?.PhaseName ?? "NULL"}");
+                Console.WriteLine($"  - Total Phases: {workflow.Phases.Count}");
+                foreach (var phase in workflow.Phases.OrderBy(p => p.OrderNumber))
+                {
+                    Console.WriteLine($"  - Phase {phase.OrderNumber}: {phase.PhaseName} | Active: {phase.IsActive} | Status: {phase.Status}");
+                }
+
+                return Ok(workflow);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/requirements/phase/{phaseId}")]
+        public async Task<ActionResult<IEnumerable<NegotiationRequirementFulfillmentDto>>> GetRequirementsByPhase(int id, int phaseId)
+        {
+            try
+            {
+                var requirements = await _negotiationService.GetNegotiationRequirementsByPhaseAsync(id, phaseId);
+                var requirementDtos = requirements.Select(r => new NegotiationRequirementFulfillmentDto
+                {
+                    FulfillmentId = r.FulfillmentId,
+                    NegotiationId = r.NegotiationId,
+                    PhaseId = r.PhaseId,
+                    RequirementId = r.RequirementId,
+                    RequirementTitle = r.Requirement.Title,
+                    RequirementDescription = r.Requirement.Description,
+                    IsRequired = r.Requirement.IsRequired,
+                    IsFulfilled = r.IsFulfilled,
+                    Evidence = r.Evidence,
+                    Notes = r.Notes,
+                    FulfilledDate = r.FulfilledDate,
+                    FulfilledBy = r.FulfilledBy
+                });
+
+                return Ok(requirementDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}/requirements/{requirementId}/fulfill")]
+        public async Task<ActionResult> FulfillRequirement(int id, int requirementId, [FromBody] FulfillRequirementDto fulfillDto)
+        {
+            try
+            {
+                var result = await _negotiationService.FulfillRequirementAsync(
+                    id, 
+                    requirementId, 
+                    fulfillDto.IsFulfilled, 
+                    fulfillDto.FulfilledBy, 
+                    fulfillDto.Notes, 
+                    fulfillDto.Evidence
+                );
+
+                if (!result)
+                {
+                    return BadRequest(new { message = "Failed to update requirement fulfillment." });
+                }
+
+                var status = fulfillDto.IsFulfilled ? "fulfilled" : "unfulfilled";
+                return Ok(new { message = $"Requirement {requirementId} marked as {status} for negotiation {id}." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id}/communications")]
+        public async Task<ActionResult> AddCommunication(int id, [FromBody] AddCommunicationDto communicationDto)
+        {
+            try
+            {
+                var result = await _negotiationService.AddCommunicationToNegotiationAsync(
+                    id, 
+                    communicationDto.Type, 
+                    communicationDto.Direction, 
+                    communicationDto.Content
+                );
+
+                if (!result)
+                {
+                    return BadRequest(new { message = "Failed to add communication." });
+                }
+
+                return Ok(new { message = "Communication added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/communications")]
+        public async Task<ActionResult<CommunicationDto>> GetNegotiationCommunication(int id)
+        {
+            try
+            {
+                var communication = await _negotiationService.GetNegotiationCommunicationAsync(id);
+                if (communication == null)
+                {
+                    return NotFound($"No communication found for negotiation {id}.");
+                }
+
+                var communicationDto = new CommunicationDto
+                {
+                    CommunicationId = communication.CommunicationId,
+                    Type = communication.Type,
+                    Direction = communication.Direction,
+                    Content = communication.Content,
+                    SentAt = communication.SentAt,
+                    RepliedAt = communication.RepliedAt,
+                    NegotiationId = communication.NegotiationId
+                };
+
+                return Ok(communicationDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/can-advance")]
+        public async Task<ActionResult<bool>> CanAdvanceToNextPhase(int id)
+        {
+            try
+            {
+                var canAdvance = await _negotiationService.CanAdvanceToNextPhaseAsync(id);
+                return Ok(new { negotiationId = id, canAdvanceToNextPhase = canAdvance });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id}/complete")]
+        public async Task<ActionResult> CompleteNegotiation(int id)
+        {
+            try
+            {
+                var result = await _negotiationService.CompleteNegotiationAsync(id);
+                if (!result)
+                {
+                    return BadRequest(new { message = "Cannot complete negotiation. Not all phases may be completed." });
+                }
+
+                return Ok(new { message = $"Negotiation {id} completed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // TEMPORARY DEBUG ENDPOINT - REMOVE IN PRODUCTION
+        [HttpPost("debug/fix-active-phases")]
+        public async Task<ActionResult> FixActivePhases()
+        {
+            try
+            {
+                var result = await _negotiationService.FixActivePhases();
+                return Ok(new { message = "Active phases fixed", affectedNegotiations = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

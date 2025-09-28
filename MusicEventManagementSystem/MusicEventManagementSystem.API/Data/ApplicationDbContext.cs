@@ -88,18 +88,26 @@ namespace MusicEventManagementSystem.Data
 
             // Configure Negotiation relationships
             
-            // One-to-One: Negotiation has one Event
+            // Ignore the single Negotiation navigation properties on Event and Performer
+            // since we want Many-to-One relationships (multiple negotiations per event/performer)
+            builder.Entity<Event>()
+                .Ignore(e => e.Negotiation);
+                
+            builder.Entity<Performer>()
+                .Ignore(p => p.Negotiation);
+            
+            // Many-to-One: Many Negotiations can have one Event (One Event can have many Negotiations)
             builder.Entity<Negotiation>()
                 .HasOne(n => n.Event)
-                .WithOne(e => e.Negotiation)
-                .HasForeignKey<Negotiation>(n => n.EventId)
+                .WithMany()  // Event doesn't have navigation property back to Negotiations
+                .HasForeignKey(n => n.EventId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // One-to-One: Negotiation has one Performer
+            // Many-to-One: Many Negotiations can have one Performer (One Performer can have many Negotiations)  
             builder.Entity<Negotiation>()
                 .HasOne(n => n.Performer)
-                .WithOne(p => p.Negotiation)
-                .HasForeignKey<Negotiation>(n => n.PerformerId)
+                .WithMany()  // Performer doesn't have navigation property back to Negotiations
+                .HasForeignKey(n => n.PerformerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // One-to-One: Negotiation has one Communication (Communication is dependent)

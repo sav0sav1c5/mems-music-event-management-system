@@ -1,19 +1,23 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X, Handshake, ArrowUp, ArrowDown, CheckCircle, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Edit, Trash2, X, Handshake, ArrowUp, ArrowDown, CheckCircle, Clock, Eye } from "lucide-react";
 import { negotiationService } from "../services/negotiationService";
-import type { NegotiationDto } from "../services/negotiationService";
+import type { NegotiationDto, CreateNegotiationDto } from "../services/negotiationService";
 
 const Negotiations = () => {
+  const navigate = useNavigate();
   const [negotiations, setNegotiations] = useState<NegotiationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNegotiation, setEditingNegotiation] = useState<NegotiationDto | null>(null);
-  const [formData, setFormData] = useState<Omit<NegotiationDto, 'negotiationId'>>({
+  const [formData, setFormData] = useState<CreateNegotiationDto>({
     proposedFee: 0,
     status: '',
     startDate: new Date(),
     endDate: new Date(),
+    performerId: 0,
+    eventId: 0,
   });
 
   useEffect(() => {
@@ -62,6 +66,8 @@ const Negotiations = () => {
       status: negotiation.status,
       startDate: negotiation.startDate,
       endDate: negotiation.endDate,
+      performerId: negotiation.performerId || 0,
+      eventId: negotiation.eventId || 0,
     });
     setIsModalOpen(true);
   };
@@ -84,6 +90,8 @@ const Negotiations = () => {
       status: '',
       startDate: new Date(),
       endDate: new Date(),
+      performerId: 0,
+      eventId: 0,
     });
     setEditingNegotiation(null);
     setIsModalOpen(false);
@@ -229,14 +237,23 @@ const Negotiations = () => {
                   <td className="p-4">
                     <div className="flex gap-2">
                       <button
+                        onClick={() => navigate(`/artist-communication/negotiations/workflow/${negotiation.negotiationId}`)}
+                        className="p-1.5 hover:bg-neutral-600 rounded-lg transition-all duration-200 text-neutral-400 hover:text-blue-400 border border-transparent hover:border-blue-400/30"
+                        title="View Workflow"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleEdit(negotiation)}
                         className="p-1.5 hover:bg-neutral-600 rounded-lg transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
+                        title="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(negotiation.negotiationId)}
                         className="p-1.5 hover:bg-red-900/50 rounded-lg transition-all duration-200 text-neutral-400 hover:text-red-400 border border-transparent hover:border-red-400/30"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MusicEventManagementSystem.API.Models
 {
     public class Requirement
@@ -13,9 +15,11 @@ namespace MusicEventManagementSystem.API.Models
         public int PhaseId { get; set; }
 
         // Navigation Properties
+        [JsonIgnore]
         public Phase Phase { get; set; } = null!;
         
         // One-to-Many relationship with fulfillments
+        [JsonIgnore]
         public ICollection<NegotiationRequirementFulfillment> Fulfillments { get; set; } = new List<NegotiationRequirementFulfillment>();
     }
 }

@@ -173,11 +173,7 @@ const PricingRules = () => {
     }).format(price);
   };
 
-  const getAveragePriceRange = () => {
-    if (pricingRules.length === 0) return 0;
-    const total = pricingRules.reduce((sum, rule) => sum + ((rule.minimumPrice + rule.maximumPrice) / 2), 0);
-    return total / pricingRules.length;
-  };
+
 
   const getRulesWithModifier = () => {
     return pricingRules.filter(rule => rule.modifier !== 0).length;

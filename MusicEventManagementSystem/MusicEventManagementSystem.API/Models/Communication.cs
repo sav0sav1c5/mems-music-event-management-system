@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MusicEventManagementSystem.API.Models
 {
     public class Communication
@@ -13,6 +15,7 @@ namespace MusicEventManagementSystem.API.Models
         public int NegotiationId { get; set; }
 
         // Navigation Property
+        [JsonIgnore]
         public Negotiation Negotiation { get; set; } = null!;
     }
 }

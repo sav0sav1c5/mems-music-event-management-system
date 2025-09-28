@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, Eye, X, Plus, Trash2, CheckCircle, Clock, Users, AlertCircle } from "lucide-react";
-import { FIXED_PHASES, phaseService } from "../services/phaseService";
+import { phaseService } from "../services/phaseService";
 import type { FixedPhaseTemplate } from "../services/phaseService";
 import { requirementService } from "../services/requirementService";
 import type { RequirementDto, CreateRequirementDto } from "../services/requirementService";

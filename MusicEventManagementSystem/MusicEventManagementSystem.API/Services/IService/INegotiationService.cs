@@ -30,8 +30,22 @@ namespace MusicEventManagementSystem.API.Services.IService
 
         // Requirement fulfillment methods
         Task<IEnumerable<NegotiationRequirementFulfillment>> GetNegotiationRequirementsAsync(int negotiationId);
-        Task<bool> FulfillRequirementAsync(int negotiationId, int requirementId, bool isFulfilled = true);
+        Task<IEnumerable<NegotiationRequirementFulfillment>> GetNegotiationRequirementsByPhaseAsync(int negotiationId, int phaseId);
+        Task<bool> FulfillRequirementAsync(int negotiationId, int requirementId, bool isFulfilled = true, string? fulfilledBy = null, string? notes = null, string? evidence = null);
         Task<bool> AreAllRequirementsFulfilledForPhaseAsync(int negotiationId, int phaseId);
         Task<decimal> GetPhaseCompletionPercentageAsync(int negotiationId, int phaseId);
+        
+        // Communication methods
+        Task<bool> AddCommunicationToNegotiationAsync(int negotiationId, string type, string direction, string content);
+        Task<Communication?> GetNegotiationCommunicationAsync(int negotiationId);
+        
+        // Enhanced workflow methods
+        Task<bool> InitializeNegotiationWorkflowAsync(int negotiationId);
+        Task<bool> CanAdvanceToNextPhaseAsync(int negotiationId);
+        Task<bool> CompleteNegotiationAsync(int negotiationId);
+        Task<NegotiationWorkflowDto?> GetNegotiationWorkflowAsync(int negotiationId);
+        
+        // TEMPORARY DEBUG METHOD - REMOVE IN PRODUCTION
+        Task<int> FixActivePhases();
     }
 }

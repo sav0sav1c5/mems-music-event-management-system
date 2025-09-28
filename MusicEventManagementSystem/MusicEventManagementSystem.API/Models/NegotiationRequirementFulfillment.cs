@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MusicEventManagementSystem.API.Models
 {
     public class NegotiationRequirementFulfillment
@@ -17,9 +19,11 @@ namespace MusicEventManagementSystem.API.Models
         public string? FulfilledBy { get; set; } // User who marked as fulfilled
         
         // Navigation Properties
+        [JsonIgnore]
         public Negotiation Negotiation { get; set; } = null!;
         public Phase Phase { get; set; } = null!;
         public Requirement Requirement { get; set; } = null!;
+        [JsonIgnore]
         public NegotiationPhase NegotiationPhase { get; set; } = null!;
     }
 }

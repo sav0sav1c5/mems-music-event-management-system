@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MusicEventManagementSystem.API.Models
 {
     public class NegotiationPhase
@@ -13,10 +15,12 @@ namespace MusicEventManagementSystem.API.Models
         public bool IsActive { get; set; } = false; // Only one phase should be active per negotiation
         
         // Navigation Properties
+        [JsonIgnore]
         public Negotiation Negotiation { get; set; } = null!;
         public Phase Phase { get; set; } = null!;
         
         // One-to-Many relationship with requirement fulfillments
+        [JsonIgnore]
         public ICollection<NegotiationRequirementFulfillment> RequirementFulfillments { get; set; } = new List<NegotiationRequirementFulfillment>();
     }
 }

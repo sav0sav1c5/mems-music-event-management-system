@@ -1,4 +1,5 @@
 using MusicEventManagementSystem.Models.Auth;
+using System.Text.Json.Serialization;
 
 namespace MusicEventManagementSystem.API.Models
 {
@@ -23,15 +24,19 @@ namespace MusicEventManagementSystem.API.Models
         public Communication Communication { get; set; } = null!;
         
         // One-to-Many relationships
+        [JsonIgnore]
         public ICollection<Document> Documents { get; set; } = new List<Document>();
         
         // Many-to-Many relationship with Users
+        [JsonIgnore]
         public ICollection<NegotiationUser> Users { get; set; } = new List<NegotiationUser>();
         
         // Many-to-Many relationship with Phases through NegotiationPhase
+        [JsonIgnore]
         public ICollection<NegotiationPhase> NegotiationPhases { get; set; } = new List<NegotiationPhase>();
         
         // One-to-Many relationship with requirement fulfillments
+        [JsonIgnore]
         public ICollection<NegotiationRequirementFulfillment> RequirementFulfillments { get; set; } = new List<NegotiationRequirementFulfillment>();
     }
 }

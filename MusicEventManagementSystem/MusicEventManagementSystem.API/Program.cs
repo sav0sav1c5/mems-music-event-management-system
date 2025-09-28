@@ -94,6 +94,8 @@ builder.Services.AddScoped<IPerformanceResourceRepository, PerformanceResourceRe
 builder.Services.AddScoped<IRequirementRepository, RequirementRepository>();
 builder.Services.AddScoped<IPhaseRepository, PhaseRepository>();
 builder.Services.AddScoped<INegotiationRepository, NegotiationRepository>();
+builder.Services.AddScoped<INegotiationPhaseRepository, NegotiationPhaseRepository>();
+builder.Services.AddScoped<INegotiationRequirementFulfillmentRepository, NegotiationRequirementFulfillmentRepository>();
 builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<ICommunicationRepository, CommunicationRepository>();
@@ -135,6 +137,8 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -157,5 +161,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Initialize global phases on startup
+using (var scope = app.Services.CreateScope())
+{
+    var phaseService = scope.ServiceProvider.GetRequiredService<IPhaseService>();
+    await phaseService.InitializeGlobalPhasesAsync();
+}
 
 app.Run();

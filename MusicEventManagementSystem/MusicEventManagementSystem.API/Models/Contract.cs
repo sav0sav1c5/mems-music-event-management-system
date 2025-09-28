@@ -16,6 +16,5 @@ namespace MusicEventManagementSystem.API.Models
 
         // Navigation Properties
         public Performer Performer { get; set; } = null!;
-        public Phase? Phase { get; set; } // Optional - not every Contract has a Phase
     }
 }

@@ -8,11 +8,19 @@ namespace MusicEventManagementSystem.API.Services
     {
         private readonly IPhaseRepository _phaseRepository;
         private readonly INegotiationRepository _negotiationRepository;
+        private readonly INegotiationPhaseRepository _negotiationPhaseRepository;
+        private readonly INegotiationRequirementFulfillmentRepository _requirementFulfillmentRepository;
 
-        public PhaseService(IPhaseRepository phaseRepository, INegotiationRepository negotiationRepository)
+        public PhaseService(
+            IPhaseRepository phaseRepository, 
+            INegotiationRepository negotiationRepository,
+            INegotiationPhaseRepository negotiationPhaseRepository,
+            INegotiationRequirementFulfillmentRepository requirementFulfillmentRepository)
         {
             _phaseRepository = phaseRepository;
             _negotiationRepository = negotiationRepository;
+            _negotiationPhaseRepository = negotiationPhaseRepository;
+            _requirementFulfillmentRepository = requirementFulfillmentRepository;
         }
 
         #region Global Phase Template Management
@@ -175,11 +183,60 @@ namespace MusicEventManagementSystem.API.Services
             return Task.FromResult<NegotiationPhase?>(null);
         }
 
-        public Task InitializeNegotiationPhasesAsync(int negotiationId)
+        public async Task InitializeNegotiationPhasesAsync(int negotiationId)
         {
-            // This will need to be implemented when repository methods are available
-            // For now, just return completed task
-            return Task.CompletedTask;
+            // Get all global phase templates
+            var globalPhases = await GetGlobalPhaseTemplatesAsync();
+            
+            // Get the minimum order number to identify the first phase
+            var orderedPhases = globalPhases.OrderBy(p => p.OrderNumber).ToList();
+            var firstPhaseOrderNumber = orderedPhases.FirstOrDefault()?.OrderNumber ?? 1;
+            
+            // Debug logging
+            Console.WriteLine($"DEBUG: Initializing phases for negotiation {negotiationId}");
+            Console.WriteLine($"DEBUG: Found {orderedPhases.Count} global phases, first phase order: {firstPhaseOrderNumber}");
+            
+            // Create NegotiationPhase records for this negotiation
+            foreach (var phase in orderedPhases)
+            {
+                var isFirstPhase = phase.OrderNumber == firstPhaseOrderNumber;
+                var negotiationPhase = new NegotiationPhase
+                {
+                    NegotiationId = negotiationId,
+                    PhaseId = phase.PhaseId,
+                    Status = isFirstPhase ? "Active" : "Pending",
+                    StartDate = isFirstPhase ? DateTime.UtcNow : (DateTime?)null,
+                    CompletedDate = null,
+                    IsActive = isFirstPhase
+                };
+
+                Console.WriteLine($"DEBUG: Creating phase {phase.PhaseName} (Order: {phase.OrderNumber}) - IsActive: {isFirstPhase}");
+                await _negotiationPhaseRepository.AddAsync(negotiationPhase);
+                
+                // Create requirement fulfillments for this phase
+                foreach (var requirement in phase.Requirements)
+                {
+                    var fulfillment = new NegotiationRequirementFulfillment
+                    {
+                        NegotiationId = negotiationId,
+                        PhaseId = phase.PhaseId,
+                        RequirementId = requirement.RequirementId,
+                        IsFulfilled = false,
+                        FulfilledDate = null,
+                        FulfilledBy = null,
+                        Notes = null,
+                        Evidence = null
+                    };
+
+                    await _requirementFulfillmentRepository.AddAsync(fulfillment);
+                }
+            }
+            
+            // Save all changes
+            await _negotiationPhaseRepository.SaveChangesAsync();
+            await _requirementFulfillmentRepository.SaveChangesAsync();
+            
+            Console.WriteLine($"DEBUG: Phase initialization completed for negotiation {negotiationId}");
         }
 
         public async Task<bool> AdvanceToNextPhaseAsync(int negotiationId)
