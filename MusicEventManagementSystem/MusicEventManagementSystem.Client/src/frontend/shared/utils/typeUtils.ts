@@ -7,7 +7,7 @@ import {
   TicketStatus, 
   PaymentMethod, 
   TransactionStatus
-} from '../../ticket-sales/types/enums/TicketSales';
+} from '../../ticket-sales/types/enums/ticketSales';
 
 import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
 

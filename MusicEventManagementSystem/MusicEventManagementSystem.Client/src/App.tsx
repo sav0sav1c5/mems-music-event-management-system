@@ -7,14 +7,15 @@ import ProtectedRoute from "./frontend/shared/components/ProtectedRoute";
 // Ticket Sales imports
 import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
 import TicketSalesInfrastructure from "./frontend/ticket-sales/pages/Infrastructure";
-import TicketSalesVenues from "./frontend/ticket-sales/pages/Venues";
-import TicketSalesZones from './frontend/ticket-sales/pages/Zones';
-import TicketSalesSegments from './frontend/ticket-sales/pages/Segments';
-import TicketSalesTicketTypes from './frontend/ticket-sales/pages/TicketTypes';
+// import TicketSalesVenues from "./frontend/ticket-sales/pages/Venues";
+// import TicketSalesZones from './frontend/ticket-sales/pages/Zones';
+// import TicketSalesSegments from './frontend/ticket-sales/pages/Segments';
+// import TicketSalesTicketTypes from './frontend/ticket-sales/pages/TicketTypes';
 import TicketSalesTickets from './frontend/ticket-sales/pages/Tickets';
 import TicketSalesRecordedSales from './frontend/ticket-sales/pages/RecordedSales';
-import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules';
-import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
+// import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules';
+// import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
+import TicketSalesTicketing from './frontend/ticket-sales/pages/Ticketing';
 
 // Event Organization imports
 // ...
@@ -85,7 +86,7 @@ function App() {
           } 
         />
 
-        <Route 
+        {/* <Route 
           path="/ticket-sales/venues" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
@@ -94,9 +95,9 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } 
-        />
+        /> */}
 
-        <Route 
+        {/* <Route 
           path="/ticket-sales/segments" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
@@ -105,9 +106,9 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } 
-        />
+        /> */}
 
-        <Route 
+        {/* <Route 
           path="/ticket-sales/zones" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
@@ -116,14 +117,14 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } 
-        />
+        /> */}
 
         <Route 
-          path="/ticket-sales/ticket-types" 
+          path="/ticket-sales/ticketing" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
-                <TicketSalesTicketTypes />
+                <TicketSalesTicketing />
               </Layout>
             </ProtectedRoute>
           } 
@@ -135,6 +136,21 @@ function App() {
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
                 <TicketSalesTickets />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+
+
+        {/** 
+        
+        <Route 
+          path="/ticket-sales/ticket-types" 
+          element={
+            <ProtectedRoute allowedDepartments={[1]}>
+              <Layout>
+                <TicketSalesTicketTypes />
               </Layout>
             </ProtectedRoute>
           } 
@@ -160,7 +176,9 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } 
-        />
+        /> 
+        
+        **/}
 
         <Route 
           path="/ticket-sales/recorded-sales" 

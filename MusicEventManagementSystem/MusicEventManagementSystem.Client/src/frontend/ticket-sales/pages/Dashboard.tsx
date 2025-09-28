@@ -9,14 +9,14 @@ import {
 
 // Import real services
 // import { EventService } from '../../event-organization/services/eventService';
-import { RecordedSaleService } from '../types/services/recordedSaleService';
-import { TicketService } from '../types/services/ticketService';
-import { SpecialOfferService } from '../types/services/specialOfferService';
+import { RecordedSaleService } from '../services/recordedSaleService';
+import { TicketService } from '../services/ticketService';
+import { SpecialOfferService } from '../services/specialOfferService';
 
 // Import types
 import type { SpecialOfferResponse } from '../types/api/specialOffer';
 // import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
-import { TransactionStatus, TicketStatus } from '../types/enums/TicketSales';
+import { TransactionStatus, TicketStatus } from '../types/enums/ticketSales';
 
 // Dashboard data interfaces
 interface DashboardKPIs {

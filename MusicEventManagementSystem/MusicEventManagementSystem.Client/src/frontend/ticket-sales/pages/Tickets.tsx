@@ -1,20 +1,22 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, X, QrCode, ArrowUp, ArrowDown, CheckCircle, Clock, XCircle } from "lucide-react";
-import { ticketService } from "../services/ticketService";
-import type { Ticket } from "../services/ticketService";
+import { TicketService } from "../services/ticketService";
+import type { TicketResponse } from "../types/api/ticket";
+import type { TicketCreateForm, TicketUpdateForm } from "../types/forms/ticket";
+import { TicketStatus } from "../types/enums/ticketSales";
 
 const Tickets = () => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
-  const [formData, setFormData] = useState<Omit<Ticket, 'ticketId'>>({
+  const [editingTicket, setEditingTicket] = useState<TicketResponse | null>(null);
+  const [formData, setFormData] = useState<Omit<TicketCreateForm, 'ticketTypeId'>>({
     uniqueCode: '',
     qrCode: '',
     issueDate: new Date(),
     finalPrice: 0,
-    status: '',
+    status: TicketStatus.Available,
   });
 
   useEffect(() => {
@@ -24,7 +26,7 @@ const Tickets = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const data = await ticketService.getAllTickets();
+      const data = await TicketService.getAllTickets();
       setTickets(data);
     } catch (err) {
       setError('Failed to fetch tickets');
@@ -38,15 +40,25 @@ const Tickets = () => {
     e.preventDefault();
     try {
       if (editingTicket) {
-        const updated = await ticketService.updateTicket(
-          editingTicket.ticketId,
-          { ...formData, ticketId: editingTicket.ticketId }
-        );
+        const updateData: TicketUpdateForm = {
+          uniqueCode: formData.uniqueCode,
+          qrCode: formData.qrCode,
+          issueDate: formData.issueDate,
+          finalPrice: formData.finalPrice,
+          status: formData.status,
+        };
+        const updated = await TicketService.updateTicket(editingTicket.ticketId, updateData);
         setTickets(prev => 
           prev.map(item => item.ticketId === updated.ticketId ? updated : item)
         );
       } else {
-        const created = await ticketService.createTicket(formData);
+        // For creating new tickets, you'll need to provide ticketTypeId
+        // This should come from your form or be selected by the user
+        const createData: TicketCreateForm = {
+          ...formData,
+          ticketTypeId: 1, // You'll need to make this dynamic based on your requirements
+        };
+        const created = await TicketService.createTicket(createData);
         setTickets(prev => [...prev, created]);
       }
       resetForm();
@@ -56,14 +68,14 @@ const Tickets = () => {
     }
   };
 
-  const handleEdit = (ticket: Ticket) => {
+  const handleEdit = (ticket: TicketResponse) => {
     setEditingTicket(ticket);
     setFormData({
       uniqueCode: ticket.uniqueCode || '',
       qrCode: ticket.qrCode || '',
       issueDate: ticket.issueDate,
       finalPrice: ticket.finalPrice,
-      status: ticket.status || '',
+      status: ticket.status,
     });
     setIsModalOpen(true);
   };
@@ -71,7 +83,7 @@ const Tickets = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this ticket?')) {
       try {
-        await ticketService.deleteTicket(id);
+        await TicketService.deleteTicket(id);
         setTickets(prev => prev.filter(item => item.ticketId !== id));
       } catch (err) {
         setError('Failed to delete ticket');
@@ -86,7 +98,7 @@ const Tickets = () => {
       qrCode: '',
       issueDate: new Date(),
       finalPrice: 0,
-      status: '',
+      status: TicketStatus.Available,
     });
     setEditingTicket(null);
     setIsModalOpen(false);
@@ -107,10 +119,23 @@ const Tickets = () => {
     }).format(price);
   };
 
+  const getStatusName = (status: TicketStatus): string => {
+    switch (status) {
+      case TicketStatus.Available: return 'Available';
+      case TicketStatus.Reserved: return 'Reserved';
+      case TicketStatus.Sold: return 'Sold';
+      case TicketStatus.Used: return 'Used';
+      case TicketStatus.Cancelled: return 'Cancelled';
+      case TicketStatus.Expired: return 'Expired';
+      case TicketStatus.Refunded: return 'Refunded';
+      default: return 'Unknown';
+    }
+  };
+
   const stats = [
     {
-      title: "Active Tickets",
-      value: tickets.filter(t => t.status === 'Active').length.toString(),
+      title: "Sold Tickets",
+      value: tickets.filter(t => t.status === TicketStatus.Sold).length.toString(),
       change: "+15.2%",
       trend: "up",
       icon: <CheckCircle className="w-5 h-5" />,
@@ -118,7 +143,7 @@ const Tickets = () => {
     },
     {
       title: "Used Tickets",
-      value: tickets.filter(t => t.status === 'Used').length.toString(),
+      value: tickets.filter(t => t.status === TicketStatus.Used).length.toString(),
       change: "+8.7%",
       trend: "up",
       icon: <Clock className="w-5 h-5" />,
@@ -126,7 +151,7 @@ const Tickets = () => {
     },
     {
       title: "Cancelled",
-      value: tickets.filter(t => t.status === 'Cancelled').length.toString(),
+      value: tickets.filter(t => t.status === TicketStatus.Cancelled).length.toString(),
       change: "-2.1%",
       trend: "down",
       icon: <XCircle className="w-5 h-5" />,
@@ -134,7 +159,7 @@ const Tickets = () => {
     },
     {
       title: "Total Revenue",
-      value: formatPrice(tickets.reduce((sum, ticket) => sum + ticket.finalPrice, 0)),
+      value: formatPrice(tickets.filter(t => t.status === TicketStatus.Sold || t.status === TicketStatus.Used).reduce((sum, ticket) => sum + ticket.finalPrice, 0)),
       change: "+12.3%",
       trend: "up",
       icon: <QrCode className="w-5 h-5" />,
@@ -222,12 +247,16 @@ const Tickets = () => {
                   <td className="p-4 font-semibold text-lime-400">{formatPrice(ticket.finalPrice)}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                      ticket.status === 'Active' ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
-                      ticket.status === 'Used' ? 'bg-blue-950/50 text-blue-400 border-blue-900/50' :
-                      ticket.status === 'Cancelled' ? 'bg-red-950/50 text-red-400 border-red-900/50' :
+                      ticket.status === TicketStatus.Available ? 'bg-green-950/50 text-green-400 border-green-900/50' :
+                      ticket.status === TicketStatus.Sold ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
+                      ticket.status === TicketStatus.Used ? 'bg-blue-950/50 text-blue-400 border-blue-900/50' :
+                      ticket.status === TicketStatus.Cancelled ? 'bg-red-950/50 text-red-400 border-red-900/50' :
+                      ticket.status === TicketStatus.Reserved ? 'bg-yellow-950/50 text-yellow-400 border-yellow-900/50' :
+                      ticket.status === TicketStatus.Expired ? 'bg-gray-950/50 text-gray-400 border-gray-900/50' :
+                      ticket.status === TicketStatus.Refunded ? 'bg-purple-950/50 text-purple-400 border-purple-900/50' :
                       'bg-orange-950/50 text-orange-400 border-orange-900/50'
                     }`}>
-                      {ticket.status || 'Unknown'}
+                      {getStatusName(ticket.status)}
                     </span>
                   </td>
                   <td className="p-4">
@@ -332,14 +361,16 @@ const Tickets = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Status</label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, status: parseInt(e.target.value) as TicketStatus }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                 >
-                  <option value="">Select status</option>
-                  <option value="Active">Active</option>
-                  <option value="Used">Used</option>
-                  <option value="Cancelled">Cancelled</option>
-                  <option value="Expired">Expired</option>
+                  <option value={TicketStatus.Available}>Available</option>
+                  <option value={TicketStatus.Reserved}>Reserved</option>
+                  <option value={TicketStatus.Sold}>Sold</option>
+                  <option value={TicketStatus.Used}>Used</option>
+                  <option value={TicketStatus.Cancelled}>Cancelled</option>
+                  <option value={TicketStatus.Expired}>Expired</option>
+                  <option value={TicketStatus.Refunded}>Refunded</option>
                 </select>
               </div>
 

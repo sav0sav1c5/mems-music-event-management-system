@@ -1,5 +1,5 @@
 // Enums
-export * from './enums/TicketSales';
+export * from './enums/ticketSales';
 
 // API Types
 export * from './api/venue';

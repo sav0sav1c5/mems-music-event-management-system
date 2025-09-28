@@ -5,9 +5,9 @@ import {
 } from 'lucide-react';
 
 // Import servisa
-import VenueService from '../types/services/venueService';
-import SegmentService from '../types/services/segmentService';
-import ZoneService from '../types/services/zoneService';
+import VenueService from '../services/venueService';
+import SegmentService from '../services/segmentService';
+import ZoneService from '../services/zoneService';
 import { EventService } from '../../event-organization/services/eventService';
 
 // Import tipova
@@ -21,7 +21,7 @@ import { VenueType, SegmentType, ZonePosition } from '../types/enums/ticketSales
 import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
 
 // Form tipovi
-import type { VenueCreateForm, VenueUpdateForm } from '../types/forms/venue';
+//import type { VenueCreateForm, VenueUpdateForm } from '../types/forms/venue';
 import type { SegmentCreateForm } from '../types/forms/segment';
 import type { ZoneCreateForm } from '../types/forms/zone';
 

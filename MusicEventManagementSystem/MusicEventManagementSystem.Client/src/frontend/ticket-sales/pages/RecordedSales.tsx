@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, X, CreditCard, DollarSign, ArrowUp, ArrowDown, TrendingUp } from "lucide-react";
-import { recordedSaleService } from "../services/recordedSaleService";
-import type { RecordedSale } from "../services/recordedSaleService";
+import { RecordedSaleService } from "../services/recordedSaleService";
+import type { RecordedSaleResponse } from "../types/api/recordedSale";
+import type { RecordedSaleCreateForm, RecordedSaleUpdateForm } from "../types/forms/recordedSale";
+import { PaymentMethod, TransactionStatus } from "../types/enums/ticketSales";
 
 const RecordedSales = () => {
-  const [recordedSales, setRecordedSales] = useState<RecordedSale[]>([]);
+  const [recordedSales, setRecordedSales] = useState<RecordedSaleResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSale, setEditingSale] = useState<RecordedSale | null>(null);
-  const [formData, setFormData] = useState<Omit<RecordedSale, 'recordedSaleId'>>({
+  const [editingSale, setEditingSale] = useState<RecordedSaleResponse | null>(null);
+  const [formData, setFormData] = useState<Omit<RecordedSaleCreateForm, 'applicationUserId'>>({
     totalAmount: 0,
-    paymentMethod: '',
+    paymentMethod: PaymentMethod.CreditCard,
     saleDate: new Date(),
-    transactionStatus: '',
+    transactionStatus: TransactionStatus.Pending,
   });
 
   useEffect(() => {
@@ -23,7 +25,7 @@ const RecordedSales = () => {
   const fetchRecordedSales = async () => {
     try {
       setLoading(true);
-      const data = await recordedSaleService.getAllRecordedSales();
+      const data = await RecordedSaleService.getAllRecordedSales();
       setRecordedSales(data);
     } catch (err) {
       setError('Failed to fetch recorded sales');
@@ -37,15 +39,24 @@ const RecordedSales = () => {
     e.preventDefault();
     try {
       if (editingSale) {
-        const updated = await recordedSaleService.updateRecordedSale(
-          editingSale.recordedSaleId,
-          { ...formData, recordedSaleId: editingSale.recordedSaleId }
-        );
+        const updateData: RecordedSaleUpdateForm = {
+          totalAmount: formData.totalAmount,
+          paymentMethod: formData.paymentMethod,
+          saleDate: formData.saleDate,
+          transactionStatus: formData.transactionStatus,
+        };
+        const updated = await RecordedSaleService.updateRecordedSale(editingSale.recordedSaleId, updateData);
         setRecordedSales(prev => 
           prev.map(item => item.recordedSaleId === updated.recordedSaleId ? updated : item)
         );
       } else {
-        const created = await recordedSaleService.createRecordedSale(formData);
+        // For creating new sales, you'll need to provide applicationUserId
+        // This should come from authentication context or user session
+        const createData: RecordedSaleCreateForm = {
+          ...formData,
+          applicationUserId: 'default-user-id', // You'll need to make this dynamic
+        };
+        const created = await RecordedSaleService.createRecordedSale(createData);
         setRecordedSales(prev => [...prev, created]);
       }
       resetForm();
@@ -55,13 +66,13 @@ const RecordedSales = () => {
     }
   };
 
-  const handleEdit = (sale: RecordedSale) => {
+  const handleEdit = (sale: RecordedSaleResponse) => {
     setEditingSale(sale);
     setFormData({
       totalAmount: sale.totalAmount,
-      paymentMethod: sale.paymentMethod || '',
+      paymentMethod: sale.paymentMethod,
       saleDate: sale.saleDate,
-      transactionStatus: sale.transactionStatus || '',
+      transactionStatus: sale.transactionStatus,
     });
     setIsModalOpen(true);
   };
@@ -69,7 +80,7 @@ const RecordedSales = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this recorded sale?')) {
       try {
-        await recordedSaleService.deleteRecordedSale(id);
+        await RecordedSaleService.deleteRecordedSale(id);
         setRecordedSales(prev => prev.filter(item => item.recordedSaleId !== id));
       } catch (err) {
         setError('Failed to delete recorded sale');
@@ -81,9 +92,9 @@ const RecordedSales = () => {
   const resetForm = () => {
     setFormData({
       totalAmount: 0,
-      paymentMethod: '',
+      paymentMethod: PaymentMethod.CreditCard,
       saleDate: new Date(),
-      transactionStatus: '',
+      transactionStatus: TransactionStatus.Pending,
     });
     setEditingSale(null);
     setIsModalOpen(false);
@@ -108,35 +119,46 @@ const RecordedSales = () => {
 
   const getTotalRevenue = () => {
     return recordedSales
-      .filter(sale => sale.transactionStatus === 'Completed')
+      .filter(sale => sale.transactionStatus === TransactionStatus.Completed)
       .reduce((sum, sale) => sum + sale.totalAmount, 0);
   };
 
-  const getPaymentMethodIcon = (method: string | number | undefined) => {
-    const methodStr = typeof method === 'string'
-      ? method
-      : method !== undefined
-        ? PaymentMethodMap[method]
-        : '';
-    switch (methodStr.toLowerCase()) {
-      case 'creditcard':
-        return <CreditCard className="w-4 h-4" />;
-      case 'cash':
-        return <DollarSign className="w-4 h-4" />;
-      default:
-        return <CreditCard className="w-4 h-4" />;
+  const getPaymentMethodName = (method: PaymentMethod): string => {
+    switch (method) {
+      case PaymentMethod.CreditCard: return 'Credit Card';
+      case PaymentMethod.DebitCard: return 'Debit Card';
+      case PaymentMethod.Cash: return 'Cash';
+      case PaymentMethod.BankTransfer: return 'Bank Transfer';
+      case PaymentMethod.PayPal: return 'PayPal';
+      case PaymentMethod.ApplePay: return 'Apple Pay';
+      case PaymentMethod.GooglePay: return 'Google Pay';
+      case PaymentMethod.Cryptocurrency: return 'Cryptocurrency';
+      default: return 'Unknown';
     }
   };
 
-  const PaymentMethodMap: Record<number, string> = {
-    0: 'CreditCard',
-    1: 'DebitCard',
-    2: 'Cash',
-    3: 'BankTransfer',
-    4: 'PayPal',
-    5: 'ApplePay',
-    6: 'GooglePay',
-    7: 'Cryptocurrency',
+  const getTransactionStatusName = (status: TransactionStatus): string => {
+    switch (status) {
+      case TransactionStatus.Pending: return 'Pending';
+      case TransactionStatus.Completed: return 'Completed';
+      case TransactionStatus.Failed: return 'Failed';
+      case TransactionStatus.Cancelled: return 'Cancelled';
+      case TransactionStatus.Refunded: return 'Refunded';
+      case TransactionStatus.PartiallyRefunded: return 'Partially Refunded';
+      case TransactionStatus.Processing: return 'Processing';
+      default: return 'Unknown';
+    }
+  };
+
+  const getPaymentMethodIcon = (method: PaymentMethod) => {
+    switch (method) {
+      case PaymentMethod.Cash:
+        return <DollarSign className="w-4 h-4" />;
+      case PaymentMethod.CreditCard:
+      case PaymentMethod.DebitCard:
+      default:
+        return <CreditCard className="w-4 h-4" />;
+    }
   };
 
   const stats = [
@@ -158,7 +180,7 @@ const RecordedSales = () => {
     },
     {
       title: "Avg. Sale",
-      value: recordedSales.length > 0 ? formatPrice(getTotalRevenue() / recordedSales.length) : '$0.00',
+      value: recordedSales.length > 0 ? formatPrice(getTotalRevenue() / recordedSales.filter(s => s.transactionStatus === TransactionStatus.Completed).length || 0) : '$0.00',
       change: "+3.1%",
       trend: "up",
       icon: <TrendingUp className="w-5 h-5" />,
@@ -166,7 +188,7 @@ const RecordedSales = () => {
     },
     {
       title: "Completed",
-      value: recordedSales.filter(s => s.transactionStatus === 'Completed').length.toString(),
+      value: recordedSales.filter(s => s.transactionStatus === TransactionStatus.Completed).length.toString(),
       change: "+5.1%",
       trend: "up",
       icon: <ArrowUp className="w-5 h-5" />,
@@ -252,19 +274,21 @@ const RecordedSales = () => {
                   <td className="p-4">
                     <div className="flex items-center gap-2 text-neutral-300">
                       {getPaymentMethodIcon(sale.paymentMethod)}
-                      <span>{sale.paymentMethod || 'N/A'}</span>
+                      <span>{getPaymentMethodName(sale.paymentMethod)}</span>
                     </div>
                   </td>
                   <td className="p-4 text-neutral-300">{formatDate(sale.saleDate)}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                      sale.transactionStatus === 'Completed' ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
-                      sale.transactionStatus === 'Pending' ? 'bg-orange-950/50 text-orange-400 border-orange-900/50' :
-                      sale.transactionStatus === 'Failed' ? 'bg-red-950/50 text-red-400 border-red-900/50' :
-                      sale.transactionStatus === 'Cancelled' ? 'bg-purple-950/50 text-purple-400 border-purple-900/50' :
-                      'bg-blue-950/50 text-blue-400 border-blue-900/50'
+                      sale.transactionStatus === TransactionStatus.Completed ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
+                      sale.transactionStatus === TransactionStatus.Pending ? 'bg-orange-950/50 text-orange-400 border-orange-900/50' :
+                      sale.transactionStatus === TransactionStatus.Failed ? 'bg-red-950/50 text-red-400 border-red-900/50' :
+                      sale.transactionStatus === TransactionStatus.Cancelled ? 'bg-purple-950/50 text-purple-400 border-purple-900/50' :
+                      sale.transactionStatus === TransactionStatus.Refunded ? 'bg-blue-950/50 text-blue-400 border-blue-900/50' :
+                      sale.transactionStatus === TransactionStatus.Processing ? 'bg-yellow-950/50 text-yellow-400 border-yellow-900/50' :
+                      'bg-gray-950/50 text-gray-400 border-gray-900/50'
                     }`}>
-                      {sale.transactionStatus || 'Unknown'}
+                      {getTransactionStatusName(sale.transactionStatus)}
                     </span>
                   </td>
                   <td className="p-4">
@@ -330,15 +354,17 @@ const RecordedSales = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Payment Method</label>
                 <select
                   value={formData.paymentMethod}
-                  onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: parseInt(e.target.value) as PaymentMethod }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                 >
-                  <option value="">Select payment method</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Debit Card">Debit Card</option>
-                  <option value="Cash">Cash</option>
-                  <option value="PayPal">PayPal</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value={PaymentMethod.CreditCard}>Credit Card</option>
+                  <option value={PaymentMethod.DebitCard}>Debit Card</option>
+                  <option value={PaymentMethod.Cash}>Cash</option>
+                  <option value={PaymentMethod.BankTransfer}>Bank Transfer</option>
+                  <option value={PaymentMethod.PayPal}>PayPal</option>
+                  <option value={PaymentMethod.ApplePay}>Apple Pay</option>
+                  <option value={PaymentMethod.GooglePay}>Google Pay</option>
+                  <option value={PaymentMethod.Cryptocurrency}>Cryptocurrency</option>
                 </select>
               </div>
 
@@ -356,15 +382,16 @@ const RecordedSales = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Transaction Status</label>
                 <select
                   value={formData.transactionStatus}
-                  onChange={(e) => setFormData(prev => ({ ...prev, transactionStatus: e.target.value }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, transactionStatus: parseInt(e.target.value) as TransactionStatus }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                 >
-                  <option value="">Select status</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Failed">Failed</option>
-                  <option value="Cancelled">Cancelled</option>
-                  <option value="Refunded">Refunded</option>
+                  <option value={TransactionStatus.Pending}>Pending</option>
+                  <option value={TransactionStatus.Completed}>Completed</option>
+                  <option value={TransactionStatus.Failed}>Failed</option>
+                  <option value={TransactionStatus.Cancelled}>Cancelled</option>
+                  <option value={TransactionStatus.Refunded}>Refunded</option>
+                  <option value={TransactionStatus.PartiallyRefunded}>Partially Refunded</option>
+                  <option value={TransactionStatus.Processing}>Processing</option>
                 </select>
               </div>
 

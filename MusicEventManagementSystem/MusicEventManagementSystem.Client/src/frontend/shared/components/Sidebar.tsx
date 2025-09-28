@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  LogOut, CircleDollarSign, BarChart2, TrendingUp, Star, Bookmark, Clock, ChevronLeft, ChevronRight,
+  LogOut, CircleDollarSign, BarChart2, Settings, Clock, ChevronLeft, ChevronRight,
   MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2
 } from "lucide-react";
 
@@ -30,13 +30,8 @@ const Sidebar = () => {
         return [
           { icon: <BarChart2 />, label: "Dashboard", path: "/ticket-sales/dashboard" },
           { icon: <Building2 />, label: "Infrastructure", path: "/ticket-sales/infrastructure" },
-          { icon: <MapPin />, label: "Venues", path: "/ticket-sales/venues" },
-          { icon: <Clock />, label: "Segments", path: "/ticket-sales/segments" },
-          { icon: <Map />, label: "Zones", path: "/ticket-sales/zones" },
-          { icon: <Bookmark />, label: "Ticket Types", path: "/ticket-sales/ticket-types" },
+          { icon: <Settings />, label: "Ticketing", path: "/ticket-sales/ticketing" },
           { icon: <Ticket />, label: "Tickets", path: "/ticket-sales/tickets" },
-          { icon: <TrendingUp />, label: "Pricing Rules", path: "/ticket-sales/pricing-rules" },
-          { icon: <Star />, label: "Special Offers", path: "/ticket-sales/special-offers" },
           { icon: <CircleDollarSign />, label: "Recorded Sales", path: "/ticket-sales/recorded-sales" },
         ];
       

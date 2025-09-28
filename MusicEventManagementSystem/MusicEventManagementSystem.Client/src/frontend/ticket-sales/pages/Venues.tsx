@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, X, AlertCircle, MapPin, Users, Building2 } from "lucide-react";
-import { venueService } from "../services/venueService";
-import type { VenueResponseDto, VenueCreateDto, VenueUpdateDto } from "../services/venueService";
-
+import { VenueService } from "../services/venueService";
+import type { VenueResponse } from "../types/api/venue";
+import type { VenueCreateForm, VenueUpdateForm } from "../types/forms/venue";
 
 const Venues = () => {
-  const [venues, setVenues] = useState<VenueResponseDto[]>([]);
+  const [venues, setVenues] = useState<VenueResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingVenue, setEditingVenue] = useState<VenueResponseDto | null>(null);
+  const [editingVenue, setEditingVenue] = useState<VenueResponse | null>(null);
   const [error, setError] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState<VenueCreateDto>({
+  const [formData, setFormData] = useState<VenueCreateForm>({
     name: "",
     description: "",
     city: "",
@@ -25,7 +25,7 @@ const Venues = () => {
     try {
       setLoading(true);
       setError("");
-      const data = await venueService.getAllVenues();
+      const data = await VenueService.getAllVenues();
       setVenues(data);
     } catch (error) {
       setError("Failed to fetch venues. Please try again.");
@@ -40,7 +40,7 @@ const Venues = () => {
     try {
       setSubmitting(true);
       setError("");
-      await venueService.createVenue(formData);
+      await VenueService.createVenue(formData);
       await fetchVenues();
       closeModal();
     } catch (error) {
@@ -59,7 +59,7 @@ const Venues = () => {
       setSubmitting(true);
       setError("");
       
-      const updateData: VenueUpdateDto = {
+      const updateData: VenueUpdateForm = {
         name: formData.name,
         description: formData.description,
         city: formData.city,
@@ -68,7 +68,7 @@ const Venues = () => {
         venueType: formData.venueType
       };
 
-      await venueService.updateVenue(editingVenue.venueId, updateData);
+      await VenueService.updateVenue(editingVenue.venueId, updateData);
       await fetchVenues();
       closeModal();
     } catch (error) {
@@ -84,7 +84,7 @@ const Venues = () => {
     if (!confirm("Are you sure you want to delete this venue?")) return;
 
     try {
-      await venueService.deleteVenue(id);
+      await VenueService.deleteVenue(id);
       await fetchVenues();
     } catch (error) {
       setError("Failed to delete venue. Please try again.");
@@ -93,7 +93,7 @@ const Venues = () => {
   };
 
   // Open modal for create/edit
-  const openModal = (venue?: VenueResponseDto) => {
+  const openModal = (venue?: VenueResponse) => {
     setError("");
     if (venue) {
       setEditingVenue(venue);
@@ -134,7 +134,7 @@ const Venues = () => {
     }
   };
 
-  const handleInputChange = (field: keyof VenueCreateDto, value: string | number) => {
+  const handleInputChange = (field: keyof VenueCreateForm, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
