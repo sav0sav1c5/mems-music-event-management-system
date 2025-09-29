@@ -17,6 +17,7 @@ const Venues = () => {
     city: "",
     address: "",
     capacity: 0,
+    eventId: 0,
     venueType: 0
   });
 
@@ -103,6 +104,7 @@ const Venues = () => {
         city: venue.city || "",
         address: venue.address || "",
         capacity: venue.capacity,
+        eventId: venue.eventId,
         venueType: venue.venueType || 0
       });
     } else {
@@ -113,6 +115,7 @@ const Venues = () => {
         city: "",
         address: "",
         capacity: 0,
+        eventId: 0,
         venueType: 0
       });
     }

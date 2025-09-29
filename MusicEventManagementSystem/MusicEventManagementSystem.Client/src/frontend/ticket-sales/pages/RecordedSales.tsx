@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, X, CreditCard, DollarSign, ArrowUp, ArrowDown, Tren
 import { RecordedSaleService } from "../services/recordedSaleService";
 import type { RecordedSaleResponse } from "../types/api/recordedSale";
 import type { RecordedSaleCreateForm, RecordedSaleUpdateForm } from "../types/forms/recordedSale";
-import { PaymentMethod, TransactionStatus } from "../types/enums/ticketSales";
+import { PaymentMethod, TransactionStatus } from "../types/enums/TicketSales";
 
 const RecordedSales = () => {
   const [recordedSales, setRecordedSales] = useState<RecordedSaleResponse[]>([]);

@@ -1,4 +1,4 @@
-import { SegmentType } from '../enums/ticketSales';
+import { SegmentType } from '../enums/TicketSales';
 
 export interface SegmentCreateForm {
   name: string;

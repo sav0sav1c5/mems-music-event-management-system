@@ -1,4 +1,4 @@
-import { SegmentType } from '../enums/ticketSales';
+import { SegmentType } from '../enums/TicketSales';
 
 export interface SegmentResponse {
   segmentId: number;
@@ -7,5 +7,5 @@ export interface SegmentResponse {
   capacity: number;
   segmentType: SegmentType;
   venueId: number;
-  zones?: number[];
+  zoneIds?: number[];
 }

@@ -6,8 +6,8 @@ export interface VenueCreateForm {
   city: string;
   address: string;
   capacity: number;
-  eventId?: number;
   venueType: VenueType;
+  eventId: number;
 }
 
 export interface VenueUpdateForm {
@@ -16,6 +16,6 @@ export interface VenueUpdateForm {
   city?: string;
   address?: string;
   capacity?: number;
-  eventId?: number;
   venueType?: VenueType;
+  eventId?: number;
 }

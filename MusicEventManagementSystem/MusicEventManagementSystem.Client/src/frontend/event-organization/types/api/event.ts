@@ -4,13 +4,15 @@ export interface EventResponse {
   id: number;
   name: string;
   description: string;
-  eventInterval: Date;
+  startDate: Date;
+  endDate: Date;
   status: EventStatus;
   createdById: string;
   locationId: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
-  ticketTypes?: number[];
-  pricingRules?: number[];
+  venueIds?: number[];
+  ticketTypeIds?: number[];
+  pricingRuleIds?: number[];
 }
