@@ -1,4 +1,4 @@
-import { PaymentMethod, TransactionStatus } from '../enums/ticketSales';
+import { PaymentMethod, TransactionStatus } from '../enums/TicketSales';
 
 export interface RecordedSaleCreateForm {
   totalAmount: number;

@@ -2,7 +2,7 @@ export interface PerformerResponse {
   performerId: number;
   name: string;
   email: string;
-  contact?: string;
+  contact: string;
   genre: string;
   popularity: number;
   technicalRequirements: string;
@@ -10,5 +10,4 @@ export interface PerformerResponse {
   maxPrice: number;
   averageResponseTime: string; // TimeSpan kao string
   status: string;
-  updatedAt: Date;
 }

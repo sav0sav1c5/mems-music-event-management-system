@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, X, QrCode, ArrowUp, ArrowDown, CheckCircle, Clock, 
 import { TicketService } from "../services/ticketService";
 import type { TicketResponse } from "../types/api/ticket";
 import type { TicketCreateForm, TicketUpdateForm } from "../types/forms/ticket";
-import { TicketStatus } from "../types/enums/ticketSales";
+import { TicketStatus } from "../types/enums/TicketSales";
 
 const Tickets = () => {
   const [tickets, setTickets] = useState<TicketResponse[]>([]);

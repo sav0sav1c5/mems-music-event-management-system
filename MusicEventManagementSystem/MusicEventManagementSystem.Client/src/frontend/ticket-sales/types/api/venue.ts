@@ -8,5 +8,7 @@ export interface VenueResponse {
   address?: string;
   capacity: number;
   venueType: VenueType;
-  segments?: number[];
+  eventId: number;
+  segmentIds?: number[];
+  performanceIds?: number[];
 }

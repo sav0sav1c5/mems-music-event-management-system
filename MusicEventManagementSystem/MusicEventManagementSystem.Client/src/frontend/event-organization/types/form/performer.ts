@@ -1,13 +1,13 @@
 export interface PerformerCreateForm {
   name: string;
   email: string;
-  contact?: string;
+  contact: string;
   genre: string;
   popularity: number;
   technicalRequirements: string;
   minPrice: number;
   maxPrice: number;
-  averageResponseTime: string; // TimeSpan kao string
+  averageResponseTime: string; // TimeSpan kao string (format: HH:mm:ss)
   status: string;
 }
 

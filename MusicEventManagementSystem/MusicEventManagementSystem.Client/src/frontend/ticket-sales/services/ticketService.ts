@@ -1,6 +1,6 @@
 import type { TicketResponse } from '../types/api/ticket';
 import type { TicketCreateForm, TicketUpdateForm } from '../types/forms/ticket';
-import { TicketStatus } from '../types/enums/ticketSales';
+import { TicketStatus } from '../types/enums/TicketSales';
 
 const API_BASE_URL = 'https://localhost:7011/api';
 

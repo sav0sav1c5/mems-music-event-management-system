@@ -17,7 +17,7 @@ import type { ZoneResponse } from '../types/api/zone';
 import type { EventResponse } from '../../event-organization/types/api/event';
 
 // Import enumova
-import { VenueType, SegmentType, ZonePosition } from '../types/enums/ticketSales';
+import { VenueType, SegmentType, ZonePosition } from '../types/enums/TicketSales';
 import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
 
 // Form tipovi
@@ -263,12 +263,12 @@ const Infrastructure = () => {
                           : 'bg-neutral-800/50 border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/70'
                       }`}
                     >
-                      <div className="flex items-center mb-3">
+                      {/* <div className="flex items-center mb-3">
                         <Calendar className="w-4 h-4 text-neutral-400 mr-2" />
                         <span className="text-sm text-neutral-400">
                           {new Date(event.eventInterval).toLocaleDateString()}
                         </span>
-                      </div>
+                      </div> */}
                       
                       <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
                       

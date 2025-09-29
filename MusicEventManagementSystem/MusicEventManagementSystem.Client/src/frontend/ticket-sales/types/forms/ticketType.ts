@@ -1,4 +1,4 @@
-import { TicketTypeStatus } from '../enums/ticketSales';
+import { TicketTypeStatus } from '../enums/TicketSales';
 
 export interface TicketTypeCreateForm {
   name: string;

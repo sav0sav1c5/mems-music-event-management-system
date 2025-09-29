@@ -1,6 +1,6 @@
 import type { RecordedSaleResponse } from '../types/api/recordedSale';
 import type { RecordedSaleCreateForm, RecordedSaleUpdateForm } from '../types/forms/recordedSale';
-import { PaymentMethod, TransactionStatus } from '../types/enums/ticketSales';
+import { PaymentMethod, TransactionStatus } from '../types/enums/TicketSales';
 
 const API_BASE_URL = 'https://localhost:7011/api';
 

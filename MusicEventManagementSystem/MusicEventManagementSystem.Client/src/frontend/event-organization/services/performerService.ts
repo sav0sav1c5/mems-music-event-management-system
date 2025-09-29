@@ -11,7 +11,7 @@ export class PerformerService {
     try {
       const response = await fetch(this.BASE_URL, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Dodaj auth header
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       if (!response.ok) {
@@ -60,10 +60,7 @@ export class PerformerService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          ...createForm,
-          updatedAt: new Date().toISOString()
-        }),
+        body: JSON.stringify(createForm),
       });
 
       if (!response.ok) {
@@ -93,10 +90,7 @@ export class PerformerService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          ...updateForm,
-          updatedAt: new Date().toISOString()
-        }),
+        body: JSON.stringify(updateForm),
       });
 
       if (!response.ok) {
@@ -145,3 +139,5 @@ export class PerformerService {
     }
   }
 }
+
+export default PerformerService;
