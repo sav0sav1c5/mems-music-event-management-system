@@ -18,7 +18,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PerformerDto>>> GetAllPerformers()
+        public async Task<ActionResult<IEnumerable<PerformerResponseDto>>> GetAllPerformers()
         {
             try
             {
@@ -32,7 +32,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<PerformerDto>> GetPerformerById(int id)
+        public async Task<ActionResult<PerformerResponseDto>> GetPerformerById(int id)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<PerformerDto>> CreatePerformer([FromBody] PerformerDto performer)
+        public async Task<ActionResult<PerformerResponseDto>> CreatePerformer([FromBody] CreatePerformerDto performer)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<PerformerDto>> UpdatePerformer(int id, [FromBody] PerformerDto performer)
+        public async Task<ActionResult<PerformerResponseDto>> UpdatePerformer(int id, [FromBody] UpdatePerformerDto performer)
         {
             try
             {

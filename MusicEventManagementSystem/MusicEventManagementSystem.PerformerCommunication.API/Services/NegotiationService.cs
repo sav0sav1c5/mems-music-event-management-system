@@ -211,7 +211,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Services
                 Phases = baseDto.Phases,
                 Documents = baseDto.Documents,
                 Communication = baseDto.Communication,
-                Performer = negotiation.Performer != null ? new PerformerDto
+                Performer = negotiation.Performer != null ? new PerformerResponseDto
                 {
                     PerformerId = negotiation.Performer.PerformerId,
                     Name = negotiation.Performer.Name,

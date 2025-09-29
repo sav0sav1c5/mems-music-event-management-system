@@ -12,7 +12,9 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public string? Address { get; set; }
         public int Capacity { get; set; }
         public VenueType VenueType { get; set; }
-        public List<int>? Segments { get; set; }
+        public int EventId { get; set; }
+        public List<int>? SegmentIds { get; set; }
+        public List<int>? PerformanceIds { get; set; }
     }
 
     public class VenueCreateDto
@@ -38,6 +40,9 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
 
         [Required]
         public VenueType VenueType { get; set; }
+
+        [Required]
+        public int EventId { get; set; }
     }
 
     public class VenueUpdateDto
@@ -58,5 +63,6 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public int? Capacity { get; set; }
 
         public VenueType? VenueType { get; set; }
+        public int? EventId { get; set; }
     }
 }

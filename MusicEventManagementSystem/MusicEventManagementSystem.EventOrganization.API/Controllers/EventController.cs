@@ -1,22 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Interfaces.Services;
+using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
 
 namespace MusicEventManagementSystem.EventOrganization.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EventsController : ControllerBase
+    public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
 
-        public EventsController(IEventService eventService)
+        public EventController(IEventService eventService)
         {
             _eventService = eventService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Event>>> GetAllEvents()
+        public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetAllEvents()
         {
             try
             {
@@ -30,7 +31,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Event>> GetEventById(int id)
+        public async Task<ActionResult<EventResponseDto>> GetEventById(int id)
         {
             try
             {
@@ -48,7 +49,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Event>> CreateEvent([FromBody] Event @event)
+        public async Task<ActionResult<EventResponseDto>> CreateEvent([FromBody] EventCreateDto eventDto)
         {
             try
             {
@@ -57,7 +58,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var createdEvent = await _eventService.CreateEventAsync(@event);
+                var createdEvent = await _eventService.CreateEventAsync(eventDto);
                 return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
             }
             catch (Exception ex)
@@ -67,7 +68,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Event>> UpdateEvent(int id, [FromBody] Event @event)
+        public async Task<ActionResult<EventResponseDto>> UpdateEvent(int id, [FromBody] EventUpdateDto eventDto)
         {
             try
             {
@@ -76,7 +77,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var updatedEvent = await _eventService.UpdateEventAsync(id, @event);
+                var updatedEvent = await _eventService.UpdateEventAsync(id, eventDto);
                 if (updatedEvent == null)
                 {
                     return NotFound($"Event with ID {id} not found.");

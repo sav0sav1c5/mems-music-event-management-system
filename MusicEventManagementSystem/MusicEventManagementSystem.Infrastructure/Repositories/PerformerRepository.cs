@@ -11,14 +11,24 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
         {
         }
 
+        public override async Task<IEnumerable<Performer>> GetAllAsync()
+        {
+            return await _context.Performers.Include(p => p.Negotiation).Include(p => p.Contracts).Include(p => p.Performances).ToListAsync();
+        }
+
+        public override async Task<Performer?> GetByIdAsync(int id)
+        {
+            return await _context.Performers.Include(p => p.Negotiation).Include(p => p.Contracts).Include(p => p.Performances).FirstOrDefaultAsync(p => p.PerformerId == id);
+        }
+
         public async Task<Performer?> GetByNameAsync(string name)
         {
-            return await _dbSet.FirstOrDefaultAsync(p => p.Name == name);
+            return await _context.Performers.Include(p => p.Negotiation).Include(p => p.Contracts).Include(p => p.Performances).FirstOrDefaultAsync(p => p.Name == name);
         }
 
         public async Task<IEnumerable<Performer>> GetByGenreAsync(string genre)
         {
-            return await _dbSet.Where(p => p.Genre.Contains(genre)).ToListAsync();
+            return await _context.Performers.Include(p => p.Negotiation).Include(p => p.Contracts).Include(p => p.Performances).Where(p => p.Genre.Contains(genre)).ToListAsync();
         }
     }
 }

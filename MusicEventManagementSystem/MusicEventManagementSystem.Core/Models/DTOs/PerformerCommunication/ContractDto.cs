@@ -43,7 +43,7 @@ namespace MusicEventManagementSystem.Core.Models.Entities.PerformerCommunication
     public class ContractWithDetailsDto : ContractDto
     {
         // Extended version with full related entity details
-        public PerformerDto? Performer { get; set; }
+        public PerformerResponseDto? Performer { get; set; }
         public PhaseDto? Phase { get; set; } // Optional one-to-one relationship
     }
 }

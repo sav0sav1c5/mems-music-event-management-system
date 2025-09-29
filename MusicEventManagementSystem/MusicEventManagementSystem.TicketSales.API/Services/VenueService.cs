@@ -1,5 +1,6 @@
 ﻿using MusicEventManagementSystem.Core.Interfaces.Repositories;
 using MusicEventManagementSystem.Core.Interfaces.Services;
+using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.TicketSales.API.Services
@@ -22,7 +23,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         public async Task<VenueResponseDto?> GetVenueByIdAsync(int id)
         {
             var existingVenue = await _venueRepository.GetByIdAsync(id);
-            
+
             if (existingVenue == null)
             {
                 return null;
@@ -66,6 +67,9 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
             if (updateVenueDto.VenueType.HasValue)
                 existingVenue.VenueType = updateVenueDto.VenueType.Value;
 
+            if (updateVenueDto.EventId.HasValue)
+                existingVenue.EventId = updateVenueDto.EventId.Value;
+
             _venueRepository.Update(existingVenue);
             await _venueRepository.SaveChangesAsync();
             return MapToResponseDto(existingVenue);
@@ -97,9 +101,44 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
             return venues.Select(MapToResponseDto);
         }
 
-        public async Task<IEnumerable<Segment>> GetSegmentsAsync(int venueId)
+        public async Task<IEnumerable<VenueResponseDto>> GetByEventIdAsync(int eventId)
         {
-            return await _venueRepository.GetSegmentsAsync(venueId);
+            var venues = await _venueRepository.GetByEventIdAsync(eventId);
+            return venues.Select(MapToResponseDto);
+        }
+
+        public async Task<IEnumerable<SegmentResponseDto>> GetSegmentsAsync(int venueId)
+        {
+            var segments = await _venueRepository.GetSegmentsAsync(venueId);
+            return segments.Select(s => new SegmentResponseDto
+            {
+                SegmentId = s.SegmentId,
+                Name = s.Name,
+                Description = s.Description,
+                Capacity = s.Capacity,
+                SegmentType = s.SegmentType,
+                VenueId = s.VenueId,
+                ZoneIds = s.Zones?.Select(z => z.ZoneId).ToList()
+            });
+        }
+
+        public async Task<IEnumerable<PerformanceResponseDto>> GetPerformancesAsync(int venueId)
+        {
+            var performances = await _venueRepository.GetPerformancesAsync(venueId);
+            return performances.Select(p => new PerformanceResponseDto
+            {
+                Id = p.Id,
+                PerformerId = p.PerformerId,
+                VenueId = p.VenueId,
+                StartTime = p.StartTime,
+                EndTime = p.EndTime,
+                SetupTime = p.SetupTime,
+                SoundcheckTime = p.SoundcheckTime,
+                Status = p.Status,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                DeletedAt = p.DeletedAt
+            });
         }
 
         public async Task<int> CalculateTotalCapacityAsync(int venueId)
@@ -120,7 +159,9 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
                 Address = venue.Address,
                 Capacity = venue.Capacity,
                 VenueType = venue.VenueType,
-                Segments = venue.Segments?.Select(s => s.SegmentId).ToList()
+                EventId = venue.EventId,
+                SegmentIds = venue.Segments?.Select(s => s.SegmentId).ToList(),
+                PerformanceIds = venue.Performances?.Select(p => p.Id).ToList()
             };
         }
 
@@ -133,7 +174,8 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
                 City = dto.City,
                 Address = dto.Address,
                 Capacity = dto.Capacity,
-                VenueType = dto.VenueType
+                VenueType = dto.VenueType,
+                EventId = dto.EventId
             };
         }
     }

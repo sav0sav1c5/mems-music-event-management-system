@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MusicEventManagementSystem.Core.Models.Entities.PerformerCommunication
 {
-    public class PerformerDto
+    public class PerformerResponseDto
     {
         public int PerformerId { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -68,7 +68,7 @@ namespace MusicEventManagementSystem.Core.Models.Entities.PerformerCommunication
         public string Status { get; set; } = string.Empty;
     }
 
-    public class PerformerWithDetailsDto : PerformerDto
+    public class PerformerWithDetailsDto : PerformerResponseDto
     {
         // Extended version with full related entity details
         public NegotiationDto? Negotiation { get; set; } // One-to-One relationship

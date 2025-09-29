@@ -28,7 +28,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-        }    
+        }
 
         // GET: api/venue/{id}
         [HttpGet("{id}")]
@@ -151,7 +151,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
 
         // GET /api/venue/{id}/segments
         [HttpGet("{id}/segments")]
-        public async Task<ActionResult<IEnumerable<Segment>>> GetSegments(int id)
+        public async Task<ActionResult<IEnumerable<SegmentResponseDto>>> GetSegments(int id)
         {
             try
             {
