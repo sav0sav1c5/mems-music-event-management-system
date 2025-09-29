@@ -104,7 +104,7 @@ const Venues = () => {
         city: venue.city || "",
         address: venue.address || "",
         capacity: venue.capacity,
-        eventId: venue.eventId,
+        eventId: venue.eventId || 0,
         venueType: venue.venueType || 0
       });
     } else {

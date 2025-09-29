@@ -6,6 +6,7 @@ using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.MediaCampaign;
 using MusicEventManagementSystem.Core.Models.Entities.PerformerCommunication;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using System.Reflection.Emit;
 
 namespace MusicEventManagementSystem.Infrastructure.Database
 {
@@ -59,17 +60,9 @@ namespace MusicEventManagementSystem.Infrastructure.Database
          
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            // Ticket-Sales Subsystem configurations
-
-
-            // Configure Negotiation relationships
-            
-            // One-to-One: Negotiation has one Event
-            //builder.Entity<Negotiation>()
-            //    .HasOne(n => n.Event)
-            //    .WithOne(e => e.Negotiation)
-            //    .HasForeignKey<Negotiation>(n => n.EventId)
-            //    .OnDelete(DeleteBehavior.Restrict);
+            // ========================================
+            // NEGOTIATION SUBSYSTEM RELATIONSHIPS
+            // ========================================
 
             // One-to-One: Negotiation has one Performer
             builder.Entity<Negotiation>()
@@ -115,6 +108,10 @@ namespace MusicEventManagementSystem.Infrastructure.Database
                 .HasForeignKey(nu => nu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // ========================================
+            // CONTRACT & PERFORMER RELATIONSHIPS
+            // ========================================
+
             // One-to-Many: Performer has many Contracts
             builder.Entity<Contract>()
                 .HasOne(c => c.Performer)
@@ -136,15 +133,59 @@ namespace MusicEventManagementSystem.Infrastructure.Database
                 .HasForeignKey(r => r.PhaseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-To-Many relationships for Ticket-Sales Subsystem
+            // ========================================
+            // TICKET-SALES SUBSYSTEM RELATIONSHIPS
+            // ========================================
 
+            // RecordedSale-Ticket (1 : many)
             builder.Entity<Ticket>()
                 .HasOne(t => t.RecordedSale)
                 .WithMany(rs => rs.Tickets)
                 .HasForeignKey(t => t.RecordedSaleId)
                 .IsRequired(false);
 
-            // Many-To-Many relationships for Ticket-Sales Subsystem
+            // Event–Venue (1 : many)
+            builder.Entity<Event>()
+                .HasMany(e => e.Venues)
+                .WithOne(v => v.Event)
+                .HasForeignKey(v => v.EventId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Venue–Segment (1 : many)
+            builder.Entity<Venue>()
+                .HasMany(v => v.Segments)
+                .WithOne(s => s.Venue)
+                .HasForeignKey(s => s.VenueId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Segment–Zone (1 : many)
+            builder.Entity<Segment>()
+                .HasMany(s => s.Zones)
+                .WithOne(z => z.Segment)
+                .HasForeignKey(z => z.SegmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ========================================
+            // PERFORMANCE RELATIONSHIPS
+            // ========================================
+
+            // Performer–Performance (1 : many)
+            builder.Entity<Performer>()
+                .HasMany(p => p.Performances)
+                .WithOne(pf => pf.Performer)
+                .HasForeignKey(pf => pf.PerformerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Venue–Performance (1 : many)
+            builder.Entity<Venue>()
+                .HasMany(v => v.Performances)
+                .WithOne(pf => pf.Venue)
+                .HasForeignKey(pf => pf.VenueId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ========================================
+            // MANY-TO-MANY RELATIONSHIPS
+            // ========================================
 
             builder.Entity<TicketType>()
                 .HasMany(tt => tt.SpecialOffers)
@@ -166,7 +207,28 @@ namespace MusicEventManagementSystem.Infrastructure.Database
                 .WithMany(so => so.RecordedSales)
                 .UsingEntity(j => j.ToTable("RecordedSaleSpecialOffers"));
 
-            // Conversion DateTime to UTC
+            // ========================================
+            // DECIMAL PRECISION CONFIGURATION
+            // ========================================
+
+            // Performer prices
+            builder.Entity<Performer>()
+                .Property(p => p.MinPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Performer>()
+                .Property(p => p.MaxPrice)
+                .HasPrecision(18, 2);
+
+            // Zone base price
+            builder.Entity<Zone>()
+                .Property(z => z.BasePrice)
+                .HasPrecision(18, 2);
+
+            // ========================================
+            // DATETIME UTC CONVERSION
+            // ========================================
+
             var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
                 v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
                 v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
@@ -195,7 +257,6 @@ namespace MusicEventManagementSystem.Infrastructure.Database
             }
 
             base.OnModelCreating(builder);
-
         }
     }
 }

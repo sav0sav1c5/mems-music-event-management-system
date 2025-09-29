@@ -160,27 +160,6 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Events",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    EventInterval = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    LocationId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Events", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Infrastructures",
                 columns: table => new
                 {
@@ -242,29 +221,6 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Performances",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    EventId = table.Column<int>(type: "integer", nullable: false),
-                    PerformerId = table.Column<int>(type: "integer", nullable: false),
-                    VenueId = table.Column<int>(type: "integer", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    SetupTime = table.Column<int>(type: "integer", nullable: false),
-                    SoundcheckTime = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Performances", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Performers",
                 columns: table => new
                 {
@@ -276,8 +232,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     Genre = table.Column<string>(type: "text", nullable: false),
                     Popularity = table.Column<int>(type: "integer", nullable: false),
                     TechnicalRequirements = table.Column<string>(type: "text", nullable: false),
-                    MinPrice = table.Column<decimal>(type: "numeric", nullable: false),
-                    MaxPrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    MinPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    MaxPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     AverageResponseTime = table.Column<TimeSpan>(type: "interval", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -399,24 +355,6 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Vehicles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Venues",
-                columns: table => new
-                {
-                    VenueId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    City = table.Column<string>(type: "text", nullable: true),
-                    Address = table.Column<string>(type: "text", nullable: true),
-                    Capacity = table.Column<int>(type: "integer", nullable: false),
-                    VenueType = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Venues", x => x.VenueId);
                 });
 
             migrationBuilder.CreateTable(
@@ -593,6 +531,34 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Events",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    LocationId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Events", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Events_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MediaTasks",
                 columns: table => new
                 {
@@ -641,6 +607,54 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RecordedSaleSpecialOffers",
+                columns: table => new
+                {
+                    RecordedSalesRecordedSaleId = table.Column<int>(type: "integer", nullable: false),
+                    SpecialOffersSpecialOfferId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecordedSaleSpecialOffers", x => new { x.RecordedSalesRecordedSaleId, x.SpecialOffersSpecialOfferId });
+                    table.ForeignKey(
+                        name: "FK_RecordedSaleSpecialOffers_RecordedSales_RecordedSalesRecord~",
+                        column: x => x.RecordedSalesRecordedSaleId,
+                        principalTable: "RecordedSales",
+                        principalColumn: "RecordedSaleId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RecordedSaleSpecialOffers_SpecialOffers_SpecialOffersSpecia~",
+                        column: x => x.SpecialOffersSpecialOfferId,
+                        principalTable: "SpecialOffers",
+                        principalColumn: "SpecialOfferId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EventPricingRules",
+                columns: table => new
+                {
+                    EventsId = table.Column<int>(type: "integer", nullable: false),
+                    PricingRulesPricingRuleId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventPricingRules", x => new { x.EventsId, x.PricingRulesPricingRuleId });
+                    table.ForeignKey(
+                        name: "FK_EventPricingRules_Events_EventsId",
+                        column: x => x.EventsId,
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EventPricingRules_PricingRules_PricingRulesPricingRuleId",
+                        column: x => x.PricingRulesPricingRuleId,
+                        principalTable: "PricingRules",
+                        principalColumn: "PricingRuleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Negotiations",
                 columns: table => new
                 {
@@ -671,74 +685,28 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EventPricingRules",
+                name: "Venues",
                 columns: table => new
                 {
-                    EventsId = table.Column<int>(type: "integer", nullable: false),
-                    PricingRulesPricingRuleId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EventPricingRules", x => new { x.EventsId, x.PricingRulesPricingRuleId });
-                    table.ForeignKey(
-                        name: "FK_EventPricingRules_Events_EventsId",
-                        column: x => x.EventsId,
-                        principalTable: "Events",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EventPricingRules_PricingRules_PricingRulesPricingRuleId",
-                        column: x => x.PricingRulesPricingRuleId,
-                        principalTable: "PricingRules",
-                        principalColumn: "PricingRuleId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Segments",
-                columns: table => new
-                {
-                    SegmentId = table.Column<int>(type: "integer", nullable: false)
+                    VenueId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
+                    City = table.Column<string>(type: "text", nullable: true),
+                    Address = table.Column<string>(type: "text", nullable: true),
                     Capacity = table.Column<int>(type: "integer", nullable: false),
-                    SegmentType = table.Column<int>(type: "integer", nullable: false),
-                    VenueId = table.Column<int>(type: "integer", nullable: false)
+                    VenueType = table.Column<int>(type: "integer", nullable: false),
+                    EventId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Segments", x => x.SegmentId);
+                    table.PrimaryKey("PK_Venues", x => x.VenueId);
                     table.ForeignKey(
-                        name: "FK_Segments_Venues_VenueId",
-                        column: x => x.VenueId,
-                        principalTable: "Venues",
-                        principalColumn: "VenueId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RecordedSaleSpecialOffers",
-                columns: table => new
-                {
-                    RecordedSalesRecordedSaleId = table.Column<int>(type: "integer", nullable: false),
-                    SpecialOffersSpecialOfferId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RecordedSaleSpecialOffers", x => new { x.RecordedSalesRecordedSaleId, x.SpecialOffersSpecialOfferId });
-                    table.ForeignKey(
-                        name: "FK_RecordedSaleSpecialOffers_RecordedSales_RecordedSalesRecord~",
-                        column: x => x.RecordedSalesRecordedSaleId,
-                        principalTable: "RecordedSales",
-                        principalColumn: "RecordedSaleId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RecordedSaleSpecialOffers_SpecialOffers_SpecialOffersSpecia~",
-                        column: x => x.SpecialOffersSpecialOfferId,
-                        principalTable: "SpecialOffers",
-                        principalColumn: "SpecialOfferId",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Venues_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -843,26 +811,59 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Zones",
+                name: "Performances",
                 columns: table => new
                 {
-                    ZoneId = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PerformerId = table.Column<int>(type: "integer", nullable: false),
+                    VenueId = table.Column<int>(type: "integer", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    SetupTime = table.Column<int>(type: "integer", nullable: false),
+                    SoundcheckTime = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Performances", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Performances_Performers_PerformerId",
+                        column: x => x.PerformerId,
+                        principalTable: "Performers",
+                        principalColumn: "PerformerId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Performances_Venues_VenueId",
+                        column: x => x.VenueId,
+                        principalTable: "Venues",
+                        principalColumn: "VenueId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Segments",
+                columns: table => new
+                {
+                    SegmentId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Capacity = table.Column<int>(type: "integer", nullable: false),
-                    BasePrice = table.Column<decimal>(type: "numeric", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false),
-                    SegmentId = table.Column<int>(type: "integer", nullable: false)
+                    SegmentType = table.Column<int>(type: "integer", nullable: false),
+                    VenueId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Zones", x => x.ZoneId);
+                    table.PrimaryKey("PK_Segments", x => x.SegmentId);
                     table.ForeignKey(
-                        name: "FK_Zones_Segments_SegmentId",
-                        column: x => x.SegmentId,
-                        principalTable: "Segments",
-                        principalColumn: "SegmentId",
+                        name: "FK_Segments_Venues_VenueId",
+                        column: x => x.VenueId,
+                        principalTable: "Venues",
+                        principalColumn: "VenueId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -886,6 +887,30 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         column: x => x.PhaseId,
                         principalTable: "Phases",
                         principalColumn: "PhaseId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Zones",
+                columns: table => new
+                {
+                    ZoneId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Capacity = table.Column<int>(type: "integer", nullable: false),
+                    BasePrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    Position = table.Column<int>(type: "integer", nullable: false),
+                    SegmentId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Zones", x => x.ZoneId);
+                    table.ForeignKey(
+                        name: "FK_Zones_Segments_SegmentId",
+                        column: x => x.SegmentId,
+                        principalTable: "Segments",
+                        principalColumn: "SegmentId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1056,6 +1081,11 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 column: "PricingRulesPricingRuleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Events_LocationId",
+                table: "Events",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MediaTasks_MediaWorkflowId",
                 table: "MediaTasks",
                 column: "MediaWorkflowId");
@@ -1080,6 +1110,16 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 name: "IX_NegotiationUsers_UserId",
                 table: "NegotiationUsers",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Performances_PerformerId",
+                table: "Performances",
+                column: "PerformerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Performances_VenueId",
+                table: "Performances",
+                column: "VenueId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Phases_ContractId",
@@ -1143,6 +1183,11 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 column: "TicketTypesTicketTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Venues_EventId",
+                table: "Venues",
+                column: "EventId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Zones_SegmentId",
                 table: "Zones",
                 column: "SegmentId");
@@ -1192,9 +1237,6 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Infrastructures");
-
-            migrationBuilder.DropTable(
-                name: "Locations");
 
             migrationBuilder.DropTable(
                 name: "MediaTasks");
@@ -1278,9 +1320,6 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 name: "Zones");
 
             migrationBuilder.DropTable(
-                name: "Events");
-
-            migrationBuilder.DropTable(
                 name: "Performers");
 
             migrationBuilder.DropTable(
@@ -1288,6 +1327,12 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Venues");
+
+            migrationBuilder.DropTable(
+                name: "Events");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
         }
     }
 }

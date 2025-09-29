@@ -293,12 +293,12 @@ const Infrastructure = () => {
                           : 'bg-neutral-800/50 border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/70'
                       }`}
                     >
-                      <div className="flex items-center mb-3">
+                      {/* <div className="flex items-center mb-3">
                         <Calendar className="w-4 h-4 text-neutral-400 mr-2" />
                         <span className="text-sm text-neutral-400">
                           {new Date(event.eventInterval).toLocaleDateString()}
                         </span>
-                      </div>
+                      </div> */}
                       
                       <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
                       

@@ -1,6 +1,6 @@
 import type { ZoneResponse } from '../types/api/zone';
 import type { ZoneCreateForm, ZoneUpdateForm } from '../types/forms/zone';
-import { ZonePosition } from '../types/enums/ticketSales';
+import { ZonePosition } from '../types/enums/TicketSales';
 import type { TicketTypeResponse } from '../types/api/ticketType';
 
 const API_BASE_URL = 'https://localhost:7011/api';

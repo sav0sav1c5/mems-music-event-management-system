@@ -1,6 +1,6 @@
 import type { SegmentResponse } from '../types/api/segment';
 import type { SegmentCreateForm, SegmentUpdateForm } from '../types/forms/segment';
-import { SegmentType } from '../types/enums/ticketSales';
+import { SegmentType } from '../types/enums/TicketSales';
 import type { ZoneResponse } from '../types/api/zone';
 
 const API_BASE_URL = 'https://localhost:7011/api';

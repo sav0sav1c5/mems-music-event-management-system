@@ -71,22 +71,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Database seeding - Media Campaign
-//using (var scope = app.Services.CreateScope())
-//{
-//    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//    try
-//    {
-//        context.Database.Migrate();
-//        await MusicEventManagementSystem.Infrastructure.Database.Seeders.MediaCampaignSeeder.SeedAsync(context);
-//    }
-//    catch (Exception ex)
-//    {
-//        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-//        logger.LogError(ex, "An error occurred while seeding Media Campaign data.");
-//    }
-//}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

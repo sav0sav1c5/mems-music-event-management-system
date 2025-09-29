@@ -1,6 +1,6 @@
 import type { SpecialOfferResponse } from '../types/api/specialOffer';
 import type { SpecialOfferCreateForm, SpecialOfferUpdateForm } from '../types/forms/specialOffer';
-import { OfferType } from '../types/enums/ticketSales';
+import { OfferType } from '../types/enums/TicketSales';
 
 const API_BASE_URL = 'https://localhost:7011/api';
 

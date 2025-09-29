@@ -1,4 +1,4 @@
-import { OfferType } from '../enums/ticketSales';
+import { OfferType } from '../enums/TicketSales';
 
 export interface SpecialOfferCreateForm {
   name: string;

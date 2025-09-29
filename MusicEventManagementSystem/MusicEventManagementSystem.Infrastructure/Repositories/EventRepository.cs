@@ -12,6 +12,16 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
         {
         }
 
+        public override async Task<IEnumerable<Event>> GetAllAsync()
+        {
+            return await _context.Events.Include(e => e.Location).Include(e => e.Venues).Include(e => e.TicketTypes).Include(e => e.PricingRules).ToListAsync();
+        }
+
+        public override async Task<Event?> GetByIdAsync(int id)
+        {
+            return await _context.Events.Include(e => e.Location).Include(e => e.Venues).Include(e => e.TicketTypes).Include(e => e.PricingRules).FirstOrDefaultAsync(e => e.Id == id);
+        }
+
         public async Task<Event?> GetByNameAsync(string name)
         {
             return await _dbSet.FirstOrDefaultAsync(e => e.Name == name);
@@ -19,17 +29,17 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
 
         public async Task<IEnumerable<Event>> GetByStatusAsync(EventStatus status)
         {
-            return await _dbSet.Where(e => e.Status == status).ToListAsync();
+            return await _dbSet.Include(e => e.Location).Include(e => e.Venues).Where(e => e.Status == status).ToListAsync();
         }
 
         public async Task<IEnumerable<Event>> GetByDateRangeAsync(DateTime start, DateTime end)
         {
-            return await _dbSet.Where(e => e.EventInterval >= start && e.EventInterval <= end).ToListAsync();
+            return await _context.Events.Include(e => e.Location).Include(e => e.Venues).Where(e => e.StartDate >= start && e.EndDate <= end).ToListAsync();
         }
 
         public async Task<IEnumerable<Event>> GetByCreatedByIdAsync(Guid createdById)
         {
-            return await _dbSet.Where(e => e.CreatedById == createdById).ToListAsync();
+            return await _dbSet.Include(e => e.Location).Include(e => e.Venues).Where(e => e.CreatedById == createdById).ToListAsync();
         }
 
 

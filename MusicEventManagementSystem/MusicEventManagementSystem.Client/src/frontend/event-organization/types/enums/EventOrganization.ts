@@ -13,5 +13,5 @@ export const PerformanceStatus = {
   Cancelled: 4
 } as const;
 
-export type PerformanceStatus = typeof PerformanceStatus[keyof typeof PerformanceStatus];
 export type EventStatus = typeof EventStatus[keyof typeof EventStatus];
+export type PerformanceStatus = typeof PerformanceStatus[keyof typeof PerformanceStatus];

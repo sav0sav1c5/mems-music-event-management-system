@@ -1,22 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Interfaces.Services;
-using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
+using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 
 namespace MusicEventManagementSystem.EventOrganization.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PerformancesController : ControllerBase
+    public class PerformanceController : ControllerBase
     {
         private readonly IPerformanceService _performanceService;
 
-        public PerformancesController(IPerformanceService performanceService)
+        public PerformanceController(IPerformanceService performanceService)
         {
             _performanceService = performanceService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Performance>>> GetAllPerformances()
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetAllPerformances()
         {
             try
             {
@@ -30,7 +30,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Performance>> GetPerformanceById(int id)
+        public async Task<ActionResult<PerformanceResponseDto>> GetPerformanceById(int id)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Performance>> CreatePerformance([FromBody] Performance performance)
+        public async Task<ActionResult<PerformanceResponseDto>> CreatePerformance([FromBody] PerformanceCreateDto performanceDto)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var createdPerformance = await _performanceService.CreatePerformanceAsync(performance);
+                var createdPerformance = await _performanceService.CreatePerformanceAsync(performanceDto);
                 return CreatedAtAction(nameof(GetPerformanceById), new { id = createdPerformance.Id }, createdPerformance);
             }
             catch (Exception ex)
@@ -67,7 +67,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Performance>> UpdatePerformance(int id, [FromBody] Performance performance)
+        public async Task<ActionResult<PerformanceResponseDto>> UpdatePerformance(int id, [FromBody] PerformanceUpdateDto performanceDto)
         {
             try
             {
@@ -76,7 +76,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var updatedPerformance = await _performanceService.UpdatePerformanceAsync(id, performance);
+                var updatedPerformance = await _performanceService.UpdatePerformanceAsync(id, performanceDto);
                 if (updatedPerformance == null)
                 {
                     return NotFound($"Performance with ID {id} not found.");

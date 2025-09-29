@@ -48,7 +48,7 @@ namespace MusicEventManagementSystem.Core.Models.Entities.PerformerCommunication
     {
         // Extended version with full related entity details
         // public EventDto? Event { get; set; }  // TODO: Create EventDto
-        public PerformerDto? Performer { get; set; }
+        public PerformerResponseDto? Performer { get; set; }
         public List<string>? UserEmails { get; set; } // For many-to-many with users
     }
 }

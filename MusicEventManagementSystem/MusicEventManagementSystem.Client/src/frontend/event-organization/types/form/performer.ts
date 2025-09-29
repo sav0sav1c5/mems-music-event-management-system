@@ -7,7 +7,7 @@ export interface PerformerCreateForm {
   technicalRequirements: string;
   minPrice: number;
   maxPrice: number;
-  averageResponseTime: string;
+  averageResponseTime: string; // TimeSpan kao string (format: HH:mm:ss)
   status: string;
 }
 

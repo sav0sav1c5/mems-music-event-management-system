@@ -1,4 +1,4 @@
-import { PricingCondition } from '../enums/ticketSales';
+import { PricingCondition } from '../enums/TicketSales';
 
 export interface PricingRuleCreateForm {
   name?: string;

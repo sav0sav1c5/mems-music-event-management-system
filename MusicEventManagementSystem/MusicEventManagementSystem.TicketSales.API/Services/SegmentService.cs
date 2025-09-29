@@ -129,7 +129,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
                 Capacity = segment.Capacity,
                 SegmentType = segment.SegmentType,
                 VenueId = segment.VenueId,
-                Zones = segment.Zones?.Select(z => z.ZoneId).ToList()
+                ZoneIds = segment.Zones?.Select(z => z.ZoneId).ToList()
             };
         }
 

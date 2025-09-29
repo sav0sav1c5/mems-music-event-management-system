@@ -1,13 +1,17 @@
-using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
+using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 
 namespace MusicEventManagementSystem.Core.Interfaces.Services
 {
     public interface IPerformanceService
     {
-        Task<IEnumerable<Performance>> GetAllPerformancesAsync();
-        Task<Performance?> GetPerformanceByIdAsync(int id);
-        Task<Performance> CreatePerformanceAsync(Performance performance);
-        Task<Performance?> UpdatePerformanceAsync(int id, Performance performance);
+        Task<IEnumerable<PerformanceResponseDto>> GetAllPerformancesAsync();
+        Task<PerformanceResponseDto?> GetPerformanceByIdAsync(int id);
+        Task<PerformanceResponseDto> CreatePerformanceAsync(PerformanceCreateDto performanceDto);
+        Task<PerformanceResponseDto?> UpdatePerformanceAsync(int id, PerformanceUpdateDto performanceDto);
         Task<bool> DeletePerformanceAsync(int id);
+
+        Task<IEnumerable<PerformanceResponseDto>> GetByPerformerIdAsync(int performerId);
+        Task<IEnumerable<PerformanceResponseDto>> GetByVenueIdAsync(int venueId);
+        Task<IEnumerable<PerformanceResponseDto>> GetByDateRangeAsync(DateTime start, DateTime end);
     }
 }
