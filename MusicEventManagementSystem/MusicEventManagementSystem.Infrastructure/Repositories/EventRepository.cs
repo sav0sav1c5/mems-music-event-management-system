@@ -22,10 +22,10 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
             return await _dbSet.Where(e => e.Status == status).ToListAsync();
         }
 
-        public async Task<IEnumerable<Event>> GetByDateRangeAsync(DateTime start, DateTime end)
-        {
-            return await _dbSet.Where(e => e.EventInterval >= start && e.EventInterval <= end).ToListAsync();
-        }
+        //public async Task<IEnumerable<Event>> GetByDateRangeAsync(DateTime start, DateTime end)
+        //{
+        //    return await _dbSet.Where(e => e.EventInterval >= start && e.EventInterval <= end).ToListAsync();
+        //}
 
         public async Task<IEnumerable<Event>> GetByCreatedByIdAsync(Guid createdById)
         {

@@ -11,11 +11,9 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public decimal BasePrice { get; set; }
         public ZonePosition Position { get; set; }
 
-        // Navigation property - Zone - (1,1) -> Segment
         public int SegmentId { get; set; }
-        public Segment? Segment { get; set; }
+        public Segment Segment { get; set; } = null!;
 
-        // Navigation property - Zone - (1,N) -> TicketType
         public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
     }
 }

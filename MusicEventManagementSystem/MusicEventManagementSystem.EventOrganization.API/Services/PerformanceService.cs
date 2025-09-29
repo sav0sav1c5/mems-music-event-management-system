@@ -40,7 +40,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                 return null;
             }
 
-            existingPerformance.EventId = performance.EventId;
+           // existingPerformance.EventId = performance.EventId;
             existingPerformance.PerformerId = performance.PerformerId;
             existingPerformance.VenueId = performance.VenueId;
             existingPerformance.StartTime = performance.StartTime;

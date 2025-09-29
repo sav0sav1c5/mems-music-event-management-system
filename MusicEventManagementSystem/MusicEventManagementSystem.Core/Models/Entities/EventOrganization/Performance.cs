@@ -1,18 +1,20 @@
 using MusicEventManagementSystem.Core.Enums.EventOrganization;
+using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.Core.Models.Entities.EventOrganization
 {
     public class Performance
     {
         public int Id { get; set; }
-        public int EventId { get; set; }
-        //public Event Event { get; set; }
+
+        // public int? EventId { get; set; }
+        // public Event? Event { get; set; }
 
         public int PerformerId { get; set; }
-        //public Performer Performer { get; set; }
+        public Performer Performer { get; set; } = null!;
 
         public int VenueId { get; set; }
-        //public Venue Venue { get; set; }
+        public Venue Venue { get; set; } = null!;
 
 
         public DateTime StartTime { get; set; }

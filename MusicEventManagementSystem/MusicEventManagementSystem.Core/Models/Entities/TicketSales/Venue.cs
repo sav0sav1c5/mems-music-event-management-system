@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.Core.Enums.TicketSales;
+using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
 
 namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
 {
@@ -12,7 +13,10 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public int Capacity { get; set; }
         public VenueType VenueType { get; set; }
 
-        // Navigation property - Venue - (1,N) -> Segment
+        public int EventId { get; set; }
+        public Event Event { get; set; } = null!;
+
         public ICollection<Segment> Segments { get; set; } = new List<Segment>();
+        public ICollection<Performance> Performances { get; set; } = new List<Performance>();
     }
 }

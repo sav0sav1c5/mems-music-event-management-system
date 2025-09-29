@@ -17,7 +17,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "8.0.20")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -298,18 +298,19 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("EventInterval")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("LocationId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -318,6 +319,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
 
                     b.ToTable("Events");
                 });
@@ -381,9 +384,6 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("EventId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("PerformerId")
                         .HasColumnType("integer");
 
@@ -406,6 +406,10 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PerformerId");
+
+                    b.HasIndex("VenueId");
 
                     b.ToTable("Performances");
                 });
@@ -467,10 +471,12 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("MaxPrice")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("MinPrice")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1355,6 +1361,9 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -1362,6 +1371,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("VenueId");
+
+                    b.HasIndex("EventId");
 
                     b.ToTable("Venues");
                 });
@@ -1375,7 +1386,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ZoneId"));
 
                     b.Property<decimal>("BasePrice")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
@@ -1508,6 +1520,36 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Event", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Performance", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Performer", "Performer")
+                        .WithMany("Performances")
+                        .HasForeignKey("PerformerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Venue", "Venue")
+                        .WithMany("Performances")
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Performer");
+
+                    b.Navigation("Venue");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.MediaCampaign.MediaTask", b =>
@@ -1686,6 +1728,17 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.Navigation("Zone");
                 });
 
+            modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Venue", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Event", "Event")
+                        .WithMany("Venues")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Zone", b =>
                 {
                     b.HasOne("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Segment", "Segment")
@@ -1745,6 +1798,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
             modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Event", b =>
                 {
                     b.Navigation("TicketTypes");
+
+                    b.Navigation("Venues");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.EventOrganization.Performer", b =>
@@ -1752,6 +1807,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.Navigation("Contracts");
 
                     b.Navigation("Negotiation");
+
+                    b.Navigation("Performances");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.MediaCampaign.MediaWorkflow", b =>
@@ -1798,6 +1855,8 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Venue", b =>
                 {
+                    b.Navigation("Performances");
+
                     b.Navigation("Segments");
                 });
 

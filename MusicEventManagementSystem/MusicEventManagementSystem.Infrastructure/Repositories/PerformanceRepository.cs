@@ -11,10 +11,10 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Performance>> GetByEventIdAsync(int eventId)
-        {
-            return await _dbSet.Where(p => p.EventId == eventId).ToListAsync();
-        }
+        //public async Task<IEnumerable<Performance>> GetByEventIdAsync(int eventId)
+        //{
+        //    return await _dbSet.Where(p => p.EventId == eventId).ToListAsync();
+        //}
 
         public async Task<IEnumerable<Performance>> GetByPerformerIdAsync(int performerId)
         {

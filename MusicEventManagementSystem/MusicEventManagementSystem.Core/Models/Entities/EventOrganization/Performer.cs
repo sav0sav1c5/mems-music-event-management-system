@@ -20,6 +20,6 @@ namespace MusicEventManagementSystem.Core.Models.Entities.EventOrganization
         // Navigation Properties
         public Negotiation? Negotiation { get; set; } // One-to-One relationship
         public ICollection<Contract> Contracts { get; set; } = new List<Contract>();
+        public ICollection<Performance> Performances { get; set; } = new List<Performance>();
     }
-
 }
