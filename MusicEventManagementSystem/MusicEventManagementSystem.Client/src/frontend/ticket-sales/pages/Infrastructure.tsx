@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, MapPin, Users, Calendar, Settings, Edit, Eye, 
-  ArrowLeft, Plus, RefreshCw, TrendingUp, DollarSign 
+  ArrowLeft, Plus, RefreshCw, X, DollarSign 
 } from 'lucide-react';
 
 // Import servisa
@@ -17,11 +17,11 @@ import type { ZoneResponse } from '../types/api/zone';
 import type { EventResponse } from '../../event-organization/types/api/event';
 
 // Import enumova
-import { VenueType, SegmentType, ZonePosition } from '../types/enums/ticketSales';
+import { VenueType, SegmentType, ZonePosition } from '../types/enums/TicketSales';
 import { EventStatus } from '../../event-organization/types/enums/EventOrganization';
 
 // Form tipovi
-//import type { VenueCreateForm, VenueUpdateForm } from '../types/forms/venue';
+import type { VenueCreateForm, VenueUpdateForm } from '../types/forms/venue';
 import type { SegmentCreateForm } from '../types/forms/segment';
 import type { ZoneCreateForm } from '../types/forms/zone';
 
@@ -91,6 +91,15 @@ const Infrastructure = () => {
   const [venues, setVenues] = useState<VenueResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showVenueModal, setShowVenueModal] = useState(false);
+  const [venueForm, setVenueForm] = useState<VenueCreateForm>({
+    name: '',
+    address: '',
+    city: '',
+    capacity: 0,
+    eventId: 0,
+    venueType: VenueType.Indoor
+  });
 
   // Učitavanje podataka
   useEffect(() => {
@@ -124,6 +133,24 @@ const Infrastructure = () => {
     venue.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleCreateVenue = async () => {
+    try {
+      const created = await VenueService.createVenue(venueForm);
+      setVenues([...venues, created]);
+      setShowVenueModal(false);
+      setVenueForm({
+        name: '',
+        address: '',
+        city: '',
+        capacity: 0,
+        eventId: 0,
+        venueType: VenueType.Indoor
+      });
+    } catch (error) {
+      console.error('Failed to create venue:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -153,7 +180,10 @@ const Infrastructure = () => {
                 <h1 className="text-[26px] font-bold text-white mb-1">Infrastructure Management</h1>
                 <p className="text-neutral-400 text-base">Manage venues, segments, and seating zones by event</p>
               </div>
-              <button className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2 text-base">
+              <button 
+                onClick={() => setShowVenueModal(true)}
+                className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2 text-base"
+              >
                 <Plus size={20} />
                 New Venue
               </button>
@@ -294,6 +324,104 @@ const Infrastructure = () => {
             </div>
           </div>
         </>
+      )}
+      
+      {/* Venue Creation Modal */}
+      {showVenueModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-neutral-900 rounded-2xl p-6 w-full max-w-md border border-neutral-800 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Create New Venue</h2>
+              <button
+                onClick={() => setShowVenueModal(false)}
+                className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Name</label>
+                <input
+                  type="text"
+                  value={venueForm.name}
+                  onChange={(e) => setVenueForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                  placeholder="Enter venue name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">Address</label>
+                <input
+                  type="text"
+                  value={venueForm.address}
+                  onChange={(e) => setVenueForm(prev => ({ ...prev, address: e.target.value }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                  placeholder="Enter venue address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">City</label>
+                <input
+                  type="text"
+                  value={venueForm.city}
+                  onChange={(e) => setVenueForm(prev => ({ ...prev, city: e.target.value }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                  placeholder="Enter city"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">Capacity</label>
+                <input
+                  type="number"
+                  value={venueForm.capacity}
+                  onChange={(e) => setVenueForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                  placeholder="Enter capacity"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Type</label>
+                <select
+                  value={venueForm.venueType}
+                  onChange={(e) => setVenueForm(prev => ({ ...prev, venueType: parseInt(e.target.value) as VenueType }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                >
+                  <option value={VenueType.Indoor}>Indoor</option>
+                  <option value={VenueType.Outdoor}>Outdoor</option>
+                  <option value={VenueType.Stadium}>Stadium</option>
+                  <option value={VenueType.Arena}>Arena</option>
+                  <option value={VenueType.Theater}>Theater</option>
+                  <option value={VenueType.Club}>Club</option>
+                  <option value={VenueType.Festival}>Festival</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowVenueModal(false)}
+                  className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateVenue}
+                  className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold"
+                >
+                  Create Venue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

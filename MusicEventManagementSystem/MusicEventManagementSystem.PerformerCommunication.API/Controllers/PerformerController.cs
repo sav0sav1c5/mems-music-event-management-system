@@ -7,7 +7,6 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PerformerController : ControllerBase
     {
         private readonly IPerformerService _performerService;

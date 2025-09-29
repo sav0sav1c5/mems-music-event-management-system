@@ -13,11 +13,12 @@ import TicketSalesInfrastructure from "./frontend/ticket-sales/pages/Infrastruct
 // import TicketSalesTicketTypes from './frontend/ticket-sales/pages/TicketTypes';
 import TicketSalesTickets from './frontend/ticket-sales/pages/Tickets';
 import TicketSalesRecordedSales from './frontend/ticket-sales/pages/RecordedSales';
+import TicketSalesPerformances from './frontend/ticket-sales/pages/Performances';
 // import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules';
 // import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
+import TicketSalesPerformers from './frontend/ticket-sales/pages/Performers';
 import TicketSalesTicketing from './frontend/ticket-sales/pages/Ticketing';
 import TicketSalesAnalytics from './frontend/ticket-sales/pages/Analytics';
-
 // Event Organization imports
 // ...
 
@@ -132,6 +133,28 @@ function App() {
         />
 
         <Route 
+          path="/ticket-sales/performers" 
+          element={
+            <ProtectedRoute allowedDepartments={[1]}>
+              <Layout>
+                <TicketSalesPerformers />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/ticket-sales/performances" 
+          element={
+            <ProtectedRoute allowedDepartments={[1]}>
+              <Layout>
+                <TicketSalesPerformances />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
           path="/ticket-sales/tickets" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
@@ -141,8 +164,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-
-
 
         {/** 
         

@@ -1,4 +1,4 @@
-import { VenueType } from '../enums/ticketSales';
+import { VenueType } from '../enums/TicketSales';
 
 export interface VenueCreateForm {
   name: string;
@@ -6,6 +6,7 @@ export interface VenueCreateForm {
   city: string;
   address: string;
   capacity: number;
+  eventId?: number;
   venueType: VenueType;
 }
 
@@ -15,5 +16,6 @@ export interface VenueUpdateForm {
   city?: string;
   address?: string;
   capacity?: number;
+  eventId?: number;
   venueType?: VenueType;
 }

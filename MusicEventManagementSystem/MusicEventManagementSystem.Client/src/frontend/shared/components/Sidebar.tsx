@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  LogOut, CircleDollarSign, BarChart2, Settings, Clock, ChevronLeft, ChevronRight,
-  MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2
+  LogOut, CircleDollarSign, BarChart2, Settings, Clock, Group, ChevronLeft, ChevronRight,
+  MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2,
+  GroupIcon
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -31,6 +32,8 @@ const Sidebar = () => {
           { icon: <BarChart2 />, label: "Dashboard", path: "/ticket-sales/dashboard" },
           { icon: <Building2 />, label: "Infrastructure", path: "/ticket-sales/infrastructure" },
           { icon: <Settings />, label: "Ticketing", path: "/ticket-sales/ticketing" },
+          { icon: <Group />, label: "Performers", path: "/ticket-sales/performers" },
+          { icon: <PlaySquare />, label: "Performances", path: "/ticket-sales/performances" },
           { icon: <Ticket />, label: "Tickets", path: "/ticket-sales/tickets" },
           { icon: <CircleDollarSign />, label: "Recorded Sales", path: "/ticket-sales/recorded-sales" },
           { icon: <PieChart />, label: "Analytics", path: "/ticket-sales/analytics" },
@@ -97,30 +100,30 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex flex-col justify-between bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 text-white h-[calc(100vh-2rem)] my-4 ml-4 rounded-2xl transition-all duration-300 shadow-2xl ${
-        isOpen ? "w-64" : "w-22"
+      className={`flex flex-col justify-between bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 text-white h-[calc(100vh-1.5rem)] my-3 ml-3 rounded-xl transition-all duration-300 shadow-lg ${
+        isOpen ? "w-60" : "w-20"
       }`}
     >
-      <div className="p-4">
+      <div className="p-4 m-1">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 mx-1">
           {isOpen && (
             <div className="transition-all duration-300">
-              <div className="text-2xl font-black text-white tracking-tight">MEMS</div>
-              <div className={`w-40 h-1 rounded-full mt-1 ${
+              <div className="text-3xl font-black text-white tracking-tight">MEMS</div>
+              <div className={`w-30 h-1 rounded-full mt-1 ${
                 color === 'lime' ? 'bg-lime-400' :
                 color === 'pink' ? 'bg-pink-400' :
                 color === 'sky' ? 'bg-sky-400' :
                 'bg-purple-400'
               }`}></div>
-              <div className="text-xs text-neutral-400 mt-1">
+              <div className="text-sm text-neutral-400 mt-1">
                 {getDepartmentName(userDepartment)}
               </div>
             </div>
           )}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`p-2 ml-1 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 border border-transparent ${
+            className={`p-2 ml-1 hover:bg-neutral-800 rounded-lg transition-all duration-200 text-neutral-400 border border-transparent ${
               color === 'lime' ? 'hover:text-lime-400 hover:border-lime-400/30' :
               color === 'pink' ? 'hover:text-pink-400 hover:border-pink-400/30' :
               color === 'sky' ? 'hover:text-sky-400 hover:border-sky-400/30' :
@@ -132,7 +135,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-2">
+        <nav className="space-y-1.5">
           {menuItems.map((item, index) => (
             <button
               key={index}
@@ -140,7 +143,7 @@ const Sidebar = () => {
                 setActiveItem(index);
                 navigate(item.path);
               }}
-              className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 w-full group ${
+              className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-200 w-full group ${
                 activeItem === index
                   ? `${
                       color === 'lime' ? 'bg-lime-400/20 text-lime-400 border border-lime-400/30' :
@@ -167,7 +170,7 @@ const Sidebar = () => {
               </div>
               {isOpen && (
                 <span
-                  className={`font-medium transition-all duration-200 ${
+                  className={`font-[450] transition-all duration-200 ml-2 ${
                     activeItem === index
                       ? `${
                           color === 'lime' ? 'text-lime-400' :
@@ -195,15 +198,15 @@ const Sidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-neutral-800">
+      <div className="p-3 border-t border-neutral-800">
         <button
           onClick={handleLogout}
           className={`flex items-center gap-3 p-3 hover:bg-red-950/50 rounded-xl transition-all duration-200 text-red-400 hover:text-red-300 w-full group border border-transparent hover:border-red-900/50 ${
             !isOpen ? "justify-center" : ""
           }`}
         >
-          <LogOut size={20} />
-          {isOpen && <span className="font-medium">Sign Out</span>}
+          <LogOut size={18} />
+          {isOpen && <span className="font-normal">Sign Out</span>}
         </button>
       </div>
     </div>
