@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.DTOs.Auth;
-using MusicEventManagementSystem.Services.Auth;
+using MusicEventManagementSystem.API.Services.IServices.Auth;
+using MusicEventManagementSystem.Core.Models.DTOs.Auth;
 
-namespace MusicEventManagementSystem.Controllers
+namespace MusicEventManagementSystem.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

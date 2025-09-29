@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Interfaces\Repositories\ITicketSales\" />
+    <Folder Include="Interfaces\Repositories\IEventOrganization\" />
+    <Folder Include="Interfaces\Repositories\IMediaCampaign\" />
+    <Folder Include="Interfaces\Repositories\IPerformerCommunication\" />
+    <Folder Include="Interfaces\Services\IEventOrganization\" />
+    <Folder Include="Interfaces\Services\IMediaCampaign\" />
+    <Folder Include="Interfaces\Services\IPerformerCommunication\" />
+    <Folder Include="Interfaces\Services\ITicketSales\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.20" />
+  </ItemGroup>
+
+</Project>

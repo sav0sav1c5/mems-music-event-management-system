@@ -1,0 +1,6 @@
+@MusicEventManagementSystem.EventOrganization.API_HostAddress = http://localhost:5107
+
+GET {{MusicEventManagementSystem.EventOrganization.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
