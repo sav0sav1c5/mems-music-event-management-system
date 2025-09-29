@@ -2,7 +2,7 @@ import type { PricingRuleResponse } from '../types/api/pricingRule';
 import type { PricingRuleCreateForm, PricingRuleUpdateForm } from '../types/forms/pricingRule';
 //import { PricingCondition } from '../enums/ticketSales';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7011/api';
 
 export interface CalculatePriceRequest {
   basePrice: number;

@@ -1,7 +1,7 @@
 import type { PerformerResponse } from '../types/api/performer';
 import type { PerformerCreateForm, PerformerUpdateForm } from '../types/form/performer';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7021/api';
 
 export class PerformerService {
   private static readonly BASE_URL = `${API_BASE_URL}/performer`;

@@ -3,7 +3,7 @@ import type { ZoneCreateForm, ZoneUpdateForm } from '../types/forms/zone';
 import { ZonePosition } from '../types/enums/ticketSales';
 import type { TicketTypeResponse } from '../types/api/ticketType';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7011/api';
 
 export class ZoneService {
   private static readonly BASE_URL = `${API_BASE_URL}/zone`;

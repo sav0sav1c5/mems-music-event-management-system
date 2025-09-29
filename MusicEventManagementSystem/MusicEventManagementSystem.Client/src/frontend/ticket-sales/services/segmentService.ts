@@ -3,7 +3,7 @@ import type { SegmentCreateForm, SegmentUpdateForm } from '../types/forms/segmen
 import { SegmentType } from '../types/enums/ticketSales';
 import type { ZoneResponse } from '../types/api/zone';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7011/api';
 
 export class SegmentService {
   private static readonly BASE_URL = `${API_BASE_URL}/segment`;

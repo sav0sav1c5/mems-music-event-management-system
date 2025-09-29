@@ -1,7 +1,7 @@
 import type { VenueResponse } from '../types/api/venue';
 import type { VenueCreateForm, VenueUpdateForm } from '../types/forms/venue';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7011/api';
 
 export class VenueService {
   private static readonly BASE_URL = `${API_BASE_URL}/venue`;

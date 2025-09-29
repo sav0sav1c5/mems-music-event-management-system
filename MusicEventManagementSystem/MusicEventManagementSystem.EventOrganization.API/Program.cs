@@ -49,6 +49,7 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IInfrastructureRepository, InfrastructureRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IPerformanceResourceRepository, PerformanceResourceRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 // 5. Register Services - Event Organization
 builder.Services.AddScoped<IResourceService, ResourceService>();
@@ -62,6 +63,7 @@ builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IInfrastructureService, InfrastructureService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPerformanceResourceService, PerformanceResourceService>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 // 6. Configure Controllers with JSON options
 builder.Services.AddControllers()

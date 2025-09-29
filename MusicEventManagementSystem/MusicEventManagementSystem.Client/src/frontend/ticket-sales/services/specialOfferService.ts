@@ -2,7 +2,7 @@ import type { SpecialOfferResponse } from '../types/api/specialOffer';
 import type { SpecialOfferCreateForm, SpecialOfferUpdateForm } from '../types/forms/specialOffer';
 import { OfferType } from '../types/enums/ticketSales';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7011/api';
 
 export class SpecialOfferService {
   private static readonly BASE_URL = `${API_BASE_URL}/specialoffer`;

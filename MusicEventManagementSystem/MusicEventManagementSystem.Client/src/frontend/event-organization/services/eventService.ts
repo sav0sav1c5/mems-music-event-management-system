@@ -2,7 +2,7 @@ import type { EventResponse } from '../types/api/event';
 import type { EventCreateForm, EventUpdateForm } from '../types/form/event';
 import { EventStatus } from '../types/enums/EventOrganization';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7021/api';
 
 export class EventService {
   private static readonly BASE_URL = `${API_BASE_URL}/events`;

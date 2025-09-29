@@ -45,7 +45,6 @@ builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IRecordedSaleRepository, RecordedSaleRepository>();
 builder.Services.AddScoped<IPricingRuleRepository, PricingRuleRepository>();
-builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 // 5. Register Services - Ticket Sales
 builder.Services.AddScoped<IVenueService, VenueService>();
@@ -56,7 +55,6 @@ builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IRecordedSaleService, RecordedSaleService>();
 builder.Services.AddScoped<IPricingRuleService, PricingRuleService>();
-builder.Services.AddScoped<IEventService, EventService>();
 
 // 6. Configure Controllers with JSON options
 builder.Services.AddControllers()
@@ -75,21 +73,21 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Database seeding - Ticket Sales
-//using (var scope = app.Services.CreateScope())
-//{
-//    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//    try
-//    {
-//        context.Database.Migrate();
-//        // Seed Ticket Sales data
-//        await MusicEventManagementSystem.Infrastructure.Database.Seeders.TicketSalesSeeder.SeedAsync(context);
-//    }
-//    catch (Exception ex)
-//    {
-//        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-//        logger.LogError(ex, "An error occurred while seeding Ticket Sales data.");
-//    }
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        context.Database.Migrate();
+        // Seed Ticket Sales data
+        await MusicEventManagementSystem.Infrastructure.Database.Seeders.DatabaseSeeder.SeedAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding Ticket Sales data.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

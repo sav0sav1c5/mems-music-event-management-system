@@ -2,7 +2,7 @@ import type { RecordedSaleResponse } from '../types/api/recordedSale';
 import type { RecordedSaleCreateForm, RecordedSaleUpdateForm } from '../types/forms/recordedSale';
 import { PaymentMethod, TransactionStatus } from '../types/enums/ticketSales';
 
-const API_BASE_URL = 'https://localhost:7050/api';
+const API_BASE_URL = 'https://localhost:7011/api';
 
 export class RecordedSaleService {
   private static readonly BASE_URL = `${API_BASE_URL}/recordedsale`;
