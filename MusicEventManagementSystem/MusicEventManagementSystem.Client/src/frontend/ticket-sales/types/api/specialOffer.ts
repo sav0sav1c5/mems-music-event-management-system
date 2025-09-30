@@ -12,4 +12,7 @@ export interface SpecialOfferResponse {
   ticketLimit: number;
   ticketTypeIds?: number[];
   recordedSaleIds?: number[];
+  applicableTicketTypeIds?: number[];
+  timesUsed?: number;
+  maxUsage?: number;
 }

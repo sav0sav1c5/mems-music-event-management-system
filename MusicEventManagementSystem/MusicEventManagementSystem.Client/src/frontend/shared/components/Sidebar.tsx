@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  LogOut, CircleDollarSign, BarChart2, Settings, Clock, Group, ChevronLeft, ChevronRight,
-  MapPin, Map, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2,
-  GroupIcon
+  LogOut, CircleDollarSign, BarChart2, Settings, Group, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -101,12 +99,12 @@ const Sidebar = () => {
   return (
     <div
       className={`flex flex-col justify-between bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 text-white h-[calc(100vh-1.5rem)] my-3 ml-3 rounded-xl transition-all duration-300 shadow-lg ${
-        isOpen ? "w-60" : "w-20"
+        isOpen ? "w-60" : "w-21"
       }`}
     >
       <div className="p-4 m-1">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 mx-1">
+        <div className="flex items-center justify-between pr-1 mb-6 mr-1">
           {isOpen && (
             <div className="transition-all duration-300">
               <div className="text-3xl font-black text-white tracking-tight">MEMS</div>
@@ -123,7 +121,7 @@ const Sidebar = () => {
           )}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`p-2 ml-1 hover:bg-neutral-800 rounded-lg transition-all duration-200 text-neutral-400 border border-transparent ${
+            className={`p-2 mr-1 hover:bg-neutral-800 rounded-lg transition-all duration-200 text-neutral-400 border border-transparent ${
               color === 'lime' ? 'hover:text-lime-400 hover:border-lime-400/30' :
               color === 'pink' ? 'hover:text-pink-400 hover:border-pink-400/30' :
               color === 'sky' ? 'hover:text-sky-400 hover:border-sky-400/30' :
@@ -198,12 +196,12 @@ const Sidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-neutral-800">
+      <div className="p-3 border-t border-neutral-800 flex justify-center">
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 p-3 hover:bg-red-950/50 rounded-xl transition-all duration-200 text-red-400 hover:text-red-300 w-full group border border-transparent hover:border-red-900/50 ${
-            !isOpen ? "justify-center" : ""
-          }`}
+          className="flex items-center gap-3 p-3 hover:bg-red-950/50 rounded-xl transition-all duration-200 
+                    text-red-400 hover:text-red-300 w-full max-w-[200px] group border border-transparent 
+                    hover:border-red-900/50 justify-center"
         >
           <LogOut size={18} />
           {isOpen && <span className="font-normal">Sign Out</span>}

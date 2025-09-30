@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,
-  ComposedChart
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
 import { 
   Calendar, Download, Filter, TrendingUp, DollarSign, 
@@ -14,7 +12,6 @@ import { TicketService } from '../services/ticketService';
 import { RecordedSaleService } from '../services/recordedSaleService';
 import { SpecialOfferService } from '../services/specialOfferService';
 import { VenueService } from '../services/venueService';
-import { EventService } from '../../event-organization/services/eventService';
 import { TicketStatus, PaymentMethod, OfferType } from '../types';
 import type { TicketResponse } from '../types/api/ticket';
 import type { RecordedSaleResponse } from '../types/api/recordedSale';
@@ -411,110 +408,27 @@ const Analytics = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Custom tab components
-  const Tabs = ({ children }: { children: any }) => {
-    return <div className="tabs">{children}</div>;
-  };
-
-  const TabsList = ({ children, className }: { children: any, className?: string }) => {
-    return (
-      <div className={`flex space-x-1 rounded-lg bg-neutral-800 p-1 ${className}`}>
-        {children}
-      </div>
-    );
-  };
-
-  const TabsTrigger = ({ children, value }: { children: any, value: string }) => {
-    const isActive = activeTab === value;
-    return (
-      <button
-        className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
-          isActive 
-            ? 'bg-lime-400/20 text-lime-400 shadow' 
-            : 'text-neutral-400 hover:text-neutral-300'
-        }`}
-        onClick={() => setActiveTab(value)}
-      >
-        {children}
-      </button>
-    );
-  };
-
-  const TabsContent = ({ children, value }: { children: any, value: string }) => {
-    if (activeTab !== value) return null;
-    return <div className="mt-6">{children}</div>;
-  };
-
-  const Card = ({ children, className }: { children: any, className?: string }) => {
-    return (
-      <div className={`rounded-xl border border-neutral-800 bg-neutral-900/80 ${className}`}>
-        {children}
-      </div>
-    );
-  };
-
-  const Button = ({ children, onClick, disabled, variant, className }: { children: any, onClick?: () => void, disabled?: boolean, variant?: string, className?: string }) => {
-    const baseClass = "px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed";
-    const variantClass = variant === 'outline' 
-      ? "border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-600" 
-      : "bg-lime-500 text-white hover:bg-lime-600";
-    
-    return (
-      <button 
-        className={`${baseClass} ${variantClass} ${className}`}
-        onClick={onClick}
-        disabled={disabled}
-      >
-        {children}
-      </button>
-    );
-  };
-
-  const Input = ({ type, value, onChange, className }: { type: string, value: string, onChange: (e: any) => void, className?: string }) => {
-    return (
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        className={`px-3 py-2 rounded-lg border border-neutral-700 bg-neutral-800 text-white focus:outline-none focus:border-lime-500 ${className}`}
-      />
-    );
-  };
-
-  const Badge = ({ children, variant, className }: { children: any, variant?: string, className?: string }) => {
-    const baseClass = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
-    const variantClass = variant === 'outline' 
-      ? "border border-lime-400/50 text-lime-400"
-      : "bg-lime-400/20 text-lime-400";
-    
-    return (
-      <span className={`${baseClass} ${variantClass} ${className}`}>
-        {children}
-      </span>
-    );
-  };
-
-return (
+  return (
     <div className="text-white h-full flex flex-col p-2">
-      {/* Header - Matching Dashboard/Infrastructure pattern */}
+      {/* Header - Consistent Design */}
       <div className="mb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-[26px] font-bold text-white mb-1">Analytics Dashboard</h1>
-            <p className="text-neutral-400 text-base">Comprehensive ticket sales analytics and insights</p>
+            <h1 className="text-2xl font-bold text-white mb-1">Analytics Dashboard</h1>
+            <p className="text-neutral-400 text-sm">Comprehensive ticket sales analytics and insights</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-5">
             <button
-              onClick={loadAnalyticsData}
+              onClick={() => setIsLoading(!isLoading)}
               disabled={isLoading}
-              className="inline-flex items-center px-4 py-2 border border-neutral-700 bg-neutral-800 text-neutral-300 rounded-xl hover:bg-neutral-700 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 py-3 border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 rounded-xl hover:bg-neutral-800 hover:text-white hover:border-neutral-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               <RefreshCw size={16} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             <button
               onClick={exportData}
-              className="px-6 py-2 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-lime-400 text-black font-medium hover:bg-lime-500 transition-all duration-200 shadow-lg flex items-center gap-2"
             >
               <Download size={16} />
               Export
@@ -522,9 +436,9 @@ return (
           </div>
         </div>
         
-        {/* Date Range Selector - More compact design */}
-        <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-4 mt-4">
-          <div className="flex items-center gap-4 flex-wrap">
+        {/* Date Range Selector - Consistent Design */}
+        <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-4 shadow-lg">
+          <div className="flex items-center gap-5 flex-wrap">
             <div className="flex items-center gap-2">
               <Calendar className="text-neutral-400" size={16} />
               <span className="text-neutral-300 text-sm">Date Range:</span>
@@ -533,33 +447,33 @@ return (
               type="date"
               value={dateRange.from.toISOString().split('T')[0]}
               onChange={(e) => setDateRange({...dateRange, from: new Date(e.target.value)})}
-              className="px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-lg focus:outline-none focus:border-lime-400 transition-colors"
+              className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
             />
             <span className="text-neutral-400">to</span>
             <input
               type="date"
               value={dateRange.to.toISOString().split('T')[0]}
               onChange={(e) => setDateRange({...dateRange, to: new Date(e.target.value)})}
-              className="px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-lg focus:outline-none focus:border-lime-400 transition-colors"
+              className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
             />
             <button
-              onClick={loadAnalyticsData}
+              onClick={() => setIsLoading(!isLoading)}
               disabled={isLoading}
-              className="inline-flex items-center px-4 py-2 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-lg hover:bg-lime-400/20 transition-all duration-200 disabled:opacity-50"
+              className="inline-flex items-center px-4 py-2 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-xl hover:bg-lime-400/20 transition-all duration-200 disabled:opacity-50"
             >
               <Filter size={16} className="mr-2" />
               Apply Filter
             </button>
           </div>
-          <p className="text-neutral-500 text-sm mt-2">
+          <p className="text-neutral-500 text-sm mt-4">
             Last updated: {lastUpdated.toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* Tabs - Matching the design pattern */}
-      <div className="space-y-5">
-        <div className="flex space-x-1 rounded-xl bg-neutral-900/90 border border-neutral-800 p-1">
+      {/* Tabs - Consistent Design */}
+      <div className="space-y-4">
+        <div className="flex space-x-1 rounded-2xl bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 p-1 shadow-lg">
           {[
             { value: 'overview', label: 'Overview' },
             { value: 'revenue', label: 'Revenue' },
@@ -570,9 +484,9 @@ return (
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`flex-1 px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
+              className={`flex-1 px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
                 activeTab === tab.value
-                  ? 'bg-lime-500 text-white shadow-sm'
+                  ? 'bg-lime-400 text-black shadow-lg font-medium'
                   : 'text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800/50'
               }`}
             >
@@ -583,11 +497,11 @@ return (
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <div className="space-y-5">
-            {/* KPI Summary - Matching Dashboard pattern */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
+          <div className="space-y-4">
+            {/* KPI Summary - Consistent Design */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                <div className="p-3 bg-lime-400/20 rounded-xl">
                   <DollarSign className="text-lime-400 w-8 h-8" />
                 </div>
                 <div className="flex flex-col items-end">
@@ -600,8 +514,8 @@ return (
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
+              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                <div className="p-3 bg-lime-400/20 rounded-xl">
                   <Ticket className="text-lime-400 w-8 h-8" />
                 </div>
                 <div className="flex flex-col items-end">
@@ -614,8 +528,8 @@ return (
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
+              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                <div className="p-3 bg-lime-400/20 rounded-xl">
                   <TrendingUp className="text-lime-400 w-8 h-8" />
                 </div>
                 <div className="flex flex-col items-end">
@@ -628,8 +542,8 @@ return (
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
+              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                <div className="p-3 bg-lime-400/20 rounded-xl">
                   <MapPin className="text-lime-400 w-8 h-8" />
                 </div>
                 <div className="flex flex-col items-end">
@@ -643,13 +557,13 @@ return (
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Revenue Trend Chart */}
-              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-                <div className="p-5 border-b border-neutral-800">
-                  <h3 className="text-white text-xl font-semibold">Revenue Trend</h3>
+              <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
+                <div className="p-6 border-b border-neutral-800">
+                  <h3 className="text-xl font-semibold text-white">Revenue Trend</h3>
                 </div>
-                <div className="p-5">
+                <div className="p-6">
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={revenueData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
@@ -663,7 +577,7 @@ return (
                         contentStyle={{ 
                           backgroundColor: '#171717', 
                           border: '1px solid #404040',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
                           color: '#ffffff'
                         }}
                         labelFormatter={(value) => new Date(value).toLocaleDateString()}
@@ -672,8 +586,8 @@ return (
                       <Area 
                         type="monotone" 
                         dataKey="revenue" 
-                        stroke="#84cc16" 
-                        fill="#84cc16" 
+                        stroke="#a3e635" 
+                        fill="#a3e635" 
                         fillOpacity={0.2}
                       />
                     </AreaChart>
@@ -682,11 +596,11 @@ return (
               </div>
 
               {/* Ticket Status Distribution */}
-              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-                <div className="p-5 border-b border-neutral-800">
-                  <h3 className="text-white text-xl font-semibold">Ticket Status Distribution</h3>
+              <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
+                <div className="p-6 border-b border-neutral-800">
+                  <h3 className="text-xl font-semibold text-white">Ticket Status Distribution</h3>
                 </div>
-                <div className="p-5">
+                <div className="p-6">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -706,13 +620,13 @@ return (
                         contentStyle={{ 
                           backgroundColor: '#171717', 
                           border: '1px solid #404040',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
                           color: '#ffffff'
                         }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-4 mt-4">
                     {ticketStatusData.map((item) => (
                       <div key={item.status} className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
@@ -726,120 +640,27 @@ return (
           </div>
         )}
 
-        {activeTab === 'revenue' && (
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
-                  <DollarSign className="text-lime-400 w-8 h-8" />
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Total Revenue</p>
-                  <p className="text-white text-2xl font-bold">{formatCurrency(kpis.totalRevenue)}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
-                  <Ticket className="text-lime-400 w-8 h-8" />
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Avg Ticket Price</p>
-                  <p className="text-white text-2xl font-bold">{formatCurrency(kpis.averageTicketPrice)}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-                <div className="p-3 bg-lime-400/20 rounded-full">
-                  <TrendingUp className="text-lime-400 w-8 h-8" />
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Today's Sales</p>
-                  <p className="text-white text-2xl font-bold">{kpis.todaysSales.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-              {/* Revenue vs Tickets Chart */}
-              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-                <div className="p-5 border-b border-neutral-800">
-                  <h3 className="text-white text-xl font-semibold">Revenue vs Tickets Sold</h3>
-                </div>
-                <div className="p-5">
-                  <ResponsiveContainer width="100%" height={400}>
-                    <ComposedChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#9ca3af"
-                        tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                      />
-                      <YAxis yAxisId="revenue" stroke="#84cc16" />
-                      <YAxis yAxisId="tickets" orientation="right" stroke="#3b82f6" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#171717', 
-                          border: '1px solid #404040',
-                          borderRadius: '8px',
-                          color: '#ffffff'
-                        }}
-                      />
-                      <Bar yAxisId="revenue" dataKey="revenue" fill="#84cc16" fillOpacity={0.6} />
-                      <Line yAxisId="tickets" type="monotone" dataKey="tickets" stroke="#3b82f6" strokeWidth={3} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Payment Methods */}
-              <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-                <div className="p-5 border-b border-neutral-800">
-                  <h3 className="text-white text-xl font-semibold">Payment Method Distribution</h3>
-                </div>
-                <div className="p-5">
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={paymentData} layout="horizontal">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                      <XAxis type="number" stroke="#9ca3af" />
-                      <YAxis type="category" dataKey="method" stroke="#9ca3af" width={100} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#171717', 
-                          border: '1px solid #404040',
-                          borderRadius: '8px',
-                          color: '#ffffff'
-                        }}
-                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Percentage']}
-                      />
-                      <Bar dataKey="value" fill="#84cc16" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeTab === 'venues' && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Venue Performance */}
-            <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-              <div className="p-5 border-b border-neutral-800">
-                <h3 className="text-white text-xl font-semibold">Venue Performance Analysis</h3>
+            <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
+              <div className="p-6 border-b border-neutral-800">
+                <h3 className="text-xl font-semibold text-white">Venue Performance Analysis</h3>
               </div>
-              <div className="p-5 space-y-5">
+              <div className="p-6 space-y-6">
                 {venuePerformance.map((venue) => (
-                  <div key={venue.venueId} className="p-5 bg-neutral-800/50 border border-neutral-700 rounded-xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-lime-400/20 rounded-lg">
+                  <div key={venue.venueId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-lime-400/20 rounded-xl">
                           <MapPin className="text-lime-400" size={20} />
                         </div>
                         <div>
-                          <h4 className="text-white font-medium">{venue.venueName}</h4>
+                          <h4 className="text-white font-medium text-lg">{venue.venueName}</h4>
                           <p className="text-neutral-400 text-sm">Capacity: {venue.capacity.toLocaleString()}</p>
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs ${
+                      <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
                         venue.occupancyRate >= 80 ? 'bg-green-500/20 text-green-400' :
                         venue.occupancyRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
                         'bg-red-500/20 text-red-400'
@@ -847,22 +668,22 @@ return (
                         {formatPercentage(venue.occupancyRate)} occupancy
                       </span>
                     </div>
-                    <div className="grid grid-cols-4 gap-4 text-sm mb-4">
+                    <div className="grid grid-cols-4 gap-6 text-sm mb-6">
                       <div>
                         <span className="text-neutral-400">Sold Tickets</span>
-                        <div className="text-white font-medium mt-1">{venue.soldTickets.toLocaleString()}</div>
+                        <div className="text-white font-medium mt-1 text-base">{venue.soldTickets.toLocaleString()}</div>
                       </div>
                       <div>
                         <span className="text-neutral-400">Revenue</span>
-                        <div className="text-lime-400 font-medium mt-1">{formatCurrency(venue.revenue)}</div>
+                        <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(venue.revenue)}</div>
                       </div>
                       <div>
                         <span className="text-neutral-400">Avg Price</span>
-                        <div className="text-white font-medium mt-1">{formatCurrency(venue.avgTicketPrice)}</div>
+                        <div className="text-white font-medium mt-1 text-base">{formatCurrency(venue.avgTicketPrice)}</div>
                       </div>
                       <div>
                         <span className="text-neutral-400">Utilization</span>
-                        <div className="text-white font-medium mt-1">{formatPercentage(venue.occupancyRate)}</div>
+                        <div className="text-white font-medium mt-1 text-base">{formatPercentage(venue.occupancyRate)}</div>
                       </div>
                     </div>
                     <div className="w-full bg-neutral-700 rounded-full h-2">
@@ -875,56 +696,30 @@ return (
                 ))}
               </div>
             </div>
-
-            {/* Venue Revenue Comparison */}
-            <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-              <div className="p-5 border-b border-neutral-800">
-                <h3 className="text-white text-xl font-semibold">Venue Revenue Comparison</h3>
-              </div>
-              <div className="p-5">
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={venuePerformance}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                    <XAxis dataKey="venueName" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#171717', 
-                        border: '1px solid #404040',
-                        borderRadius: '8px',
-                        color: '#ffffff'
-                      }}
-                      formatter={(value: number) => [formatCurrency(value), 'Revenue']}
-                    />
-                    <Bar dataKey="revenue" fill="#84cc16" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
           </div>
         )}
 
         {activeTab === 'offers' && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Special Offers Performance */}
-            <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-              <div className="p-5 border-b border-neutral-800">
-                <h3 className="text-white text-xl font-semibold">Special Offers Performance</h3>
+            <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
+              <div className="p-6 border-b border-neutral-800">
+                <h3 className="text-xl font-semibold text-white">Special Offers Performance</h3>
               </div>
-              <div className="p-5 space-y-5">
+              <div className="p-6 space-y-6">
                 {offerPerformance.map((offer) => (
-                  <div key={offer.offerId} className="p-5 bg-neutral-800/50 border border-neutral-700 rounded-xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-lime-400/20 rounded-lg">
+                  <div key={offer.offerId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-lime-400/20 rounded-xl">
                           <Gift className="text-lime-400" size={20} />
                         </div>
                         <div>
-                          <h4 className="text-white font-medium">{offer.name}</h4>
+                          <h4 className="text-white font-medium text-lg">{offer.name}</h4>
                           <p className="text-neutral-400 text-sm">Type: {offer.type}</p>
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs ${
+                      <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
                         offer.conversionRate >= 80 ? 'bg-green-500/20 text-green-400' :
                         offer.conversionRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
                         'bg-red-500/20 text-red-400'
@@ -932,22 +727,22 @@ return (
                         {formatPercentage(offer.conversionRate)} conversion
                       </span>
                     </div>
-                    <div className="grid grid-cols-4 gap-4 text-sm mb-4">
+                    <div className="grid grid-cols-4 gap-6 text-sm mb-6">
                       <div>
                         <span className="text-neutral-400">Usage Count</span>
-                        <div className="text-white font-medium mt-1">{offer.usageCount.toLocaleString()}</div>
+                        <div className="text-white font-medium mt-1 text-base">{offer.usageCount.toLocaleString()}</div>
                       </div>
                       <div>
                         <span className="text-neutral-400">Revenue Impact</span>
-                        <div className="text-lime-400 font-medium mt-1">{formatCurrency(offer.revenueImpact)}</div>
+                        <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(offer.revenueImpact)}</div>
                       </div>
                       <div>
                         <span className="text-neutral-400">Discount Given</span>
-                        <div className="text-red-400 font-medium mt-1">-{formatCurrency(offer.discountGiven)}</div>
+                        <div className="text-red-400 font-medium mt-1 text-base">-{formatCurrency(offer.discountGiven)}</div>
                       </div>
                       <div>
                         <span className="text-neutral-400">Net Impact</span>
-                        <div className="text-lime-400 font-medium mt-1">
+                        <div className="text-lime-400 font-medium mt-1 text-base">
                           {formatCurrency(offer.revenueImpact - offer.discountGiven)}
                         </div>
                       </div>
@@ -960,31 +755,6 @@ return (
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Offer Type Distribution */}
-            <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-              <div className="p-5 border-b border-neutral-800">
-                <h3 className="text-white text-xl font-semibold">Offer Usage Distribution</h3>
-              </div>
-              <div className="p-5">
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={offerPerformance}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                    <XAxis dataKey="name" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#171717', 
-                        border: '1px solid #404040',
-                        borderRadius: '8px',
-                        color: '#ffffff'
-                      }}
-                    />
-                    <Bar dataKey="usageCount" fill="#84cc16" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
               </div>
             </div>
           </div>

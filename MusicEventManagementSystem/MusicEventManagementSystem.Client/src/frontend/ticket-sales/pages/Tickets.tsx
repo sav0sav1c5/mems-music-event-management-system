@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X, QrCode, ArrowUp, ArrowDown, CheckCircle, Clock, XCircle, TrendingUp } from "lucide-react";
+import { KpiCard } from "../components/card";
+import React, { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, X, QrCode, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { TicketService } from "../services/ticketService";
 import type { TicketResponse } from "../types/api/ticket";
 import type { TicketCreateForm, TicketUpdateForm } from "../types/forms/ticket";
@@ -10,6 +11,8 @@ const Tickets = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [editingTicket, setEditingTicket] = useState<TicketResponse | null>(null);
   const [formData, setFormData] = useState<Omit<TicketCreateForm, 'ticketTypeId'>>({
     uniqueCode: '',
@@ -52,11 +55,9 @@ const Tickets = () => {
           prev.map(item => item.ticketId === updated.ticketId ? updated : item)
         );
       } else {
-        // For creating new tickets, you'll need to provide ticketTypeId
-        // This should come from your form or be selected by the user
         const createData: TicketCreateForm = {
           ...formData,
-          ticketTypeId: 1, // You'll need to make this dynamic based on your requirements
+          ticketTypeId: 1,
         };
         const created = await TicketService.createTicket(createData);
         setTickets(prev => [...prev, created]);
@@ -108,7 +109,9 @@ const Tickets = () => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -132,38 +135,48 @@ const Tickets = () => {
     }
   };
 
+  const totalItems = tickets.length;
+  const currentItems = tickets.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
+
   const stats = [
     {
       title: "Sold Tickets",
       value: tickets.filter(t => t.status === TicketStatus.Sold).length.toString(),
-      change: "+15.2%",
-      trend: "up",
-      icon: <CheckCircle className="w-5 h-5" />,
-      color: "lime"
+      change: 15.2,
+      trend: "up" as const,
+      icon: CheckCircle,
     },
     {
       title: "Used Tickets",
       value: tickets.filter(t => t.status === TicketStatus.Used).length.toString(),
-      change: "+8.7%",
-      trend: "up",
-      icon: <Clock className="w-5 h-5" />,
-      color: "blue"
+      change: 8.7,
+      trend: "up" as const,
+      icon: Clock,
     },
     {
       title: "Cancelled",
       value: tickets.filter(t => t.status === TicketStatus.Cancelled).length.toString(),
-      change: "-2.1%",
-      trend: "down",
-      icon: <XCircle className="w-5 h-5" />,
-      color: "purple"
+      change: -2.1,
+      trend: "down" as const,
+      icon: XCircle,
     },
     {
       title: "Total Revenue",
       value: formatPrice(tickets.filter(t => t.status === TicketStatus.Sold || t.status === TicketStatus.Used).reduce((sum, ticket) => sum + ticket.finalPrice, 0)),
-      change: "+12.3%",
-      trend: "up",
-      icon: <QrCode className="w-5 h-5" />,
-      color: "orange"
+      change: 12.3,
+      trend: "up" as const,
+      icon: QrCode,
     },
   ];
 
@@ -172,131 +185,182 @@ const Tickets = () => {
 
   return (
     <div className="text-white h-full flex flex-col p-2">
-      {/* Header - Matching Dashboard/Infrastructure pattern */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[26px] font-bold text-white mb-1">Tickets</h1>
-            <p className="text-neutral-400 text-base">Manage individual tickets and track their status</p>
-          </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-150 flex items-center gap-2 text-base"
-          >
-            <Plus size={20} />
-            Add Ticket
-          </button>
+      {/* Header - Consistent Design */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="">
+          <h1 className="text-2xl font-bold text-white mb-1">Tickets</h1>
+          <p className="text-neutral-400 text-sm">
+            Manage individual tickets and track their status.
+          </p>
         </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-lime-400 hover:bg-lime-500 px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-200 text-black font-semibold shadow-lg"
+        >
+          <Plus className="w-4 h-4" />
+          Add Ticket
+        </button>
       </div>
 
-      <div className="space-y-5">
-        {/* KPI Cards - Matching Dashboard pattern */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {stats.map((stat, index) => (
-            <div key={index} className="flex items-center justify-between px-6 py-4 bg-neutral-900/90 rounded-xl border border-neutral-800">
-              <div className="p-3 bg-lime-400/20 rounded-full">
-                {stat.icon}
-              </div>
-              <div className="flex flex-col items-end">
-                <p className="text-neutral-400 text-sm">{stat.title}</p>
-                <p className="text-white text-2xl font-bold">{stat.value}</p>
-                <div className={`flex items-center text-sm font-medium mt-1 ${
-                  stat.trend === 'up' ? 'text-lime-400' : 'text-red-400'
-                }`}>
-                  {stat.trend === 'up' ? <TrendingUp className="w-4 h-4 mr-1" /> : <ArrowDown className="w-4 h-4 mr-1" />}
-                  {stat.change}
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Stats Grid - Koristi KpiCard komponente */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {stats.map((stat, index) => (
+          <KpiCard
+            key={index}
+            icon={stat.icon}
+            title={stat.title}
+            value={stat.value}
+            change={stat.change}
+            changeType="percentage"
+          />
+        ))}
+      </div>
+
+      {/* Tickets Table - Consistent Design */}
+      <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl hover:border-neutral-700 transition-all duration-200 flex-1 min-h-0 flex flex-col shadow-lg overflow-hidden">
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full">
+            <thead className="border-b border-neutral-800">
+              <tr>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">ID</th>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">Unique Code</th>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">Issue Date</th>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">Final Price</th>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">Status</th>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">QR Code</th>
+                <th className="text-center p-4 text-neutral-300 font-semibold text-sm w-auto">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((ticket) => (
+                <tr key={ticket.ticketId} className="border-b border-neutral-800/50 hover:bg-neutral-800/30 transition-all duration-200">
+                  <td className="p-4 text-white font-semibold text-center">{ticket.ticketId}</td>
+                  <td className="p-4 font-mono text-sm text-neutral-300 text-center">{ticket.uniqueCode || 'N/A'}</td>
+                  <td className="p-4 text-neutral-300 text-sm text-center">{formatDate(ticket.issueDate)}</td>
+                  <td className="p-4 font-semibold text-lime-400 text-base text-center">{formatPrice(ticket.finalPrice)}</td>
+                  <td className="p-4 text-center">
+                    <span className={`inline-flex px-3 py-1.5 rounded-xl text-sm font-medium border ${
+                      ticket.status === TicketStatus.Available ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
+                      ticket.status === TicketStatus.Sold ? 'bg-blue-950/50 text-blue-400 border-blue-900/50' :
+                      ticket.status === TicketStatus.Used ? 'bg-emerald-950/50 text-emerald-400 border-emerald-900/50' :
+                      ticket.status === TicketStatus.Cancelled ? 'bg-red-950/50 text-red-400 border-red-900/50' :
+                      ticket.status === TicketStatus.Reserved ? 'bg-yellow-950/50 text-yellow-400 border-yellow-900/50' :
+                      ticket.status === TicketStatus.Expired ? 'bg-gray-950/50 text-gray-400 border-gray-900/50' :
+                      ticket.status === TicketStatus.Refunded ? 'bg-purple-950/50 text-purple-400 border-purple-900/50' :
+                      'bg-orange-950/50 text-orange-400 border-orange-900/50'
+                    }`}>
+                      {getStatusName(ticket.status)}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    {ticket.qrCode ? (
+                      <div className="flex justify-center">
+                        <QrCode className="w-5 h-5 text-lime-400" />
+                      </div>
+                    ) : (
+                      <span className="text-neutral-500 text-sm">None</span>
+                    )}
+                  </td>
+                  <td className="p-4 text-center">
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => handleEdit(ticket)}
+                        className="p-2 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(ticket.ticketId)}
+                        className="p-2 hover:bg-red-900/50 rounded-xl transition-all duration-200 text-neutral-400 hover:text-red-400 border border-transparent hover:border-red-400/30"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Tickets Table - Matching Dashboard pattern */}
-        <div className="bg-neutral-900/90 rounded-xl border border-neutral-800 overflow-hidden">
-          <div className="flex items-center justify-between p-5 border-b border-neutral-800">
-            <h3 className="text-xl font-semibold text-white">All Tickets</h3>
-            <p className="text-neutral-400 text-sm">{tickets.length} ticket(s) found</p>
+        {/* Pagination */}
+        <div className="flex items-center justify-between p-4 border-t border-neutral-800 bg-neutral-900/50">
+          <div className="text-sm text-neutral-400">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} results
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-neutral-800">
-                <tr>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">ID</th>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">Unique Code</th>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">Issue Date</th>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">Final Price</th>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">Status</th>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">QR Code</th>
-                  <th className="text-left p-5 text-neutral-300 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tickets.map((ticket) => (
-                  <tr key={ticket.ticketId} className="border-b border-neutral-800 hover:bg-neutral-800/50 transition-all duration-200">
-                    <td className="p-5 text-white font-medium">{ticket.ticketId}</td>
-                    <td className="p-5 font-mono text-sm text-neutral-300">{ticket.uniqueCode || 'N/A'}</td>
-                    <td className="p-5 text-neutral-300">{formatDate(ticket.issueDate)}</td>
-                    <td className="p-5 font-semibold text-lime-400">{formatPrice(ticket.finalPrice)}</td>
-                    <td className="p-5">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        ticket.status === TicketStatus.Available ? 'bg-green-500/20 text-green-400' :
-                        ticket.status === TicketStatus.Sold ? 'bg-lime-500/20 text-lime-400' :
-                        ticket.status === TicketStatus.Used ? 'bg-blue-500/20 text-blue-400' :
-                        ticket.status === TicketStatus.Cancelled ? 'bg-red-500/20 text-red-400' :
-                        ticket.status === TicketStatus.Reserved ? 'bg-yellow-500/20 text-yellow-400' :
-                        ticket.status === TicketStatus.Expired ? 'bg-gray-500/20 text-gray-400' :
-                        ticket.status === TicketStatus.Refunded ? 'bg-purple-500/20 text-purple-400' :
-                        'bg-orange-500/20 text-orange-400'
-                      }`}>
-                        {getStatusName(ticket.status)}
-                      </span>
-                    </td>
-                    <td className="p-5">
-                      {ticket.qrCode ? (
-                        <QrCode className="w-5 h-5 text-lime-400" />
-                      ) : (
-                        <span className="text-neutral-500">None</span>
-                      )}
-                    </td>
-                    <td className="p-5">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(ticket)}
-                          className="p-2 hover:bg-neutral-700 rounded-lg transition-all duration-200 text-neutral-400 hover:text-lime-400"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(ticket.ticketId)}
-                          className="p-2 hover:bg-red-900/50 rounded-lg transition-all duration-200 text-neutral-400 hover:text-red-400"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-xl border border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            {/* Page Numbers */}
+            {Array.from({ length: Math.ceil(totalItems / itemsPerPage) }, (_, i) => i + 1)
+              .filter(page => {
+                if (page <= 3 || page > Math.ceil(totalItems / itemsPerPage) - 3 || 
+                    (page >= currentPage - 1 && page <= currentPage + 1)) {
+                  return true;
+                }
+                return false;
+              })
+              .map((page, index, array) => {
+                const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                return (
+                  <React.Fragment key={page}>
+                    {showEllipsis && (
+                      <span className="px-2 text-neutral-500">...</span>
+                    )}
+                    <button
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 rounded-xl border transition-all duration-200 ${
+                        currentPage === page
+                          ? 'bg-lime-500 border-lime-500 text-black font-semibold'
+                          : 'border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-white'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  </React.Fragment>
+                );
+              })}
+            
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === Math.ceil(totalItems / itemsPerPage)}
+              className="p-2 rounded-xl border border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
-  
-          {tickets.length === 0 && (
-            <div className="text-center py-16 text-neutral-400">
-              <QrCode size={64} className="mx-auto mb-4 opacity-50" />
-              <h4 className="text-xl mb-2">No tickets found</h4>
-              <p className="text-base">Create your first ticket to get started</p>
-            </div>
-          )}
+
+          {/* Items per page selector */}
+          <div className="flex items-center gap-2 text-sm text-neutral-400">
+            <span>Show:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="bg-neutral-800 border border-neutral-700 rounded-xl px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span>per page</span>
+          </div>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal - Consistent Design */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-neutral-900 rounded-2xl p-6 w-full max-w-md border border-neutral-800 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md border border-neutral-800 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-semibold text-white">
                 {editingTicket ? 'Edit Ticket' : 'Add New Ticket'}
               </h2>
               <button
@@ -307,14 +371,14 @@ const Tickets = () => {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Unique Code</label>
                 <input
                   type="text"
                   value={formData.uniqueCode}
                   onChange={(e) => setFormData(prev => ({ ...prev, uniqueCode: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all font-mono"
+                  className="w-full p-4 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all font-mono"
                   placeholder="Enter unique code"
                 />
               </div>
@@ -325,7 +389,7 @@ const Tickets = () => {
                   type="text"
                   value={formData.qrCode}
                   onChange={(e) => setFormData(prev => ({ ...prev, qrCode: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                  className="w-full p-4 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
                   placeholder="Enter QR code data"
                 />
               </div>
@@ -336,7 +400,7 @@ const Tickets = () => {
                   type="datetime-local"
                   value={new Date(formData.issueDate).toISOString().slice(0, 16)}
                   onChange={(e) => setFormData(prev => ({ ...prev, issueDate: new Date(e.target.value) }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                  className="w-full p-4 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                 />
               </div>
 
@@ -347,7 +411,7 @@ const Tickets = () => {
                   step="0.01"
                   value={formData.finalPrice}
                   onChange={(e) => setFormData(prev => ({ ...prev, finalPrice: parseFloat(e.target.value) || 0 }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                  className="w-full p-4 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
                   placeholder="Enter final price"
                   min="0"
                 />
@@ -358,7 +422,7 @@ const Tickets = () => {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData(prev => ({ ...prev, status: parseInt(e.target.value) as TicketStatus }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                  className="w-full p-4 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                 >
                   <option value={TicketStatus.Available}>Available</option>
                   <option value={TicketStatus.Reserved}>Reserved</option>
@@ -370,20 +434,20 @@ const Tickets = () => {
                 </select>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
+                  className="flex-1 p-4 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold border border-lime-400/30 hover:border-lime-400"
+                  className="flex-1 p-4 bg-lime-400 hover:bg-lime-500 rounded-xl transition-all duration-200 text-black font-semibold shadow-lg"
                 >
-                  {editingTicket ? 'Update' : 'Create'}
+                  {editingTicket ? 'Update' : 'Add Ticket'}
                 </button>
               </div>
             </div>
