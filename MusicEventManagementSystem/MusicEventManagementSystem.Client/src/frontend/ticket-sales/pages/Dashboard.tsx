@@ -12,7 +12,6 @@ import { TicketService } from '../services/ticketService';
 import { SpecialOfferService } from '../services/specialOfferService';
 
 // Import types
-import type { SpecialOfferResponse } from '../types/api/specialOffer';
 import { TransactionStatus, TicketStatus } from '../types/enums/TicketSales';
 
 // Import Card components
@@ -45,26 +44,20 @@ interface Alert {
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [revenueData, setRevenueData] = useState<RevenueChartData[]>([]);
-  const [activeOffers, setActiveOffers] = useState<SpecialOfferResponse[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [ticketStats, setTicketStats] = useState<{[key in TicketStatus]: number}>({} as any);
 
   const fetchDashboardData = async () => {
     try {
-      setIsRefreshing(true);
-
       const [
-        totalRevenue,
         allSales,
         todayTickets,
         soldTickets,
         availableTickets,
         activeSpecialOffers
       ] = await Promise.all([
-        RecordedSaleService.getTotalRevenue().catch(() => 0),
         RecordedSaleService.getAllRecordedSales().catch(() => []),
         TicketService.getTodaysTickets().catch(() => []),
         TicketService.getSoldTickets().catch(() => []),
@@ -73,24 +66,33 @@ const Dashboard = () => {
       ]);
 
       const todaysSoldTickets = todayTickets.filter(ticket => ticket.status === TicketStatus.Sold);
-      const dailyRevenue = todaysSoldTickets.reduce((sum, ticket) => sum + ticket.finalPrice, 0);
+      const dailyRevenue = todaysSoldTickets.reduce((sum, ticket) => sum + (ticket.finalPrice || 0), 0);
 
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
       
-      const [yesterdayRevenue, yesterdayTickets] = await Promise.all([
-        RecordedSaleService.getRevenueByDateRange(yesterday, new Date()).catch(() => 0),
-        TicketService.getTodaysTickets().catch(() => [])
-      ]);
+      const yesterdayEnd = new Date(yesterday);
+      yesterdayEnd.setHours(23, 59, 59, 999);
+      
+      const yesterdayRevenue = await RecordedSaleService.getRevenueByDateRange(yesterday, yesterdayEnd).catch(() => 0);
 
       const revenueChange = yesterdayRevenue > 0 ? 
         ((dailyRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 12.5;
-      const salesChange = yesterdayTickets.length > 0 ? 
-        ((todaysSoldTickets.length - yesterdayTickets.length) / yesterdayTickets.length) * 100 : 8.2;
+      
+      const yesterdaySalesCount = allSales.filter(sale => {
+        const saleDate = new Date(sale.saleDate);
+        return saleDate >= yesterday && saleDate < yesterdayEnd;
+      }).length;
+      
+      const todaySalesCount = todaysSoldTickets.length;
+      const salesChange = yesterdaySalesCount > 0 ? 
+        ((todaySalesCount - yesterdaySalesCount) / yesterdaySalesCount) * 100 : 8.2;
 
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));
+        date.setHours(0, 0, 0, 0);
         return date;
       });
 
@@ -210,7 +212,6 @@ const Dashboard = () => {
 
       setKpis(dashboardKPIs);
       setRevenueData(revenueChartData);
-      setActiveOffers(activeSpecialOffers);
       setTicketStats(ticketStatistics);
       setAlerts(systemAlerts);
 
@@ -254,7 +255,6 @@ const Dashboard = () => {
       ]);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -326,7 +326,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white ml-4">Weekly Revenue</h3>
                 <div className="text-lime-400 text-xl font-bold mr-4">
-                  $30,406
+                  ${revenueData.reduce((sum, day) => sum + day.revenue, 0).toLocaleString()}
                 </div>
               </div>
               <div className="h-80">

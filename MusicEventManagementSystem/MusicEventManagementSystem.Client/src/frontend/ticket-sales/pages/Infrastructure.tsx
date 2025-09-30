@@ -175,156 +175,154 @@ const Infrastructure = () => {
           setActiveTab={setActiveTab}
         />
       ) : (
-        <>
-          {/* Header - Konzistentan sa Dashboard-om */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">Infrastructure Management</h1>
-                <p className="text-neutral-400 text-sm">Manage venues, segments, and seating zones by event</p>
-              </div>
-              <button 
-                onClick={() => setShowVenueModal(true)}
-                className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-200 flex items-center gap-2 text-base"
-              >
-                <Plus size={20} />
-                New Venue
-              </button>
-            </div>
-            
-            {/* Search Bar - Konzistentan stil */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search venues by name, city, or address..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
-              />
-            </div>
-          </div>
-
-          {/* Main Content Grid - Konzistentan layout kao Dashboard */}
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-             
-            {/* Venues Section - Takes 3/4 columns */}
-            <div className="xl:col-span-3">
-              <Card className="overflow-hidden">
-                <div className="flex items-center justify-between border-b border-neutral-800">
-                  <h3 className="text-xl font-semibold text-white mb-4">Venues</h3>
-                  <p className="text-neutral-400 text-sm">{filteredVenues.length} venue(s) found</p>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          
+          {/* PRVA KOLONA - Leva strana (3/4) */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Header - Konzistentan sa Dashboard-om */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">Infrastructure Management</h1>
+                  <p className="text-neutral-400 text-sm">Manage venues, segments, and seating zones by event</p>
                 </div>
-                
-                <div className="">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-                    {filteredVenues.map((venue) => (
-                      <Card
-                        key={venue.venueId}
-                        hover={true}
-                        onClick={() => setSelectedVenue(venue)}
-                        className="group cursor-pointer p-6"
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center">
-                            <div className="bg-lime-500/20 p-3 rounded-xl mr-4">
-                              <MapPin className="w-6 h-6 text-lime-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
-                                {venue.name || 'Unnamed Venue'}
-                              </h3>
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getVenueTypeColor(venue.venueType)}`}>
-                                {getVenueTypeName(venue.venueType)}
-                              </span>
-                            </div>
-                          </div>
-                          <Edit className="w-5 h-5 text-neutral-400 group-hover:text-lime-400 transition-colors" />
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div className="flex items-center text-neutral-300">
-                            <Users className="w-5 h-5 mr-3 text-neutral-400" />
-                            <span className="text-base">Capacity: {(venue.capacity || 0).toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center text-neutral-300">
-                            <MapPin className="w-5 h-5 mr-3 text-neutral-400" />
-                            <span className="text-base">{venue.city || 'Unknown City'}, {venue.address}</span>
-                          </div>
-                          <div className="text-sm text-neutral-500 mt-4 group-hover:text-lime-400/70 transition-colors">
-                            Click to configure seat layout and zones
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {filteredVenues.length === 0 && (
-                    <div className="text-center py-16 text-neutral-400">
-                      <MapPin size={64} className="mx-auto mb-4 opacity-50" />
-                      <h4 className="text-xl mb-2">No venues found</h4>
-                      <p className="text-base">
-                        {searchTerm ? 'Try adjusting your search criteria' : 'No venues available in the system'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-
-            {/* Events Section - Takes 1/4 column */}
-            <div className="xl:col-span-1">
-              <Card className="overflow-hidden h-full">
-                <div className="flex items-center justify-between border-b border-neutral-800">
-                  <h3 className="text-xl font-semibold text-white mb-4">Upcoming Events</h3>
-                  <p className="text-neutral-400 text-sm">{events.length} total</p>
-                </div>
-                
-                <div 
-                  className="space-y-4 overflow-y-auto scrollbar-hide mt-4" 
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none'
-                  }}
+                <button 
+                  onClick={() => setShowVenueModal(true)}
+                  className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-200 flex items-center gap-2 text-base"
                 >
-                  {events.map((event) => (
+                  <Plus size={20} />
+                  New Venue
+                </button>
+              </div>
+              
+              {/* Search Bar - Konzistentan stil */}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search venues by name, city, or address..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
+                />
+              </div>
+            </div>
+
+            {/* Venues Section */}
+            <Card className="overflow-hidden">
+              <div className="flex items-center justify-between border-b border-neutral-800">
+                <h3 className="text-xl font-semibold text-white mb-4">Venues</h3>
+                <p className="text-neutral-400 text-sm">{filteredVenues.length} venue(s) found</p>
+              </div>
+              
+              <div className="">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                  {filteredVenues.map((venue) => (
                     <Card
-                      key={event.id}
+                      key={venue.venueId}
                       hover={true}
-                      onClick={() => setSelectedEvent(event)}
-                      className={`p-4 cursor-pointer transition-all duration-200 ${
-                        selectedEvent?.id === event.id
-                          ? 'bg-lime-500/20 border-lime-500/50 shadow-lg'
-                          : ''
-                      }`}
+                      onClick={() => setSelectedVenue(venue)}
+                      className="group cursor-pointer p-6"
                     >
-                      <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center">
+                          <div className="bg-lime-500/20 p-3 rounded-xl mr-4">
+                            <MapPin className="w-6 h-6 text-lime-400" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
+                              {venue.name || 'Unnamed Venue'}
+                            </h3>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getVenueTypeColor(venue.venueType)}`}>
+                              {getVenueTypeName(venue.venueType)}
+                            </span>
+                          </div>
+                        </div>
+                        <Edit className="w-5 h-5 text-neutral-400 group-hover:text-lime-400 transition-colors" />
+                      </div>
                       
-                      <div className="flex items-center justify-between">
-                        <span className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(event.status)}`}>
-                          {getEventStatusName(event.status)}
-                        </span>
-                        <span className="text-xs text-neutral-500">
-                          {venues.length} venue{venues.length !== 1 ? 's' : ''}
-                        </span>
+                      <div className="space-y-3">
+                        <div className="flex items-center text-neutral-300">
+                          <Users className="w-5 h-5 mr-3 text-neutral-400" />
+                          <span className="text-base">Capacity: {(venue.capacity || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center text-neutral-300">
+                          <MapPin className="w-5 h-5 mr-3 text-neutral-400" />
+                          <span className="text-base">{venue.city || 'Unknown City'}, {venue.address}</span>
+                        </div>
+                        <div className="text-sm text-neutral-500 mt-4 group-hover:text-lime-400/70 transition-colors">
+                          Click to configure seat layout and zones
+                        </div>
                       </div>
                     </Card>
                   ))}
-
-                  {events.length === 0 && (
-                    <div className="text-center py-12 text-neutral-400">
-                      <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-                      <p className="text-base">No events available</p>
-                    </div>
-                  )}
                 </div>
-              </Card>
-            </div>
+
+                {filteredVenues.length === 0 && (
+                  <div className="text-center py-16 text-neutral-400">
+                    <MapPin size={64} className="mx-auto mb-4 opacity-50" />
+                    <h4 className="text-xl mb-2">No venues found</h4>
+                    <p className="text-base">
+                      {searchTerm ? 'Try adjusting your search criteria' : 'No venues available in the system'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
           </div>
-        </>
+
+          {/* DRUGA KOLONA - Desna strana (1/4) */}
+          <div className="lg:col-span-1">
+            <Card className="overflow-hidden h-full">
+              <div className="flex items-center justify-between border-b border-neutral-800">
+                <h3 className="text-xl font-semibold text-white mb-4">Upcoming Events</h3>
+                <p className="text-neutral-400 text-sm">{events.length} total</p>
+              </div>
+              
+              <div 
+                className="space-y-4 overflow-y-auto scrollbar-hide mt-4" 
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}
+              >
+                {events.map((event) => (
+                  <Card
+                    key={event.id}
+                    hover={true}
+                    onClick={() => setSelectedEvent(event)}
+                    className={`p-4 cursor-pointer transition-all duration-200 ${
+                      selectedEvent?.id === event.id
+                        ? 'bg-lime-500/20 border-lime-500/50 shadow-lg'
+                        : ''
+                    }`}
+                  >
+                    <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(event.status)}`}>
+                        {getEventStatusName(event.status)}
+                      </span>
+                      <span className="text-xs text-neutral-500">
+                        {venues.length} venue{venues.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </Card>
+                ))}
+
+                {events.length === 0 && (
+                  <div className="text-center py-12 text-neutral-400">
+                    <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+                    <p className="text-base">No events available</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
       )}
       
-      {/* Venue Creation Modal */}
+      {/* Venue Creation Modal - ostaje isti */}
       {showVenueModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
           <Card className="w-full max-w-md p-6 border border-neutral-800 shadow-2xl">
