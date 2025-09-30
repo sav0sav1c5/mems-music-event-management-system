@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  LogOut, CircleDollarSign, BarChart2, Settings, Group, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2,
+  LogOut, BarChart3, BarChart2, Music, Receipt, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, PlaySquare, ListChecks, CalendarDays, Briefcase, Building2, Tag
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -27,15 +27,13 @@ const Sidebar = () => {
     switch (department) {
       case 1: // TicketSales
         return [
-          { icon: <BarChart2 />, label: "Dashboard", path: "/ticket-sales/dashboard" },
-          { icon: <Building2 />, label: "Infrastructure", path: "/ticket-sales/infrastructure" },
-          { icon: <Settings />, label: "Ticketing", path: "/ticket-sales/ticketing" },
-          { icon: <Group />, label: "Performers", path: "/ticket-sales/performers" },
-          { icon: <PlaySquare />, label: "Performances", path: "/ticket-sales/performances" },
-          { icon: <Ticket />, label: "Tickets", path: "/ticket-sales/tickets" },
-          { icon: <CircleDollarSign />, label: "Recorded Sales", path: "/ticket-sales/recorded-sales" },
-          { icon: <PieChart />, label: "Analytics", path: "/ticket-sales/analytics" },
-        
+          { icon: <BarChart3 size={20} />, label: "Dashboard", path: "/ticket-sales/dashboard" },
+          { icon: <Building2 size={20} />, label: "Infrastructure", path: "/ticket-sales/infrastructure" },
+          { icon: <Music size={20} />, label: "Performances", path: "/ticket-sales/performances" },
+          { icon: <Ticket size={20} />, label: "Ticket Types", path: "/ticket-sales/ticket-types" },
+          { icon: <Tag size={20} />, label: "Pricing & Offers", path: "/ticket-sales/pricing-offers" },
+          { icon: <Receipt size={20} />, label: "Transactions", path: "/ticket-sales/sales-transactions" },
+          { icon: <PieChart size={20} />, label: "Analytics", path: "/ticket-sales/analytics" },
         ];
       
       case 2: // EventOrganization

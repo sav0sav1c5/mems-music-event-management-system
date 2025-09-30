@@ -7,20 +7,11 @@ import ProtectedRoute from "./frontend/shared/components/ProtectedRoute";
 // Ticket Sales imports
 import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
 import TicketSalesInfrastructure from "./frontend/ticket-sales/pages/Infrastructure";
-// import TicketSalesVenues from "./frontend/ticket-sales/pages/Venues";
-// import TicketSalesZones from './frontend/ticket-sales/pages/Zones';
-// import TicketSalesSegments from './frontend/ticket-sales/pages/Segments';
-// import TicketSalesTicketTypes from './frontend/ticket-sales/pages/TicketTypes';
-import TicketSalesTickets from './frontend/ticket-sales/pages/Tickets';
-import TicketSalesRecordedSales from './frontend/ticket-sales/pages/RecordedSales';
 import TicketSalesPerformances from './frontend/ticket-sales/pages/Performances';
-// import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules';
-// import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
-import TicketSalesPerformers from './frontend/ticket-sales/pages/Performers';
-import TicketSalesTicketing from './frontend/ticket-sales/pages/Ticketing';
+import TicketSalesTicketTypes from "./frontend/ticket-sales/pages/TicketTypes";
+import TicketSalesPricingOffers from "./frontend/ticket-sales/pages/PricingOffers";
+import TicketSalesSalesTransactions from "./frontend/ticket-sales/pages/SalesTransactions";
 import TicketSalesAnalytics from './frontend/ticket-sales/pages/Analytics';
-// Event Organization imports
-// ...
 
 // Add these imports for react-toastify
 import { ToastContainer } from 'react-toastify';
@@ -88,61 +79,6 @@ function App() {
           } 
         />
 
-        {/* <Route 
-          path="/ticket-sales/venues" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesVenues />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        /> */}
-
-        {/* <Route 
-          path="/ticket-sales/segments" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesSegments />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        /> */}
-
-        {/* <Route 
-          path="/ticket-sales/zones" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesZones />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        /> */}
-
-        <Route 
-          path="/ticket-sales/ticketing" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesTicketing />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/ticket-sales/performers" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesPerformers />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-
         <Route 
           path="/ticket-sales/performances" 
           element={
@@ -155,19 +91,6 @@ function App() {
         />
 
         <Route 
-          path="/ticket-sales/tickets" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesTickets />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-
-        {/** 
-        
-        <Route 
           path="/ticket-sales/ticket-types" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
@@ -179,35 +102,22 @@ function App() {
         />
 
         <Route 
-          path="/ticket-sales/pricing-rules" 
+          path="/ticket-sales/pricing-offers" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
-                <TicketSalesPricingRules />
+                <TicketSalesPricingOffers />
               </Layout>
             </ProtectedRoute>
           } 
         />
 
         <Route 
-          path="/ticket-sales/special-offers" 
+          path="/ticket-sales/sales-transactions" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
-                <TicketSalesSpecialOffers />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        /> 
-        
-        **/}
-
-        <Route 
-          path="/ticket-sales/recorded-sales" 
-          element={
-            <ProtectedRoute allowedDepartments={[1]}>
-              <Layout>
-                <TicketSalesRecordedSales />
+                <TicketSalesSalesTransactions />
               </Layout>
             </ProtectedRoute>
           } 
