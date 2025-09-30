@@ -20,6 +20,7 @@ const Login = () => {
     { name: 'Event Organization', color: 'pink', gradient: 'from-pink-400 to-rose-500' },
     { name: 'Artist Communication', color: 'sky', gradient: 'from-sky-400 to-cyan-500' },
     { name: 'Media Campaign', color: 'purple', gradient: 'from-purple-400 to-violet-500' },
+    { name: 'MEMS Client', color: 'orange', gradient: 'from-orange-400 to-amber-500' },
   ];
 
   const currentDepartment = departmentColors[currentColorIndex];
@@ -54,10 +55,12 @@ const Login = () => {
         return '/ticket-sales/dashboard';
       case 2: // EventOrganization
         return '/event-organization/dashboard';
-      case 3: // ArtistCommunication
-        return '/artist-communication/dashboard';
+      case 3: // PerformerCommunication
+        return '/performer-communication/dashboard';
       case 4: // MediaCampaign
         return '/media-campaign/dashboard';
+      case 5: // MEMS Client
+        return '/client/dashboard';
       default:
         return '/dashboard';
     }

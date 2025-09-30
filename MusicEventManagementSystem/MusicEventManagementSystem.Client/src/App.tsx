@@ -13,6 +13,22 @@ import TicketSalesPricingOffers from "./frontend/ticket-sales/pages/PricingOffer
 import TicketSalesSalesTransactions from "./frontend/ticket-sales/pages/SalesTransactions";
 import TicketSalesAnalytics from './frontend/ticket-sales/pages/Analytics';
 
+// Event Organization imports
+import EventOrganizationDashboard from "./frontend/event-organization/pages/Dashboard";
+
+// Media Campaign imports
+import MediaCampaignDashboard from "./frontend/media-campaign/pages/Dashboard";
+
+// Artist Communication imports
+import ArtistCommunicationDashboard from "./frontend/performer-communication/pages/Dashboard";
+
+// MEMS Client imports
+import ClientDashboard from "../src/frontend/shared/page/Dashboard";
+import ClientEvents from "../src/frontend/shared/page/Events";
+import ClientMyCart from "../src/frontend/shared/page/MyCart";
+import ClientCheckout from "../src/frontend/shared/page/Checkout";
+import ClientOrders from "../src/frontend/shared/page/MyOrders";
+
 // Add these imports for react-toastify
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -39,9 +55,11 @@ const DepartmentRedirect = () => {
     case 2: // EventOrganization
       return <Navigate to="/event-organization/dashboard" replace />;
     case 3: // ArtistCommunication
-      return <Navigate to="/artist-communication/dashboard" replace />;
+      return <Navigate to="/performer-communication/dashboard" replace />;
     case 4: // MediaCampaign
       return <Navigate to="/media-campaign/dashboard" replace />;
+    case 5: // MEMS Client
+      return <Navigate to="/client/dashboard" replace />;
     default:
       return <Navigate to="/login" replace />;
   }
@@ -129,6 +147,90 @@ function App() {
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
                 <TicketSalesAnalytics />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Protected routes - Event Organization*/}
+        <Route path="/event-organization/dashboard" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                <EventOrganizationDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Protected routes - Performer Communication*/}
+        <Route path="/performer-communication/dashboard" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <ArtistCommunicationDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Protected routes - Media Campaign*/}
+        <Route path="/media-campaign/dashboard" 
+          element={
+            <ProtectedRoute allowedDepartments={[4]}>
+              <Layout>
+                <MediaCampaignDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Protected routes - MEMS Client*/}
+        <Route path="/client/dashboard" 
+          element={
+            <ProtectedRoute allowedDepartments={[5]}>
+              <Layout>
+                <ClientDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route path="/client/events" 
+          element={
+            <ProtectedRoute allowedDepartments={[5]}>
+              <Layout>
+                <ClientEvents />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route path="/client/my-cart" 
+          element={
+            <ProtectedRoute allowedDepartments={[5]}>
+              <Layout>
+                <ClientMyCart />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route path="/client/checkout" 
+          element={
+            <ProtectedRoute allowedDepartments={[5]}>
+              <Layout>
+                <ClientCheckout />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+         <Route path="/client/orders" 
+          element={
+            <ProtectedRoute allowedDepartments={[5]}>
+              <Layout>
+                <ClientOrders />
               </Layout>
             </ProtectedRoute>
           } 

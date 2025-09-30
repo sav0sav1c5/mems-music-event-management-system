@@ -23,6 +23,7 @@ const Register = () => {
     { value: 2, label: 'Event Organization', color: 'pink', gradient: 'from-pink-400 to-rose-500' },
     { value: 3, label: 'Artist Communication', color: 'sky', gradient: 'from-sky-400 to-cyan-500' },
     { value: 4, label: 'Media Campaign', color: 'purple', gradient: 'from-purple-400 to-violet-500' },
+    { value: 5, label: 'MEMS Client', color: 'orange', gradient: 'from-orange-400 to-amber-500' },
   ];
 
   const getDepartmentData = (dept: number) => {

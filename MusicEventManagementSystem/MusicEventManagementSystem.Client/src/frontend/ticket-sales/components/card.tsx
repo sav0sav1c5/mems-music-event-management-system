@@ -29,6 +29,7 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
+
 interface KpiCardProps {
   icon: LucideIcon;
   title: string;
@@ -36,6 +37,7 @@ interface KpiCardProps {
   change?: number;
   changeType?: 'percentage' | 'value';
   className?: string;
+  color?: 'lime' | 'orange' | 'pink' | 'sky' | 'purple'; // Dodajemo color prop
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
@@ -44,15 +46,47 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   value,
   change,
   changeType = 'percentage',
-  className = ''
+  className = '',
+  color = 'lime' // Podrazumevana boja
 }) => {
   const isPositive = change !== undefined && change >= 0;
   
+  // Definišemo boje za svaki department
+  const colorClasses = {
+    lime: {
+      iconBg: 'bg-lime-400/20',
+      iconColor: 'text-lime-400',
+      trendColor: isPositive ? 'text-lime-400' : 'text-red-400'
+    },
+    orange: {
+      iconBg: 'bg-orange-400/20',
+      iconColor: 'text-orange-400',
+      trendColor: isPositive ? 'text-orange-400' : 'text-red-400'
+    },
+    pink: {
+      iconBg: 'bg-pink-400/20',
+      iconColor: 'text-pink-400',
+      trendColor: isPositive ? 'text-pink-400' : 'text-red-400'
+    },
+    sky: {
+      iconBg: 'bg-sky-400/20',
+      iconColor: 'text-sky-400',
+      trendColor: isPositive ? 'text-sky-400' : 'text-red-400'
+    },
+    purple: {
+      iconBg: 'bg-purple-400/20',
+      iconColor: 'text-purple-400',
+      trendColor: isPositive ? 'text-purple-400' : 'text-red-400'
+    }
+  };
+
+  const colors = colorClasses[color];
+
   return (
     <Card className={className}>
       <div className="flex items-center justify-between">
-        <div className="p-3 bg-lime-400/20 rounded-xl">
-          <Icon className="text-lime-400 w-6 h-6" />
+        <div className={`p-3 rounded-xl ${colors.iconBg}`}>
+          <Icon className={`${colors.iconColor} w-6 h-6`} />
         </div>
         <div className="flex flex-col items-end">
           <p className="text-neutral-400 text-sm mb-1">{title}</p>
@@ -60,16 +94,13 @@ export const KpiCard: React.FC<KpiCardProps> = ({
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
           {change !== undefined && (
-            <div className={`flex items-center text-xs font-medium ${
-              isPositive ? 'text-lime-400' : 'text-red-400'
-            }`}>
+            <div className={`flex items-center text-xs font-medium ${colors.trendColor}`}>
               {isPositive ? (
                 <TrendingUp className="w-3 h-3 mr-1" />
               ) : (
                 <TrendingDown className="w-3 h-3 mr-1" />
               )}
               {isPositive ? '+' : ''}
-              {/* Bezbedno korišćenje toFixed */}
               {typeof change === 'number' ? change.toFixed(1) : '0.0'}
               {changeType === 'percentage' ? '%' : ''}
             </div>
