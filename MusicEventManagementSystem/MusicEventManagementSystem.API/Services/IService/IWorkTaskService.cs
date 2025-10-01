@@ -6,6 +6,7 @@ namespace MusicEventManagementSystem.API.Services.IService
     {
         Task<IEnumerable<WorkTask>> GetAllWorkTasksAsync();
         Task<WorkTask?> GetWorkTaskByIdAsync(int id);
+        Task<IEnumerable<WorkTask>> GetWorkTasksByPerformanceIdAsync(int performanceId);
         Task<WorkTask> CreateWorkTaskAsync(WorkTask workTask);
         Task<WorkTask?> UpdateWorkTaskAsync(int id, WorkTask workTask);
         Task<bool> DeleteWorkTaskAsync(int id);

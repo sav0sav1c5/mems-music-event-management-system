@@ -1,4 +1,6 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using MusicEventManagementSystem.API.DTOs;
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Services.IService;
 
@@ -9,19 +11,22 @@ namespace MusicEventManagementSystem.API.Controllers
     public class ResourcesController : ControllerBase
     {
         private readonly IResourceService _resourceService;
+        private readonly IMapper _mapper;
 
-        public ResourcesController(IResourceService resourceService)
+        public ResourcesController(IResourceService resourceService, IMapper mapper)
         {
             _resourceService = resourceService;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Resource>>> GetAllResources()
+        public async Task<ActionResult<IEnumerable<ResourceResponseDto>>> GetAllResources()
         {
             try
             {
                 var resources = await _resourceService.GetAllResourcesAsync();
-                return Ok(resources);
+                var response = _mapper.Map<IEnumerable<ResourceResponseDto>>(resources);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -30,7 +35,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Resource>> GetResourceById(int id)
+        public async Task<ActionResult<ResourceResponseDto>> GetResourceById(int id)
         {
             try
             {
@@ -39,7 +44,9 @@ namespace MusicEventManagementSystem.API.Controllers
                 {
                     return NotFound($"Resource with ID {id} not found.");
                 }
-                return Ok(existingResource);
+
+                var response = _mapper.Map<ResourceResponseDto>(existingResource);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -48,7 +55,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Resource>> CreateResource([FromBody] Resource resource)
+        public async Task<ActionResult<ResourceResponseDto>> CreateResource([FromBody] ResourceCreateDto resourceDto)
         {
             try
             {
@@ -57,8 +64,10 @@ namespace MusicEventManagementSystem.API.Controllers
                     return BadRequest(ModelState);
                 }
 
+                var resource = _mapper.Map<Resource>(resourceDto);
                 var createdResource = await _resourceService.CreateResourceAsync(resource);
-                return CreatedAtAction(nameof(GetResourceById), new { id = createdResource.Id }, createdResource);
+                var response = _mapper.Map<ResourceResponseDto>(createdResource);
+                return CreatedAtAction(nameof(GetResourceById), new { id = response.Id }, response);
             }
             catch (Exception ex)
             {
@@ -67,7 +76,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Resource>> UpdateResource(int id, [FromBody] Resource resource)
+        public async Task<ActionResult<ResourceResponseDto>> UpdateResource(int id, [FromBody] ResourceUpdateDto resourceDto)
         {
             try
             {
@@ -76,12 +85,15 @@ namespace MusicEventManagementSystem.API.Controllers
                     return BadRequest(ModelState);
                 }
 
+                var resource = _mapper.Map<Resource>(resourceDto);
                 var updatedResource = await _resourceService.UpdateResourceAsync(id, resource);
                 if (updatedResource == null)
                 {
                     return NotFound($"Resource with ID {id} not found.");
                 }
-                return Ok(updatedResource);
+
+                var response = _mapper.Map<ResourceResponseDto>(updatedResource);
+                return Ok(response);
             }
             catch (Exception ex)
             {

@@ -23,13 +23,23 @@ namespace MusicEventManagementSystem.API.Services
             return await _performanceRepository.GetByIdAsync(id);
         }
 
+        public async Task<IEnumerable<Performance>> GetPerformancesByEventIdAsync(int eventId)
+        {
+            return await _performanceRepository.GetByEventIdAsync(eventId);
+        }
+
         public async Task<Performance> CreatePerformanceAsync(Performance performance)
         {
             performance.CreatedAt = DateTime.UtcNow;
             performance.UpdatedAt = DateTime.UtcNow;
             await _performanceRepository.AddAsync(performance);
             await _performanceRepository.SaveChangesAsync();
-            return performance;
+            var created = await _performanceRepository.GetByIdAsync(performance.Id);
+            if (created == null)
+            {
+                throw new InvalidOperationException("Failed to load created performance");
+            }
+            return created;
         }
 
         public async Task<Performance?> UpdatePerformanceAsync(int id, Performance performance)
@@ -52,7 +62,7 @@ namespace MusicEventManagementSystem.API.Services
 
             _performanceRepository.Update(existingPerformance);
             await _performanceRepository.SaveChangesAsync();
-            return existingPerformance;
+            return await _performanceRepository.GetByIdAsync(existingPerformance.Id);
         }
 
         public async Task<bool> DeletePerformanceAsync(int id)

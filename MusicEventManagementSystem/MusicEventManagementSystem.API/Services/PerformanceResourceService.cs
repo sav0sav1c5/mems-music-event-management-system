@@ -1,6 +1,10 @@
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Repositories.IRepositories;
 using MusicEventManagementSystem.API.Services.IService;
+using MusicEventManagementSystem.Enums;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MusicEventManagementSystem.API.Services
 {
@@ -23,13 +27,31 @@ namespace MusicEventManagementSystem.API.Services
             return await _performanceResourceRepository.GetByIdAsync(id);
         }
 
+        public async Task<IEnumerable<PerformanceResource>> GetPerformanceResourcesByPerformanceIdAsync(int performanceId)
+        {
+            return await _performanceResourceRepository.GetByPerformanceIdAsync(performanceId);
+        }
+
         public async Task<PerformanceResource> CreatePerformanceResourceAsync(PerformanceResource performanceResource)
         {
             performanceResource.CreatedAt = DateTime.UtcNow;
             performanceResource.UpdatedAt = DateTime.UtcNow;
+            if (performanceResource.QuantityNeeded <= 0)
+            {
+                performanceResource.QuantityNeeded = 1;
+            }
+            if (performanceResource.Status == PerformanceResourceStatus.None)
+            {
+                performanceResource.Status = PerformanceResourceStatus.Requested;
+            }
             await _performanceResourceRepository.AddAsync(performanceResource);
             await _performanceResourceRepository.SaveChangesAsync();
-            return performanceResource;
+            var created = await _performanceResourceRepository.GetByIdAsync(performanceResource.Id);
+            if (created == null)
+            {
+                throw new InvalidOperationException("Failed to load created performance resource");
+            }
+            return created;
         }
 
         public async Task<PerformanceResource?> UpdatePerformanceResourceAsync(int id, PerformanceResource performanceResource)
@@ -42,13 +64,18 @@ namespace MusicEventManagementSystem.API.Services
 
             existingPerformanceResource.PerformanceId = performanceResource.PerformanceId;
             existingPerformanceResource.ResourceId = performanceResource.ResourceId;
-            existingPerformanceResource.QuantityNeeded = performanceResource.QuantityNeeded;
-            existingPerformanceResource.Status = performanceResource.Status;
+            existingPerformanceResource.QuantityNeeded = performanceResource.QuantityNeeded <= 0
+                ? existingPerformanceResource.QuantityNeeded
+                : performanceResource.QuantityNeeded;
+            if (performanceResource.Status != PerformanceResourceStatus.None)
+            {
+                existingPerformanceResource.Status = performanceResource.Status;
+            }
             existingPerformanceResource.UpdatedAt = DateTime.UtcNow;
 
             _performanceResourceRepository.Update(existingPerformanceResource);
             await _performanceResourceRepository.SaveChangesAsync();
-            return existingPerformanceResource;
+            return await _performanceResourceRepository.GetByIdAsync(existingPerformanceResource.Id);
         }
 
         public async Task<bool> DeletePerformanceResourceAsync(int id)
@@ -59,7 +86,8 @@ namespace MusicEventManagementSystem.API.Services
                 return false;
             }
 
-            _performanceResourceRepository.Delete(performanceResource);
+            performanceResource.DeletedAt = DateTime.UtcNow;
+            _performanceResourceRepository.Update(performanceResource);
             await _performanceResourceRepository.SaveChangesAsync();
             return true;
         }

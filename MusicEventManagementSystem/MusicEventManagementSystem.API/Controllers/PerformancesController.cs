@@ -1,4 +1,6 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using MusicEventManagementSystem.API.DTOs;
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Services.IService;
 
@@ -9,19 +11,22 @@ namespace MusicEventManagementSystem.API.Controllers
     public class PerformancesController : ControllerBase
     {
         private readonly IPerformanceService _performanceService;
+        private readonly IMapper _mapper;
 
-        public PerformancesController(IPerformanceService performanceService)
+        public PerformancesController(IPerformanceService performanceService, IMapper mapper)
         {
             _performanceService = performanceService;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Performance>>> GetAllPerformances()
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetAllPerformances()
         {
             try
             {
                 var performances = await _performanceService.GetAllPerformancesAsync();
-                return Ok(performances);
+                var response = _mapper.Map<IEnumerable<PerformanceResponseDto>>(performances);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -29,8 +34,23 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+
+        [HttpGet("event/{eventId}")]
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetPerformancesByEventId(int eventId)
+        {
+            try
+            {
+                var performances = await _performanceService.GetPerformancesByEventIdAsync(eventId);
+                var response = _mapper.Map<IEnumerable<PerformanceResponseDto>>(performances);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
         [HttpGet("{id}")]
-        public async Task<ActionResult<Performance>> GetPerformanceById(int id)
+        public async Task<ActionResult<PerformanceResponseDto>> GetPerformanceById(int id)
         {
             try
             {
@@ -39,7 +59,9 @@ namespace MusicEventManagementSystem.API.Controllers
                 {
                     return NotFound($"Performance with ID {id} not found.");
                 }
-                return Ok(existingPerformance);
+
+                var response = _mapper.Map<PerformanceResponseDto>(existingPerformance);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -48,7 +70,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Performance>> CreatePerformance([FromBody] Performance performance)
+        public async Task<ActionResult<PerformanceResponseDto>> CreatePerformance([FromBody] PerformanceCreateDto performanceDto)
         {
             try
             {
@@ -57,8 +79,10 @@ namespace MusicEventManagementSystem.API.Controllers
                     return BadRequest(ModelState);
                 }
 
+                var performance = _mapper.Map<Performance>(performanceDto);
                 var createdPerformance = await _performanceService.CreatePerformanceAsync(performance);
-                return CreatedAtAction(nameof(GetPerformanceById), new { id = createdPerformance.Id }, createdPerformance);
+                var response = _mapper.Map<PerformanceResponseDto>(createdPerformance);
+                return CreatedAtAction(nameof(GetPerformanceById), new { id = response.Id }, response);
             }
             catch (Exception ex)
             {
@@ -67,7 +91,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Performance>> UpdatePerformance(int id, [FromBody] Performance performance)
+        public async Task<ActionResult<PerformanceResponseDto>> UpdatePerformance(int id, [FromBody] PerformanceUpdateDto performanceDto)
         {
             try
             {
@@ -76,12 +100,15 @@ namespace MusicEventManagementSystem.API.Controllers
                     return BadRequest(ModelState);
                 }
 
+                var performance = _mapper.Map<Performance>(performanceDto);
                 var updatedPerformance = await _performanceService.UpdatePerformanceAsync(id, performance);
                 if (updatedPerformance == null)
                 {
                     return NotFound($"Performance with ID {id} not found.");
                 }
-                return Ok(updatedPerformance);
+
+                var response = _mapper.Map<PerformanceResponseDto>(updatedPerformance);
+                return Ok(response);
             }
             catch (Exception ex)
             {

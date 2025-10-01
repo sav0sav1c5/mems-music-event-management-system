@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Services.IService;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MusicEventManagementSystem.API.Controllers
 {
@@ -19,6 +21,13 @@ namespace MusicEventManagementSystem.API.Controllers
         public async Task<ActionResult<IEnumerable<PerformanceResource>>> GetAll()
         {
             var performanceResources = await _performanceResourceService.GetAllPerformanceResourcesAsync();
+            return Ok(performanceResources);
+        }
+
+        [HttpGet("performance/{performanceId}")]
+        public async Task<ActionResult<IEnumerable<PerformanceResource>>> GetByPerformanceId(int performanceId)
+        {
+            var performanceResources = await _performanceResourceService.GetPerformanceResourcesByPerformanceIdAsync(performanceId);
             return Ok(performanceResources);
         }
 

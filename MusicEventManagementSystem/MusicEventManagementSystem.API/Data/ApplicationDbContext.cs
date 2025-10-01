@@ -112,6 +112,36 @@ namespace MusicEventManagementSystem.Data
                 .WithMany(so => so.RecordedSales)
                 .UsingEntity(j => j.ToTable("RecordedSaleSpecialOffers"));
 
+            // Event Management Subsystem configurations
+            builder.Entity<Event>()
+                .HasOne(e => e.Location)
+                .WithMany()
+                .HasForeignKey(e => e.LocationId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Event>()
+                .HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Event>()
+                .Property(e => e.DeletedAt)
+                .IsRequired(false);
+
+            builder.Entity<Event>()
+                .Property(e => e.Status)
+                .HasConversion<int>();
+
+            builder.Entity<Event>()
+                .Property(e => e.EndInterval)
+                .IsRequired(false);
+
+
+
+
             base.OnModelCreating(builder);
         }
     }

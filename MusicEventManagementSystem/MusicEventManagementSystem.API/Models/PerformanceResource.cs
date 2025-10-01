@@ -6,10 +6,10 @@ namespace MusicEventManagementSystem.API.Models
     {
         public int Id { get; set; }
         public int PerformanceId { get; set; }
-        //public Performance Performance { get; set; }
+        public Performance? Performance { get; set; }
 
         public int ResourceId { get; set; }
-        //public Resource Resource { get; set; }
+        public Resource? Resource { get; set; }
 
         public int QuantityNeeded { get; set; }
         public PerformanceResourceStatus Status { get; set; }

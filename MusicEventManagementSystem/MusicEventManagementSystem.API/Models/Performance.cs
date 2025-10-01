@@ -6,13 +6,13 @@ namespace MusicEventManagementSystem.API.Models
     {
         public int Id { get; set; }
         public int EventId { get; set; }
-        //public Event Event { get; set; }
+        public Event? Event { get; set; }
 
         public int PerformerId { get; set; }
-        //public Performer Performer { get; set; }
+        public Performer? Performer { get; set; }
 
         public int VenueId { get; set; }
-        //public Venue Venue { get; set; }
+        public Venue? Venue { get; set; }
 
 
         public DateTime StartTime { get; set; }

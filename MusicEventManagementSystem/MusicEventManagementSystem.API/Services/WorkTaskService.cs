@@ -1,6 +1,9 @@
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Repositories.IRepositories;
 using MusicEventManagementSystem.API.Services.IService;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MusicEventManagementSystem.API.Services
 {
@@ -23,13 +26,23 @@ namespace MusicEventManagementSystem.API.Services
             return await _workTaskRepository.GetByIdAsync(id);
         }
 
+        public async Task<IEnumerable<WorkTask>> GetWorkTasksByPerformanceIdAsync(int performanceId)
+        {
+            return await _workTaskRepository.GetByPerformanceIdAsync(performanceId);
+        }
+
         public async Task<WorkTask> CreateWorkTaskAsync(WorkTask workTask)
         {
             workTask.CreatedAt = DateTime.UtcNow;
             workTask.UpdatedAt = DateTime.UtcNow;
             await _workTaskRepository.AddAsync(workTask);
             await _workTaskRepository.SaveChangesAsync();
-            return workTask;
+            var created = await _workTaskRepository.GetByIdAsync(workTask.Id);
+            if (created == null)
+            {
+                throw new InvalidOperationException("Failed to load created work task");
+            }
+            return created;
         }
 
         public async Task<WorkTask?> UpdateWorkTaskAsync(int id, WorkTask workTask)
@@ -50,7 +63,7 @@ namespace MusicEventManagementSystem.API.Services
 
             _workTaskRepository.Update(existingWorkTask);
             await _workTaskRepository.SaveChangesAsync();
-            return existingWorkTask;
+            return await _workTaskRepository.GetByIdAsync(existingWorkTask.Id);
         }
 
         public async Task<bool> DeleteWorkTaskAsync(int id)
@@ -61,7 +74,8 @@ namespace MusicEventManagementSystem.API.Services
                 return false;
             }
 
-            _workTaskRepository.Delete(workTask);
+            workTask.DeletedAt = DateTime.UtcNow;
+            _workTaskRepository.Update(workTask);
             await _workTaskRepository.SaveChangesAsync();
             return true;
         }

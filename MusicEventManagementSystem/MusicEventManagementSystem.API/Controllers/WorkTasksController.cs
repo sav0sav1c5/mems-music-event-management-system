@@ -29,6 +29,20 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [HttpGet("performance/{performanceId}")]
+        public async Task<ActionResult<IEnumerable<WorkTask>>> GetWorkTasksByPerformanceId(int performanceId)
+        {
+            try
+            {
+                var workTasks = await _workTaskService.GetWorkTasksByPerformanceIdAsync(performanceId);
+                return Ok(workTasks);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<WorkTask>> GetWorkTaskById(int id)
         {

@@ -4,6 +4,7 @@ import Login from "./frontend/auth/pages/Login";
 import Register from "./frontend/auth/pages/Register";
 import ProtectedRoute from "./frontend/shared/components/ProtectedRoute";
 
+
 // Ticket Sales imports
 import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
 import TicketSalesVenues from "./frontend/ticket-sales/pages/Venues";
@@ -16,7 +17,22 @@ import TicketSalesPricingRules from './frontend/ticket-sales/pages/PricingRules'
 import TicketSalesSpecialOffers from './frontend/ticket-sales/pages/SpecialOffer';
 
 // Event Organization imports
-// ...
+import EventOrgDashboard from "./frontend/event-organization/pages/EventOrgDashboard";
+import EventOrgEvents from "./frontend/event-organization/pages/Events"
+import EventOrgEventDetails from "./frontend/event-organization/pages/EventDetails";
+import EventOrgAddEvent from "./frontend/event-organization/pages/AddEvent";
+import EventOrgAddPerformance from "./frontend/event-organization/pages/AddPerformance";
+import EventOrgPerformanceDetails from "./frontend/event-organization/pages/PerformanceDetails";
+import EventOrgAddResource from "./frontend/event-organization/pages/AddResource";
+import EventOrgResourceDetails from "./frontend/event-organization/pages/ResourceDetails";
+import EventOrgManageResourceTypes from "./frontend/event-organization/pages/ManageResourceTypes";
+import EventOrgAddWorkTask from "./frontend/event-organization/pages/AddWorkTask";
+import EventOrgWorkTaskDetails from "./frontend/event-organization/pages/WorkTaskDetails";
+import EventOrgPerformances from "./frontend/event-organization/pages/Performances";
+import EventOrgWorkTasks from "./frontend/event-organization/pages/WorkTasks";
+import EventOrgResources from "./frontend/event-organization/pages/Resources";
+import EventOrgCalendar from "./frontend/event-organization/pages/Calendar";
+import EventOrgAnalytics from "./frontend/event-organization/pages/Analytics";
 
 // Helper function to get user's department
 const getUserDepartment = (): number | null => {
@@ -158,6 +174,232 @@ function App() {
           } 
         />
 
+        {/* Protected routes - Event Organization*/}
+        <Route 
+          path="/event-organization/dashboard" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                <EventOrgDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/event-organization/events" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgEvents />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/events/add" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddEvent />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/events/:id" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgEventDetails />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/events/:id/edit" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddEvent />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/performances" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgPerformances />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/performances/add" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddPerformance />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/performances/:id" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgPerformanceDetails />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/performances/:id/edit" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddPerformance />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/work-tasks" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgWorkTasks />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/work-tasks/add" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddWorkTask />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/work-tasks/:id" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgWorkTaskDetails />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/work-tasks/:id/edit" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddWorkTask />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/resources" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgResources />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/resources/add" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddResource />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/resources/:id" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgResourceDetails />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/resources/:id/edit" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAddResource />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/resources/types" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgManageResourceTypes />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/event-organization/calendar" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgCalendar />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Timeline functionality merged into Calendar - redirect to calendar */}
+        <Route 
+          path="/event-organization/timeline" 
+          element={<Navigate to="/event-organization/calendar" replace />}
+        />
+
+        <Route 
+          path="/event-organization/analytics" 
+          element={
+            <ProtectedRoute allowedDepartments={[2]}>
+              <Layout>
+                  <EventOrgAnalytics />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
         {/* Redirect root to dashboard */}
         <Route path="/" element={<DepartmentRedirect />} />
         

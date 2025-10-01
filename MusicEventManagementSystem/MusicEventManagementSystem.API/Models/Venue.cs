@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.API.Enums.TicketSales;
+using System.Text.Json.Serialization;
 
 namespace MusicEventManagementSystem.API.Models
 {
@@ -10,6 +11,7 @@ namespace MusicEventManagementSystem.API.Models
         public string? City { get; set; }
         public string? Address { get; set; }
         public int Capacity { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public VenueType? VenueType { get; set; }
 
         // Navigation property - Venue - (1,N) -> Segment

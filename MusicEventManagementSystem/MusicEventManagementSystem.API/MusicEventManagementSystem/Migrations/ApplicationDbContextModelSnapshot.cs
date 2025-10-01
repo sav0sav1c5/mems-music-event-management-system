@@ -311,8 +311,9 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uuid");
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -320,6 +321,9 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndInterval")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("Interval")
                         .HasColumnType("timestamp with time zone");
@@ -338,6 +342,10 @@ namespace MusicEventManagementSystem.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LocationId");
 
                     b.ToTable("Events");
                 });
@@ -453,6 +461,12 @@ namespace MusicEventManagementSystem.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("PerformerId");
+
+                    b.HasIndex("VenueId");
+
                     b.ToTable("Performances");
                 });
 
@@ -486,6 +500,10 @@ namespace MusicEventManagementSystem.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PerformanceId");
+
+                    b.HasIndex("ResourceId");
 
                     b.ToTable("PerformanceResources");
                 });
@@ -605,6 +623,9 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<decimal>("OccupancyThreshold2")
                         .HasColumnType("numeric");
 
+                    b.Property<int>("PricingCondition")
+                        .HasColumnType("integer");
+
                     b.HasKey("PricingRuleId");
 
                     b.ToTable("PricingRules");
@@ -622,8 +643,8 @@ namespace MusicEventManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PaymentMethod")
-                        .HasColumnType("text");
+                    b.Property<int?>("PaymentMethod")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("timestamp with time zone");
@@ -631,8 +652,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("TransactionStatus")
-                        .HasColumnType("text");
+                    b.Property<int?>("TransactionStatus")
+                        .HasColumnType("integer");
 
                     b.HasKey("RecordedSaleId");
 
@@ -724,8 +745,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("SegmentType")
-                        .HasColumnType("text");
+                    b.Property<int?>("SegmentType")
+                        .HasColumnType("integer");
 
                     b.Property<int>("VenueId")
                         .HasColumnType("integer");
@@ -790,8 +811,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("OfferType")
-                        .HasColumnType("text");
+                    b.Property<int?>("OfferType")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
@@ -846,8 +867,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<int?>("RecordedSaleId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("text");
+                    b.Property<int?>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("integer");
@@ -884,8 +905,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("text");
+                    b.Property<int?>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<int>("ZoneId")
                         .HasColumnType("integer");
@@ -954,8 +975,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("VenueType")
-                        .HasColumnType("text");
+                    b.Property<int?>("VenueType")
+                        .HasColumnType("integer");
 
                     b.HasKey("VenueId");
 
@@ -1001,6 +1022,8 @@ namespace MusicEventManagementSystem.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PerformanceId");
+
                     b.ToTable("WorkTasks");
                 });
 
@@ -1024,8 +1047,8 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("Position")
-                        .HasColumnType("text");
+                    b.Property<int?>("Position")
+                        .HasColumnType("integer");
 
                     b.Property<int>("SegmentId")
                         .HasColumnType("integer");
@@ -1229,6 +1252,71 @@ namespace MusicEventManagementSystem.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.Event", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.Models.Auth.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.API.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.Performance", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.API.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.API.Models.Performer", "Performer")
+                        .WithMany()
+                        .HasForeignKey("PerformerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.API.Models.Venue", "Venue")
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Performer");
+
+                    b.Navigation("Venue");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.PerformanceResource", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.API.Models.Performance", "Performance")
+                        .WithMany()
+                        .HasForeignKey("PerformanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MusicEventManagementSystem.API.Models.Resource", "Resource")
+                        .WithMany()
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Performance");
+
+                    b.Navigation("Resource");
+                });
+
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.RecordedSale", b =>
                 {
                     b.HasOne("MusicEventManagementSystem.Models.Auth.ApplicationUser", "ApplicationUser")
@@ -1285,6 +1373,17 @@ namespace MusicEventManagementSystem.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.WorkTask", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.API.Models.Performance", "Performance")
+                        .WithMany()
+                        .HasForeignKey("PerformanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Performance");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Zone", b =>
