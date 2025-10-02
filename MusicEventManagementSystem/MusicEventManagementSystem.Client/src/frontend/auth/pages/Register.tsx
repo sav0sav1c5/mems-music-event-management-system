@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../../shared/services/apiService';
 import type { RegisterDto } from '../../shared/services/apiService';
 import { UserPlus, Mail, Lock, User, Building, Music, Sparkles, CheckCircle } from 'lucide-react';
+import Logo from '../../shared/components/Logo'; // Dodato
 
 const Register = () => {
   const [formData, setFormData] = useState<RegisterDto>({
@@ -23,6 +24,7 @@ const Register = () => {
     { value: 2, label: 'Event Organization', color: 'pink', gradient: 'from-pink-400 to-rose-500' },
     { value: 3, label: 'Artist Communication', color: 'sky', gradient: 'from-sky-400 to-cyan-500' },
     { value: 4, label: 'Media Campaign', color: 'purple', gradient: 'from-purple-400 to-violet-500' },
+    { value: 5, label: 'MEMS Client', color: 'orange', gradient: 'from-orange-400 to-amber-500' },
   ];
 
   const getDepartmentData = (dept: number) => {
@@ -95,10 +97,15 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Dynamic background based on selected department */}
-      <div className={`absolute inset-0 bg-gradient-to-br from-${currentDept.color}-900/20 via-neutral-950 to-${currentDept.color}-950/10 transition-all duration-700`}></div>
+    <div className="min-h-screen bg-neutral-950 flex items-center p-4 relative overflow-hidden">
       
+      {/* Dynamic background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black opacity-70"></div>
+      
+      {/* Animirani MEMS logo */}
+      <div className="ml-50 items-center animate-pulse">
+        <Logo />
+      </div>
       {/* Animated particles */}
       <div className="absolute inset-0">
         {[...Array(15)].map((_, i) => (
@@ -115,7 +122,8 @@ const Register = () => {
         ))}
       </div>
       
-      <div className="bg-neutral-900/90 backdrop-blur-md border border-neutral-800/50 rounded-3xl p-8 w-full max-w-md shadow-2xl relative z-10 transform transition-all duration-300 hover:scale-[1.01]">
+
+      <div className="bg-neutral-900/90 backdrop-blur-md border border-neutral-800/50 rounded-3xl p-8 ml-50 w-full max-w-md shadow-2xl relative z-10 transform transition-all duration-300 hover:scale-[1.01]">
         {/* Header with dynamic department info */}
         <div className="text-center mb-4">
           <div className="flex justify-center mb-4">

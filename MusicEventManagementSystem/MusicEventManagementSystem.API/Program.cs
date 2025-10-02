@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+<<<<<<< HEAD
 using System.Text.Json.Serialization;
 using MusicEventManagementSystem.API.Repositories;
 using MusicEventManagementSystem.API.Repositories.IRepositories;
@@ -9,10 +10,15 @@ using MusicEventManagementSystem.API.Services.IService;
 using MusicEventManagementSystem.Data;
 using MusicEventManagementSystem.Models.Auth;
 using MusicEventManagementSystem.Services.Auth;
+=======
+using MusicEventManagementSystem.API.Services.Auth;
+using MusicEventManagementSystem.API.Services.IServices.Auth;
+using MusicEventManagementSystem.Core.Models.Entities.Auth;
+using MusicEventManagementSystem.Infrastructure.Database;
+using System.Text.Json.Serialization;
+>>>>>>> fc7d1e8729b7d2d6668f9b466d7f35e20a9a6543
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 // 1. DbContext with PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -35,97 +41,62 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "https://localhost:7050")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowed(_ => true);
+              .AllowCredentials();
     });
 });
 
-// 4. Register repositories
-builder.Services.AddScoped<IVenueRepository, VenueRepository>();
-builder.Services.AddScoped<ISegmentRepository, SegmentRepository>();
-builder.Services.AddScoped<IZoneRepository, ZoneRepository>();
-builder.Services.AddScoped<ISpecialOfferRepository, SpecialOfferRepository>();
-builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
-builder.Services.AddScoped<ITicketRepository, TicketRepository>();
-builder.Services.AddScoped<IRecodedSaleRepository, RecordedSaleRepository>();
-builder.Services.AddScoped<IPricingRuleRepository, PricingRuleRepository>();
-builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
-builder.Services.AddScoped<IPerformanceRepository, PerformanceRepository>();
-builder.Services.AddScoped<IEquipmentRepository, EquipmentRepository>();
-builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-builder.Services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
-builder.Services.AddScoped<IPerformerRepository, PerformerRepository>();
-builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
-builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
-builder.Services.AddScoped<IInfrastructureRepository, InfrastructureRepository>();
-builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IPerformanceResourceRepository, PerformanceResourceRepository>();
-
-// Performer subsystem repositories
-builder.Services.AddScoped<IPerformerRepository, PerformerRepository>();
-builder.Services.AddScoped<IRequirementRepository, RequirementRepository>();
-builder.Services.AddScoped<IPhaseRepository, PhaseRepository>();
-builder.Services.AddScoped<INegotiationRepository, NegotiationRepository>();
-builder.Services.AddScoped<IContractRepository, ContractRepository>();
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
-builder.Services.AddScoped<ICommunicationRepository, CommunicationRepository>();
-
-// 5. Register services
+// 4. Register Auth Service
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IVenueService, VenueService>();
-builder.Services.AddScoped<ISegmentService, SegmentService>();
-builder.Services.AddScoped<IZoneService, ZoneService>();
-builder.Services.AddScoped<ISpecialOfferService, SpecialOfferService>();
-builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
-builder.Services.AddScoped<ITicketService, TicketService>();
-builder.Services.AddScoped<IRecordedSaleService, RecordedSaleService>();
-builder.Services.AddScoped<IPricingRuleService, PricingRuleService>();
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IResourceService, ResourceService>();
-builder.Services.AddScoped<IPerformanceService, PerformanceService>();
-builder.Services.AddScoped<IEquipmentService, EquipmentService>();
-builder.Services.AddScoped<ILocationService, LocationService>();
-builder.Services.AddScoped<IWorkTaskService, WorkTaskService>();
-builder.Services.AddScoped<IPerformerService, PerformerService>();
-builder.Services.AddScoped<IVehicleService, VehicleService>();
-builder.Services.AddScoped<IServiceService, ServiceService>();
-builder.Services.AddScoped<IInfrastructureService, InfrastructureService>();
-builder.Services.AddScoped<IStaffService, StaffService>();
-builder.Services.AddScoped<IPerformanceResourceService, PerformanceResourceService>();
 
-// Performer subsystem services
-builder.Services.AddScoped<IPerformerService, PerformerService>();
-builder.Services.AddScoped<IRequirementService, RequirementService>();
-builder.Services.AddScoped<IPhaseService, PhaseService>();
-builder.Services.AddScoped<INegotiationService, NegotiationService>();
-builder.Services.AddScoped<IContractService, ContractService>();
-builder.Services.AddScoped<IDocumentService, DocumentService>();
-builder.Services.AddScoped<ICommunicationService, CommunicationService>();
+// 5. Configure Controllers with JSON options
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
+<<<<<<< HEAD
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+=======
+>>>>>>> fc7d1e8729b7d2d6668f9b466d7f35e20a9a6543
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Music Event Management - Auth API", Version = "v1" });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Database seeding
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        context.Database.Migrate();
+        await MusicEventManagementSystem.Infrastructure.Database.Seeders.DatabaseSeeder.SeedAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding Ticket Sales data.");
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1"));
 }
 
-app.UseCors("AllowReactApp"); // Move CORS before HTTPS redirection
-
+app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

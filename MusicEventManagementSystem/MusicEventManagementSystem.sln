@@ -1,9 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.36105.23 d17.13
+VisualStudioVersion = 17.13.36105.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.API", "MusicEventManagementSystem.API\MusicEventManagementSystem.API.csproj", "{09E229B7-97DD-E2EB-124C-F17B829273DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.Core", "MusicEventManagementSystem.Core\MusicEventManagementSystem.Core.csproj", "{B50E25A6-3106-4F38-8AA1-35D3084B945D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.Infrastructure", "MusicEventManagementSystem.Infrastructure\MusicEventManagementSystem.Infrastructure.csproj", "{57DD00E0-C9DE-4D36-899B-4375BA2BDA4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.TicketSales.API", "MusicEventManagementSystem.TicketSales.API\MusicEventManagementSystem.TicketSales.API.csproj", "{6BF1E41C-386C-4F17-809F-D5CAC073B4F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.EventOrganization.API", "MusicEventManagementSystem.EventOrganization.API\MusicEventManagementSystem.EventOrganization.API.csproj", "{FC899080-1B7D-4AC8-B81A-CACEBA7BAB31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.MediaCampaign.API", "MusicEventManagementSystem.MediaCampaign.API\MusicEventManagementSystem.MediaCampaign.API.csproj", "{A291C4FC-8556-4452-AD72-171F331249A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicEventManagementSystem.PerformerCommunication.API", "MusicEventManagementSystem.PerformerCommunication.API\MusicEventManagementSystem.PerformerCommunication.API.csproj", "{A5494608-F518-441A-A708-7674C1496FA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +27,30 @@ Global
 		{09E229B7-97DD-E2EB-124C-F17B829273DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09E229B7-97DD-E2EB-124C-F17B829273DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09E229B7-97DD-E2EB-124C-F17B829273DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B50E25A6-3106-4F38-8AA1-35D3084B945D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B50E25A6-3106-4F38-8AA1-35D3084B945D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B50E25A6-3106-4F38-8AA1-35D3084B945D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B50E25A6-3106-4F38-8AA1-35D3084B945D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57DD00E0-C9DE-4D36-899B-4375BA2BDA4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57DD00E0-C9DE-4D36-899B-4375BA2BDA4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57DD00E0-C9DE-4D36-899B-4375BA2BDA4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57DD00E0-C9DE-4D36-899B-4375BA2BDA4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BF1E41C-386C-4F17-809F-D5CAC073B4F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BF1E41C-386C-4F17-809F-D5CAC073B4F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BF1E41C-386C-4F17-809F-D5CAC073B4F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BF1E41C-386C-4F17-809F-D5CAC073B4F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC899080-1B7D-4AC8-B81A-CACEBA7BAB31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC899080-1B7D-4AC8-B81A-CACEBA7BAB31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC899080-1B7D-4AC8-B81A-CACEBA7BAB31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC899080-1B7D-4AC8-B81A-CACEBA7BAB31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A291C4FC-8556-4452-AD72-171F331249A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A291C4FC-8556-4452-AD72-171F331249A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A291C4FC-8556-4452-AD72-171F331249A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A291C4FC-8556-4452-AD72-171F331249A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5494608-F518-441A-A708-7674C1496FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5494608-F518-441A-A708-7674C1496FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5494608-F518-441A-A708-7674C1496FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5494608-F518-441A-A708-7674C1496FA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -24,9 +24,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedDepart
         case 2: // EventOrganization
           return <Navigate to="/event-organization/dashboard" replace />;
         case 3: // ArtistCommunication
-          return <Navigate to="/artist-communication/dashboard" replace />;
+          return <Navigate to="/performer-communication/dashboard" replace />;
         case 4: // MediaCampaign
           return <Navigate to="/media-campaign/dashboard" replace />;
+        case 5: // MEMS Client
+          return <Navigate to="/client/dashboard" replace />;
         default:
           return <Navigate to="/login" replace />;
       }

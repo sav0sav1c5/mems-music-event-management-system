@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using MusicEventManagementSystem.DTOs.Auth;
-using MusicEventManagementSystem.Models.Auth;
+using MusicEventManagementSystem.API.Services.IServices.Auth;
+using MusicEventManagementSystem.Core.Models.DTOs.Auth;
+using MusicEventManagementSystem.Core.Models.Entities.Auth;
 
-namespace MusicEventManagementSystem.Services.Auth
+namespace MusicEventManagementSystem.API.Services.Auth
 {
     public class AuthService : IAuthService
     {
