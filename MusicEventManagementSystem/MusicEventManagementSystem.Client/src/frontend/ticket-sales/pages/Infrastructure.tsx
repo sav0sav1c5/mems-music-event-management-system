@@ -113,18 +113,21 @@ const Infrastructure = () => {
     try {
       setLoading(true);
       const [eventsData, venuesData] = await Promise.all([
-        EventService.getAllEvents(),
-        VenueService.getAllVenues()
+        EventService.getAllEvents().catch(() => []),
+        VenueService.getAllVenues().catch(() => [])
       ]);
 
       setEvents(eventsData || []);
       setVenues(venuesData || []);
       
-      if (eventsData.length > 0) {
+      if (eventsData && eventsData.length > 0) {
         setSelectedEvent(eventsData[0]);
       }
     } catch (error) {
       console.error('Error loading data:', error);
+      // Set empty arrays on error
+      setEvents([]);
+      setVenues([]);
     } finally {
       setLoading(false);
     }
@@ -166,7 +169,7 @@ const Infrastructure = () => {
   }
 
   return (
-    <div className="text-white h-full flex flex-col p-2">
+    <div className="text-white h-full flex flex-col p-4 m-1">
       {selectedVenue ? (
         <VenueDetailView 
           venue={selectedVenue}
@@ -186,13 +189,22 @@ const Infrastructure = () => {
                   <h1 className="text-2xl font-bold text-white mb-1">Infrastructure Management</h1>
                   <p className="text-neutral-400 text-sm">Manage venues, segments, and seating zones by event</p>
                 </div>
-                <button 
-                  onClick={() => setShowVenueModal(true)}
-                  className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-200 flex items-center gap-2 text-base"
-                >
-                  <Plus size={20} />
-                  New Venue
-                </button>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={loadInitialData}
+                    className="px-4 py-3 rounded-xl bg-neutral-800 text-white font-medium hover:bg-neutral-700 transition-all duration-200 flex items-center gap-2 text-base"
+                  >
+                    <RefreshCw size={20} />
+                    Refresh
+                  </button>
+                  <button 
+                    onClick={() => setShowVenueModal(true)}
+                    className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-200 flex items-center gap-2 text-base"
+                  >
+                    <Plus size={20} />
+                    New Venue
+                  </button>
+                </div>
               </div>
               
               {/* Search Bar - Konzistentan stil */}

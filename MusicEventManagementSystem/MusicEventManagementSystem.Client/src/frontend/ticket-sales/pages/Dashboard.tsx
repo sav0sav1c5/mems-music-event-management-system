@@ -274,11 +274,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="text-white h-full flex flex-col p-2">
+    <div className="text-white h-full flex flex-col p-4 m-1">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
-        <p className="text-neutral-400 text-sm">Overview of ticket sales and venue performance</p>
+        <h1 className="text-[26px] font-bold text-white mb-1">Dashboard</h1>
+        <p className="text-neutral-400 text-[15px]">Overview of ticket sales and venue performance</p>
       </div>
 
       <div className="space-y-4">
@@ -322,16 +322,16 @@ const Dashboard = () => {
           
           {/* Weekly Revenue Chart */}
           <div className="xl:col-span-2">
-            <Card className="h-full">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white ml-4">Weekly Revenue</h3>
-                <div className="text-lime-400 text-xl font-bold mr-4">
+            <Card className="h-full pb-2">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4 px-4">
+                <h3 className="text-lg font-semibold text-white">Weekly Revenue</h3>
+                <div className="text-lime-400 text-xl font-bold">
                   ${revenueData.reduce((sum, day) => sum + day.revenue, 0).toLocaleString()}
                 </div>
               </div>
-              <div className="h-80">
-                <ResponsiveContainer width="95%" height="100%">
-                  <BarChart data={revenueData} barCategoryGap="15%">
+              <div className="h-80 -mt-1 px-2">
+                <ResponsiveContainer width="%" height="100%">
+                  <BarChart data={revenueData} barCategoryGap="15%" margin={{ top: 5, right: 20, left: -5, bottom: 5 }} >
                     <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
                     <XAxis 
                       dataKey="date" 
@@ -365,7 +365,10 @@ const Dashboard = () => {
           {/* Ticket Status Overview */}
           <div className="xl:col-span-1">
             <Card className="h-full">
-              <h3 className="text-lg font-semibold text-white mb-6">Ticket Status Overview</h3>
+              <div className="flex items-center justify-between border-b border-neutral-800 mb-3">
+                <h3 className="text-xl font-semibold text-white mb-3">Ticket Status Overview</h3>
+              </div>  
+              
               {Object.keys(ticketStats).length > 0 ? (
                 <>
                   <div className="space-y-3">
@@ -403,7 +406,7 @@ const Dashboard = () => {
                   </div>
                   <div className="mt-4 pt-4 border-t border-neutral-800">
                     <div className="text-center">
-                      <div className="text-white text-base font-semibold">
+                      <div className="text-white text-lg font-semibold">
                         Total: {Object.values(ticketStats).reduce((sum, val) => sum + val, 0)}
                       </div>
                     </div>
@@ -420,9 +423,11 @@ const Dashboard = () => {
 
           {/* System Alerts */}
           <div className="xl:col-span-1">
-            <Card className="h-full">
-              <h3 className="text-lg font-semibold text-white mb-4">System Alerts</h3>
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+            <Card className="h-full overflow-hidden">
+              <div className="flex items-center justify-between border-b border-neutral-800 mb-3">
+                <h3 className="text-xl font-semibold text-white mb-3 w-full">System Alerts</h3>
+              </div>  
+              <div className="space-y-2 max-h-80 overflow-y-auto">
                 {alerts.length > 0 ? alerts.map((alert) => (
                   <div key={alert.id} className={`p-3 rounded-xl border ${
                     alert.type === 'error' ? 'bg-red-950/50 border-red-900' :

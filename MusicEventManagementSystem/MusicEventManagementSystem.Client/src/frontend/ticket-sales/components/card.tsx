@@ -18,7 +18,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div 
       className={`
-        bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-6 
+        bg-neutral-900 backdrop-blur-sm border border-neutral-700/60 rounded-2xl p-6 
         ${hover ? 'hover:border-neutral-700 transition-all duration-200' : ''}
         ${onClick ? 'cursor-pointer' : ''}
         shadow-lg ${className}
@@ -89,7 +89,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
           <Icon className={`${colors.iconColor} w-6 h-6`} />
         </div>
         <div className="flex flex-col items-end">
-          <p className="text-neutral-400 text-sm mb-1">{title}</p>
+          <p className="text-neutral-400 text-basic font-normal mb-1">{title}</p>
           <p className="text-white text-2xl font-bold mb-1">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>

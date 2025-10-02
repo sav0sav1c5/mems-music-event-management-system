@@ -108,7 +108,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex flex-col justify-between bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 text-white h-[calc(100vh-1.5rem)] my-3 ml-3 rounded-xl transition-all duration-300 shadow-lg ${
+      className={`flex flex-col justify-between bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 text-white h-[calc(100vh-1.5rem)] my-3 ml-3 rounded-xl transition-all duration-300 shadow-lg ${
         isOpen ? "w-60" : "w-21"
       }`}
     >
@@ -145,7 +145,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-1.5">
+        <nav className="space-y-2">
           {menuItems.map((item, index) => {
             const isActive = activeItem === index;
             

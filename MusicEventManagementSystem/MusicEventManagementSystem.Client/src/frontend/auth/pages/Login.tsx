@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../shared/services/apiService';
 import type { LoginDto } from '../../shared/services/apiService';
 import { LogIn, Mail, Lock, Music, Sparkles } from 'lucide-react';
+import Logo from '../../shared/components/Logo';
 
 const Login = () => {
   const [formData, setFormData] = useState<LoginDto>({
@@ -98,27 +99,12 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background with rotating department colors */}
+    <div className="min-h-screen bg-neutral-950 flex items-center p-4 relative overflow-hidden">
       <div className={`absolute inset-0 bg-gradient-to-br from-${currentDepartment.color}-900/20 to-${currentDepartment.color}-950/10 transition-all duration-1000`}></div>
-      
-      {/* Floating particles effect */}
-      <div className="absolute inset-0">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute w-1 h-1 bg-${currentDepartment.color}-400/30 rounded-full animate-pulse`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 4}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
-            }}
-          ></div>
-        ))}
-      </div>
-
-      <div className="bg-neutral-900/90 backdrop-blur-md border border-neutral-800/50 rounded-3xl p-8 w-full max-w-sm shadow-2xl relative z-10 transform transition-all duration-500 hover:scale-[1.02]">
+        <div className="ml-50 items-center animate-pulse">
+          <Logo />
+        </div>
+      <div className="bg-neutral-900/90 backdrop-blur-md border border-neutral-800/50 rounded-3xl p-8 ml-50 w-full max-w-sm shadow-2xl relative z-10 transform transition-all duration-500 hover:scale-[1.02]">
         {/* Success message */}
         {location.state?.message && (
           <div className={`mb-6 text-center p-3 bg-${currentDepartment.color}-500/10 border border-${currentDepartment.color}-500/30 rounded-xl`}>

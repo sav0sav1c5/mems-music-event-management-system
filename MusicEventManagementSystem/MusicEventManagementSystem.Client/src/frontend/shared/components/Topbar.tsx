@@ -65,7 +65,7 @@ const Topbar = () => {
   const colorClasses = getColorClasses(user.department);
 
   return (
-    <div className="flex items-center justify-between bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 text-white px-4 py-4 mx-3 mt-4 rounded-xl shadow-lg">
+    <div className="flex items-center justify-between bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 text-white px-4 py-4 mx-3 mt-3 rounded-xl shadow-lg">
       {/* Search */}
       <div className="relative w-1/2 mx-1">
         <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-5 h-5`} />

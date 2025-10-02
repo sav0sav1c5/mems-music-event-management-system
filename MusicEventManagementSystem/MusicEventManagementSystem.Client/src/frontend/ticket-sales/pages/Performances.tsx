@@ -202,7 +202,7 @@ const Performances = () => {
   }, []);
 
   return (
-    <div className="text-white h-full p-2 flex flex-col">
+    <div className="text-white h-full p-4 m-1 flex flex-col">
       <div className="flex gap-4 h-full">
         {/* Left side - Performance list */}
         <div className={`transition-all duration-300 flex flex-col ${

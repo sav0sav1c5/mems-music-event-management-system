@@ -199,7 +199,7 @@ const PricingOffers = () => {
   ];
 
   return (
-    <div className="text-white h-full flex flex-col p-2">
+    <div className="text-white h-full flex flex-col p-4 m-1">
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-4">
