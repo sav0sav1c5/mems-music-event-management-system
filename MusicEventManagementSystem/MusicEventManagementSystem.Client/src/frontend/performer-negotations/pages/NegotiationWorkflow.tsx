@@ -6,15 +6,23 @@ import {
   Clock, 
   AlertCircle,
   Send,
-  ArrowRight
+  ArrowRight,
+  Edit,
+  Save,
+  X,
+  FileText,
+  Eye
 } from "lucide-react";
 import { negotiationService } from "../services/negotiationService";
+import { contractService } from "../services/contractService";
+import ContractModal from "../components/ContractModal";
 import type { 
   NegotiationWorkflowDto, 
   NegotiationPhaseDto, 
   FulfillRequirementDto,
   AddCommunicationDto
 } from "../services/negotiationService";
+import type { ContractDto } from "../services/contractService";
 
 const NegotiationWorkflow = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,12 +35,43 @@ const NegotiationWorkflow = () => {
   const [communicationInput, setCommunicationInput] = useState("");
   const [communicationType, setCommunicationType] = useState("Note");
   const [communicationDirection, setCommunicationDirection] = useState("Internal");
+  
+  // New state for ProposedFee editing
+  const [isEditingFee, setIsEditingFee] = useState(false);
+  const [editedFee, setEditedFee] = useState<number>(0);
+  const [contractCreated, setContractCreated] = useState<ContractDto | null>(null);
+  
+  // Contract modal state
+  const [contractModalOpen, setContractModalOpen] = useState(false);
+  const [contractModalMode, setContractModalMode] = useState<'view' | 'edit'>('view');
 
   useEffect(() => {
     if (id) {
       fetchWorkflow(parseInt(id));
     }
   }, [id]);
+
+  const checkExistingContracts = async (negotiationId: number) => {
+    try {
+      const existingContracts = await contractService.getContractsByNegotiation(negotiationId);
+      if (existingContracts.length > 0) {
+        // If there are existing contracts, use the latest one
+        const latestContract = existingContracts.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+        
+        console.log('Found existing contract for negotiation:', latestContract);
+        setContractCreated(latestContract);
+      } else {
+        console.log('No existing contracts found for negotiation:', negotiationId);
+        setContractCreated(null);
+      }
+    } catch (err) {
+      console.error('Error checking for existing contracts:', err);
+      // Don't set error state here as this is not critical for the workflow
+      setContractCreated(null);
+    }
+  };
 
   const fetchWorkflow = async (negotiationId: number) => {
     try {
@@ -50,6 +89,9 @@ const NegotiationWorkflow = () => {
       });
       
       setWorkflow(data);
+      // Initialize editedFee with current proposedFee
+      setEditedFee(data.proposedFee);
+      
       // Set current phase as selected by default
       if (data.currentPhase) {
         console.log('Setting selected phase to current phase:', data.currentPhase.phaseName);
@@ -64,6 +106,9 @@ const NegotiationWorkflow = () => {
         console.warn('No active phase found. This indicates a data issue. Phase statuses:', 
           data.phases.map(p => `${p.phaseName}: ${p.isActive ? 'ACTIVE' : 'INACTIVE'}`));
       }
+
+      // Check for existing contracts
+      await checkExistingContracts(negotiationId);
     } catch (err) {
       setError('Failed to fetch negotiation workflow');
       console.error(err);
@@ -123,6 +168,79 @@ const NegotiationWorkflow = () => {
     }
   };
 
+  // New handler functions for ProposedFee editing and contract creation
+  const handleEditFeeClick = () => {
+    if (workflow) {
+      setEditedFee(workflow.proposedFee);
+      setIsEditingFee(true);
+    }
+  };
+
+  const handleSaveFee = async () => {
+    if (!workflow || editedFee === workflow.proposedFee) {
+      setIsEditingFee(false);
+      return;
+    }
+
+    try {
+      await negotiationService.updateNegotiation(workflow.negotiationId, {
+        ...workflow,
+        proposedFee: editedFee
+      });
+      setIsEditingFee(false);
+      await fetchWorkflow(workflow.negotiationId);
+    } catch (err) {
+      console.error('Failed to update proposed fee:', err);
+      setError('Failed to update proposed fee. Check if current phase allows fee updates.');
+    }
+  };
+
+  const handleCancelEditFee = () => {
+    setIsEditingFee(false);
+    setEditedFee(workflow?.proposedFee || 0);
+  };
+
+  const handleCreateContractDraft = async () => {
+    if (!workflow) return;
+
+    try {
+      const contract = await contractService.createContractDraft(workflow.negotiationId);
+      setContractCreated(contract);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to create contract draft:', err);
+      setError('Failed to create contract draft. Check if current phase allows contract creation.');
+    }
+  };
+
+  const handleViewContract = () => {
+    setContractModalMode('view');
+    setContractModalOpen(true);
+  };
+
+  const handleEditContract = () => {
+    setContractModalMode('edit');
+    setContractModalOpen(true);
+  };
+
+  // Download functionality removed with contract workflow simplification
+
+  const handleContractSave = (updatedContract: ContractDto) => {
+    setContractCreated(updatedContract);
+  };
+
+  // Helper function to check if current phase allows fee editing
+  const canEditFee = () => {
+    return workflow?.currentPhase && [3, 4, 5].includes(workflow.currentPhase.phaseId);
+  };
+
+  // Helper function to check if current phase allows contract draft creation
+  const canCreateContract = () => {
+    return workflow?.currentPhase && [3, 4, 5].includes(workflow.currentPhase.phaseId);
+  };
+
+  // PDF download removed with contract workflow simplification
+
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -142,29 +260,29 @@ const NegotiationWorkflow = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'completed': return 'text-green-600 bg-green-100';
-      case 'inprogress': return 'text-blue-600 bg-blue-100';
-      case 'notstarted': return 'text-gray-600 bg-gray-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'completed': return 'text-green-300 bg-green-900/30';
+      case 'inprogress': return 'text-purple-300 bg-purple-900/30';
+      case 'notstarted': return 'text-neutral-400 bg-neutral-700';
+      default: return 'text-neutral-400 bg-neutral-700';
     }
   };
 
   const getPhaseIcon = (phase: NegotiationPhaseDto) => {
     if (phase.status === 'Completed') {
-      return <CheckCircle className="w-5 h-5 text-green-600" />;
+      return <CheckCircle className="w-5 h-5 text-green-400" />;
     } else if (phase.isActive) {
-      return <Clock className="w-5 h-5 text-blue-600" />;
+      return <Clock className="w-5 h-5 text-purple-400" />;
     } else {
-      return <div className="w-5 h-5 rounded-full border-2 border-gray-300" />;
+      return <div className="w-5 h-5 rounded-full border-2 border-neutral-600" />;
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading negotiation workflow...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-neutral-400">Loading negotiation workflow...</p>
         </div>
       </div>
     );
@@ -172,14 +290,14 @@ const NegotiationWorkflow = () => {
 
   if (error || !workflow) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">Error Loading Workflow</h2>
-          <p className="text-gray-600 text-center mb-4">{error || 'Negotiation not found'}</p>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="bg-neutral-800 border border-neutral-700 p-8 rounded-lg max-w-md w-full mx-4">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white text-center mb-2">Error Loading Workflow</h2>
+          <p className="text-neutral-400 text-center mb-4">{error || 'Negotiation not found'}</p>
           <button
             onClick={() => navigate('/artist-communication/negotiations')}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+            className="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 transition-colors"
           >
             Back to Negotiations
           </button>
@@ -189,39 +307,79 @@ const NegotiationWorkflow = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-900">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-neutral-800 border-b border-neutral-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate('/artist-communication/negotiations')}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center text-neutral-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Back to Negotiations
               </button>
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="h-6 w-px bg-neutral-700" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-white">
                   Negotiation Workflow
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-neutral-400">
                   {workflow.eventName} • {workflow.performerName}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm text-gray-600">Status</p>
+                <p className="text-sm text-neutral-400">Status</p>
                 <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(workflow.status)}`}>
                   {workflow.status}
                 </span>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-600">Proposed Fee</p>
-                <p className="font-semibold text-lg">{formatCurrency(workflow.proposedFee)}</p>
+                <p className="text-sm text-neutral-400">Proposed Fee</p>
+                <div className="flex items-center space-x-2">
+                  {isEditingFee ? (
+                    <>
+                      <input
+                        type="number"
+                        value={editedFee}
+                        onChange={(e) => setEditedFee(parseFloat(e.target.value) || 0)}
+                        className="w-24 px-2 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        step="0.01"
+                        min="0"
+                      />
+                      <button
+                        onClick={handleSaveFee}
+                        className="p-1 text-green-600 hover:text-green-700"
+                        title="Save"
+                      >
+                        <Save className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={handleCancelEditFee}
+                        className="p-1 text-red-600 hover:text-red-700"
+                        title="Cancel"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-lg text-white">{formatCurrency(workflow.proposedFee)}</p>
+                      {canEditFee() && (
+                        <button
+                          onClick={handleEditFeeClick}
+                          className="p-1 text-purple-400 hover:text-purple-300"
+                          title="Edit Proposed Fee"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -232,17 +390,17 @@ const NegotiationWorkflow = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Phase Overview */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="p-6 border-b">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Progress Overview</h2>
+            <div className="bg-neutral-800 rounded-lg border border-neutral-700">
+              <div className="p-6 border-b border-neutral-700">
+                <h2 className="text-lg font-semibold text-white mb-2">Progress Overview</h2>
                 <div className="mb-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <div className="flex justify-between text-sm text-neutral-400 mb-1">
                     <span>Overall Progress</span>
                     <span>{workflow.overallCompletionPercentage}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-neutral-700 rounded-full h-2">
                     <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${workflow.overallCompletionPercentage}%` }}
                     />
                   </div>
@@ -250,15 +408,15 @@ const NegotiationWorkflow = () => {
               </div>
               
               <div className="p-6">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Phases</h3>
+                <h3 className="text-sm font-medium text-white mb-4">Phases</h3>
                 <div className="space-y-4">
                   {workflow.phases.map((phase) => (
                     <div
                       key={phase.phaseId}
                       className={`cursor-pointer p-3 rounded-lg border transition-colors ${
                         selectedPhase?.phaseId === phase.phaseId
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-purple-500 bg-purple-900/20'
+                          : 'border-neutral-600 hover:border-neutral-500'
                       }`}
                       onClick={() => setSelectedPhase(phase)}
                     >
@@ -266,20 +424,20 @@ const NegotiationWorkflow = () => {
                         <div className="flex items-center space-x-3">
                           {getPhaseIcon(phase)}
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-white">
                               {phase.phaseName}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-neutral-400">
                               {phase.fulfilledRequirementsCount}/{phase.totalRequirementsCount} requirements
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-neutral-400">
                             {phase.completionPercentage}%
                           </p>
                           {phase.isActive && (
-                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
+                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-900/30 text-purple-300">
                               Current
                             </span>
                           )}
@@ -287,9 +445,9 @@ const NegotiationWorkflow = () => {
                       </div>
                       {phase.isActive && (
                         <div className="mt-2">
-                          <div className="w-full bg-gray-200 rounded-full h-1">
+                          <div className="w-full bg-neutral-700 rounded-full h-1">
                             <div
-                              className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                              className="bg-purple-600 h-1 rounded-full transition-all duration-300"
                               style={{ width: `${phase.completionPercentage}%` }}
                             />
                           </div>
@@ -300,6 +458,65 @@ const NegotiationWorkflow = () => {
                 </div>
               </div>
             </div>
+
+            {/* Contract Actions */}
+            <div className="bg-neutral-800/50 rounded-lg border border-neutral-700 mt-6">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Contract Actions</h2>
+                <div className="space-y-3">
+                  {canCreateContract() && !contractCreated && (
+                    <button
+                      onClick={handleCreateContractDraft}
+                      className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create Contract Draft
+                    </button>
+                  )}
+                  
+                  {contractCreated && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                        <p className="text-sm text-green-400">
+                          Contract draft created: {contractCreated.title}
+                        </p>
+                        <p className="text-xs text-green-300 mt-1">
+                          Version {contractCreated.version} • Status: {contractCreated.status}
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-1">
+                          Performer: {contractCreated.performerName}
+                        </p>
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleViewContract}
+                          className="flex-1 flex items-center justify-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </button>
+                        <button
+                          onClick={handleEditContract}
+                          className="flex-1 flex items-center justify-center px-3 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!canCreateContract() && !contractCreated && (
+                    <div className="p-3 bg-neutral-700/50 border border-neutral-600 rounded-lg">
+                      <p className="text-sm text-neutral-400">
+                        Contract actions are available in phases 3, 4, and 5.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Phase Details */}
@@ -307,14 +524,14 @@ const NegotiationWorkflow = () => {
             {selectedPhase && (
               <div className="space-y-6">
                 {/* Phase Header */}
-                <div className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="bg-neutral-800 rounded-lg border border-neutral-700 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900">
+                      <h2 className="text-xl font-semibold text-white">
                         {selectedPhase.phaseName}
                       </h2>
                       {selectedPhase.phaseDescription && (
-                        <p className="text-gray-600 mt-1">{selectedPhase.phaseDescription}</p>
+                        <p className="text-neutral-400 mt-1">{selectedPhase.phaseDescription}</p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -335,24 +552,24 @@ const NegotiationWorkflow = () => {
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600">Started</p>
-                      <p className="font-medium">
+                      <p className="text-neutral-400">Started</p>
+                      <p className="font-medium text-white">
                         {selectedPhase.startDate ? formatDate(selectedPhase.startDate) : 'Not started'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Completed</p>
-                      <p className="font-medium">
+                      <p className="text-neutral-400">Completed</p>
+                      <p className="font-medium text-white">
                         {selectedPhase.completedDate ? formatDate(selectedPhase.completedDate) : 'In progress'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Progress</p>
-                      <p className="font-medium">{selectedPhase.completionPercentage}%</p>
+                      <p className="text-neutral-400">Progress</p>
+                      <p className="font-medium text-white">{selectedPhase.completionPercentage}%</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Requirements</p>
-                      <p className="font-medium">
+                      <p className="text-neutral-400">Requirements</p>
+                      <p className="font-medium text-white">
                         {selectedPhase.fulfilledRequirementsCount}/{selectedPhase.totalRequirementsCount}
                       </p>
                     </div>
@@ -360,12 +577,12 @@ const NegotiationWorkflow = () => {
                 </div>
 
                 {/* Requirements */}
-                <div className="bg-white rounded-lg shadow-sm border">
-                  <div className="p-6 border-b">
+                <div className="bg-neutral-800 rounded-lg border border-neutral-700">
+                  <div className="p-6 border-b border-neutral-700">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">Requirements</h3>
+                      <h3 className="text-lg font-semibold text-white">Requirements</h3>
                       {!selectedPhase.isActive && (
-                        <span className="text-sm text-amber-600 bg-amber-100 px-2 py-1 rounded">
+                        <span className="text-sm text-amber-300 bg-amber-900/30 px-2 py-1 rounded">
                           View Only - Phase Not Active
                         </span>
                       )}
@@ -379,8 +596,8 @@ const NegotiationWorkflow = () => {
                             key={requirement.fulfillmentId}
                             className={`p-4 rounded-lg border ${
                               requirement.isFulfilled
-                                ? 'border-green-200 bg-green-50'
-                                : 'border-gray-200 bg-white'
+                                ? 'border-green-500/30 bg-green-900/20'
+                                : 'border-neutral-600 bg-neutral-700'
                             }`}
                           >
                             <div className="flex items-start justify-between">
@@ -391,63 +608,63 @@ const NegotiationWorkflow = () => {
                                     checked={requirement.isFulfilled}
                                     onChange={() => handleRequirementToggle(requirement.requirementId, requirement.isFulfilled)}
                                     disabled={!selectedPhase.isActive}
-                                    className={`w-4 h-4 border-gray-300 rounded focus:ring-blue-500 ${
+                                    className={`w-4 h-4 border-neutral-500 bg-neutral-700 rounded focus:ring-purple-500 ${
                                       selectedPhase.isActive 
-                                        ? 'text-blue-600 cursor-pointer' 
-                                        : 'text-gray-400 cursor-not-allowed opacity-50'
+                                        ? 'text-purple-600 cursor-pointer' 
+                                        : 'text-neutral-400 cursor-not-allowed opacity-50'
                                     }`}
                                   />
                                 </div>
                                 <div className="flex-1">
                                   <h4 className={`font-medium ${
-                                    requirement.isFulfilled ? 'text-green-900' : 'text-gray-900'
+                                    requirement.isFulfilled ? 'text-green-300' : 'text-white'
                                   }`}>
                                     {requirement.requirementTitle}
                                     {requirement.isRequired && (
-                                      <span className="text-red-500 ml-1">*</span>
+                                      <span className="text-red-400 ml-1">*</span>
                                     )}
                                   </h4>
                                   <p className={`text-sm mt-1 ${
-                                    requirement.isFulfilled ? 'text-green-700' : 'text-gray-600'
+                                    requirement.isFulfilled ? 'text-green-400' : 'text-neutral-400'
                                   }`}>
                                     {requirement.requirementDescription}
                                   </p>
                                   {requirement.isFulfilled && (
-                                    <div className="mt-2 text-xs text-green-600">
+                                    <div className="mt-2 text-xs text-green-400">
                                       <p>✓ Fulfilled by {requirement.fulfilledBy}</p>
                                       {requirement.fulfilledDate && (
                                         <p>on {formatDate(requirement.fulfilledDate)}</p>
                                       )}
                                       {requirement.notes && (
-                                        <p className="mt-1 text-green-700">Note: {requirement.notes}</p>
+                                        <p className="mt-1 text-green-300">Note: {requirement.notes}</p>
                                       )}
                                     </div>
                                   )}
                                 </div>
                               </div>
                               {requirement.isFulfilled && (
-                                <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
+                                <CheckCircle className="w-5 h-5 text-green-400 mt-1" />
                               )}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-center py-8">No requirements for this phase.</p>
+                      <p className="text-neutral-400 text-center py-8">No requirements for this phase.</p>
                     )}
                     
                     {/* Workflow Information */}
                     {selectedPhase.isActive && (
-                      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="mt-6 p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
                         <div className="flex items-start">
-                          <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                          <AlertCircle className="w-5 h-5 text-purple-400 mt-0.5 mr-3 flex-shrink-0" />
                           <div className="text-sm">
-                            <p className="font-medium text-blue-900 mb-1">Current Active Phase</p>
-                            <p className="text-blue-700">
+                            <p className="font-medium text-purple-300 mb-1">Current Active Phase</p>
+                            <p className="text-purple-400">
                               Complete all requirements in this phase to unlock the "Next Phase" button. 
                               You can only modify requirements for the currently active phase.
                             </p>
-                            <p className="text-blue-700 mt-1">
+                            <p className="text-purple-400 mt-1">
                               Progress: {selectedPhase.fulfilledRequirementsCount} of {selectedPhase.totalRequirementsCount} requirements completed
                             </p>
                           </div>
@@ -456,14 +673,14 @@ const NegotiationWorkflow = () => {
                     )}
                     
                     {!selectedPhase.isActive && (
-                      <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="mt-6 p-4 bg-neutral-700/50 border border-neutral-600 rounded-lg">
                         <div className="flex items-start">
-                          <Clock className="w-5 h-5 text-gray-600 mt-0.5 mr-3 flex-shrink-0" />
+                          <Clock className="w-5 h-5 text-neutral-400 mt-0.5 mr-3 flex-shrink-0" />
                           <div className="text-sm">
-                            <p className="font-medium text-gray-900 mb-1">
+                            <p className="font-medium text-white mb-1">
                               {selectedPhase.status === 'Completed' ? 'Completed Phase' : 'Future Phase'}
                             </p>
-                            <p className="text-gray-700">
+                            <p className="text-neutral-400">
                               {selectedPhase.status === 'Completed' 
                                 ? 'This phase has been completed. Requirements cannot be modified.'
                                 : 'This phase is not yet active. Complete the current active phase to proceed.'
@@ -477,16 +694,16 @@ const NegotiationWorkflow = () => {
                 </div>
 
                 {/* Communications */}
-                <div className="bg-white rounded-lg shadow-sm border">
-                  <div className="p-6 border-b">
-                    <h3 className="text-lg font-semibold text-gray-900">Communications</h3>
+                <div className="bg-neutral-800 rounded-lg border border-neutral-700">
+                  <div className="p-6 border-b border-neutral-700">
+                    <h3 className="text-lg font-semibold text-white">Communications</h3>
                   </div>
                   <div className="p-6">
                     {/* Communication Log */}
                     {workflow.communication && (
                       <div className="mb-6">
-                        <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
-                          <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                        <div className="bg-neutral-700 rounded-lg p-4 max-h-40 overflow-y-auto">
+                          <pre className="whitespace-pre-wrap text-sm text-neutral-300">
                             {workflow.communication.content}
                           </pre>
                         </div>
@@ -497,13 +714,13 @@ const NegotiationWorkflow = () => {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-white mb-1">
                             Type
                           </label>
                           <select
                             value={communicationType}
                             onChange={(e) => setCommunicationType(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           >
                             <option value="Note">Note</option>
                             <option value="Email">Email</option>
@@ -512,13 +729,13 @@ const NegotiationWorkflow = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-white mb-1">
                             Direction
                           </label>
                           <select
                             value={communicationDirection}
                             onChange={(e) => setCommunicationDirection(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           >
                             <option value="Internal">Internal</option>
                             <option value="Outbound">Outbound</option>
@@ -527,7 +744,7 @@ const NegotiationWorkflow = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-white mb-1">
                           Message
                         </label>
                         <div className="relative">
@@ -536,12 +753,12 @@ const NegotiationWorkflow = () => {
                             onChange={(e) => setCommunicationInput(e.target.value)}
                             placeholder="Add a note, log a call, or record communication..."
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12"
+                            className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pr-12"
                           />
                           <button
                             onClick={handleAddCommunication}
                             disabled={!communicationInput.trim()}
-                            className="absolute bottom-2 right-2 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                            className="absolute bottom-2 right-2 p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-neutral-600 disabled:cursor-not-allowed transition-colors"
                           >
                             <Send className="w-4 h-4" />
                           </button>
@@ -555,6 +772,16 @@ const NegotiationWorkflow = () => {
           </div>
         </div>
       </div>
+
+      {/* Contract Modal */}
+      <ContractModal
+        contractId={contractCreated?.contractId || null}
+        isOpen={contractModalOpen}
+        onClose={() => setContractModalOpen(false)}
+        onSave={handleContractSave}
+        mode={contractModalMode}
+        currentPhase={workflow?.currentPhase ? { phaseId: workflow.currentPhase.phaseId, phaseName: workflow.currentPhase.phaseName } : undefined}
+      />
     </div>
   );
 };

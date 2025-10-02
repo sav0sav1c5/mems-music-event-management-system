@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, X, Handshake, ArrowUp, ArrowDown, CheckCircle, Clock, Eye } from "lucide-react";
 import { negotiationService } from "../services/negotiationService";
 import type { NegotiationDto, CreateNegotiationDto } from "../services/negotiationService";
+import { performerService } from "../services/performerService";
+import type { PerformerDto } from "../services/performerService";
+import { eventService } from "../services/eventService";
+import type { EventDto } from "../services/eventService";
 
 const Negotiations = () => {
   const navigate = useNavigate();
@@ -11,6 +15,8 @@ const Negotiations = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNegotiation, setEditingNegotiation] = useState<NegotiationDto | null>(null);
+  const [performers, setPerformers] = useState<PerformerDto[]>([]);
+  const [events, setEvents] = useState<EventDto[]>([]);
   const [formData, setFormData] = useState<CreateNegotiationDto>({
     proposedFee: 0,
     status: '',
@@ -22,6 +28,8 @@ const Negotiations = () => {
 
   useEffect(() => {
     fetchNegotiations();
+    fetchPerformers();
+    fetchEvents();
   }, []);
 
   const fetchNegotiations = async () => {
@@ -34,6 +42,28 @@ const Negotiations = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPerformers = async () => {
+    try {
+      console.log('Fetching performers...');
+      const data = await performerService.getAllPerformers();
+      console.log('Performers fetched:', data);
+      setPerformers(data);
+    } catch (err) {
+      console.error('Failed to fetch performers:', err);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      console.log('Fetching events...');
+      const data = await eventService.getAllEvents();
+      console.log('Events fetched:', data);
+      setEvents(data);
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
     }
   };
 
@@ -289,6 +319,40 @@ const Negotiations = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">Performer ({performers.length} available)</label>
+                <select
+                  value={formData.performerId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, performerId: parseInt(e.target.value) || 0 }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                  required
+                >
+                  <option value={0}>Select performer</option>
+                  {performers.map(performer => (
+                    <option key={performer.performerId} value={performer.performerId}>
+                      {performer.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-neutral-300">Event ({events.length} available)</label>
+                <select
+                  value={formData.eventId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, eventId: parseInt(e.target.value) || 0 }))}
+                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                  required
+                >
+                  <option value={0}>Select event</option>
+                  {events.map(event => (
+                    <option key={event.id} value={event.id}>
+                      {event.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Proposed Fee</label>
                 <input

@@ -22,6 +22,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous] // Temporarily allow anonymous access for dropdown functionality
         public async Task<ActionResult<IEnumerable<PerformerDto>>> GetAllPerformers()
         {
             try

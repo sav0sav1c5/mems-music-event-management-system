@@ -1,6 +1,75 @@
 import { api } from '../../shared/services/apiService';
 
-// Types matching backend DTOs
+// Utility functions for date conversion
+const formatDateForApi = (date: string | Date | null | undefined): string | null => {
+  if (!date) return null;
+  
+  // If it's already a string in the correct format, return it
+  if (typeof date === 'string') {
+    // Check if it's already in ISO format
+    if (date.includes('T') && date.includes('Z')) {
+      return date;
+    }
+    // Otherwise parse and format it
+    const parsedDate = new Date(date);
+    return isNaN(parsedDate.getTime()) ? null : parsedDate.toISOString();
+  }
+  
+  // If it's a Date object
+  if (date instanceof Date) {
+    return isNaN(date.getTime()) ? null : date.toISOString();
+  }
+  
+  return null;
+};
+
+// Process UpdateContractDto to ensure proper date formatting
+const processUpdateDto = (dto: UpdateContractDto): UpdateContractDto => {
+  const processed = { ...dto };
+  
+  // Convert date fields to proper ISO strings or undefined
+  if (dto.signedAt !== undefined) {
+    const formatted = formatDateForApi(dto.signedAt);
+    processed.signedAt = formatted || undefined;
+  }
+  if (dto.finalVersionDate !== undefined) {
+    const formatted = formatDateForApi(dto.finalVersionDate);
+    processed.finalVersionDate = formatted || undefined;
+  }
+  if (dto.depositDueDate !== undefined) {
+    const formatted = formatDateForApi(dto.depositDueDate);
+    processed.depositDueDate = formatted || undefined;
+  }
+  if (dto.finalPaymentDueDate !== undefined) {
+    const formatted = formatDateForApi(dto.finalPaymentDueDate);
+    processed.finalPaymentDueDate = formatted || undefined;
+  }
+  if (dto.stakeholderReviewDate !== undefined) {
+    const formatted = formatDateForApi(dto.stakeholderReviewDate);
+    processed.stakeholderReviewDate = formatted || undefined;
+  }
+  
+  return processed;
+};
+
+// Process CreateContractDto to ensure proper date formatting
+const processCreateDto = (dto: CreateContractDto): CreateContractDto => {
+  const processed = { ...dto };
+  
+  // Convert date fields to proper ISO strings if they exist
+  if (dto.depositDueDate) {
+    const formatted = formatDateForApi(dto.depositDueDate);
+    processed.depositDueDate = formatted || undefined;
+  }
+  if (dto.finalPaymentDueDate) {
+    const formatted = formatDateForApi(dto.finalPaymentDueDate);
+    processed.finalPaymentDueDate = formatted || undefined;
+  }
+  
+  return processed;
+};
+
+// Simplified types matching new backend DTOs
 export interface ContractDto {
   contractId: number;
   title: string;
@@ -8,10 +77,89 @@ export interface ContractDto {
   price: number;
   version: string;
   status: string;
-  createdAt: string; // DateTime from backend as ISO string
+  createdAt: string;
   signedAt?: string;
-  performerId: number; // Foreign key from new relationships
-  phase?: PhaseDto; // Optional navigation property
+
+  // Contract Document Information
+  contractFilePath: string;
+  finalVersionDate?: string;
+
+  // Requirements
+  technicalRequirements: string;
+  accommodationRequirements: string;
+
+  // Payment Information
+  depositAmount?: number;
+  finalPaymentAmount?: number;
+  depositDueDate?: string;
+  finalPaymentDueDate?: string;
+  paymentMethod: string;
+  isDepositPaid: boolean;
+  isFinalPaymentPaid: boolean;
+
+  // Banking Information
+  bankName: string;
+  bankAccountNumber: string;
+  bankRoutingNumber: string;
+  bankAccountHolderName: string;
+  bankIBAN: string;
+  bankSWIFT: string;
+
+  // Review Information
+  reviewedByStakeholders: boolean;
+  stakeholderReviewDate?: string;
+
+  // Notes
+  notes: string;
+
+  // Related entities
+  performerId: number;
+  performerName?: string;
+  eventId?: number;
+  eventTitle?: string;
+  eventLocation?: string;
+  eventDate?: string;
+}
+
+export interface UpdateContractDto {
+  title?: string;
+  contractType?: string;
+  price?: number;
+  version?: string;
+  status?: string;
+  signedAt?: string;
+
+  // Contract Document Information
+  contractFilePath?: string;
+  finalVersionDate?: string;
+
+  // Requirements
+  technicalRequirements?: string;
+  accommodationRequirements?: string;
+
+  // Payment Information
+  depositAmount?: number;
+  finalPaymentAmount?: number;
+  depositDueDate?: string;
+  finalPaymentDueDate?: string;
+  paymentMethod?: string;
+  isDepositPaid?: boolean;
+  isFinalPaymentPaid?: boolean;
+
+  // Banking Information
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankRoutingNumber?: string;
+  bankAccountHolderName?: string;
+  bankIBAN?: string;
+  bankSWIFT?: string;
+
+  // Review Information
+  reviewedByStakeholders?: boolean;
+  stakeholderReviewDate?: string;
+
+  // Notes
+  notes?: string;
 }
 
 export interface CreateContractDto {
@@ -20,19 +168,36 @@ export interface CreateContractDto {
   price: number;
   version: string;
   status: string;
+
+  // Contract Document Information
+  contractFilePath?: string;
+
+  // Requirements
+  technicalRequirements?: string;
+  accommodationRequirements?: string;
+
+  // Payment Information
+  depositAmount?: number;
+  finalPaymentAmount?: number;
+  depositDueDate?: string;
+  finalPaymentDueDate?: string;
+  paymentMethod?: string;
+
+  // Banking Information
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankRoutingNumber?: string;
+  bankAccountHolderName?: string;
+  bankIBAN?: string;
+  bankSWIFT?: string;
+
+  // Notes
+  notes?: string;
+
+  // Foreign Keys
   performerId: number;
+  eventId?: number;
 }
-
-export interface PhaseDto {
-  phaseId: number;
-  name: string;
-  status: string;
-  startDate: string;
-  endDate?: string;
-  negotiationId: number;
-  contractId?: number;
-}
-
 const API_ENDPOINT = '/contract';
 
 export const contractService = {
@@ -61,7 +226,9 @@ export const contractService = {
   // Create new contract
   createContract: async (contract: CreateContractDto): Promise<ContractDto> => {
     try {
-      const response = await api.post<ContractDto>(API_ENDPOINT, contract);
+      // Process the contract data to ensure proper date formatting
+      const processedContract = processCreateDto(contract);
+      const response = await api.post<ContractDto>(API_ENDPOINT, processedContract);
       return response.data;
     } catch (error) {
       console.error('Error creating contract:', error);
@@ -69,10 +236,12 @@ export const contractService = {
     }
   },
 
-  // Update contract
-  updateContract: async (id: number, contract: Partial<ContractDto>): Promise<ContractDto> => {
+  // Update contract (simplified - no workflow stages)
+  updateContract: async (id: number, contract: UpdateContractDto): Promise<ContractDto> => {
     try {
-      const response = await api.put<ContractDto>(`${API_ENDPOINT}/${id}`, contract);
+      // Process the contract data to ensure proper date formatting
+      const processedContract = processUpdateDto(contract);
+      const response = await api.put<ContractDto>(`${API_ENDPOINT}/${id}`, processedContract);
       return response.data;
     } catch (error) {
       console.error('Error updating contract:', error);
@@ -90,36 +259,36 @@ export const contractService = {
     }
   },
 
-  // Get contracts by performer ID (new relationship)
-  getContractsByPerformer: async (performerId: number): Promise<ContractDto[]> => {
+  // Create contract draft from negotiation (only available in phases 3, 4, 5)
+  createContractDraft: async (negotiationId: number): Promise<ContractDto> => {
     try {
-      const response = await api.get<ContractDto[]>(`${API_ENDPOINT}/performer/${performerId}`);
+      const response = await api.post<ContractDto>(`${API_ENDPOINT}/draft/${negotiationId}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching contracts by performer:', error);
+      console.error('Error creating contract draft:', error);
       throw error;
     }
   },
 
-  // Sign contract
-  signContract: async (id: number): Promise<ContractDto> => {
+  // Get contract with details including performer and event data
+  getContractWithDetails: async (contractId: number): Promise<ContractDto> => {
     try {
-      const response = await api.put<ContractDto>(`${API_ENDPOINT}/${id}/sign`);
+      const response = await api.get<ContractDto>(`${API_ENDPOINT}/${contractId}/details`);
       return response.data;
     } catch (error) {
-      console.error('Error signing contract:', error);
+      console.error('Error fetching contract details:', error);
       throw error;
     }
   },
 
-  // Get contract with phase details
-  getContractWithPhase: async (id: number): Promise<ContractDto> => {
+  // Get contracts by negotiation ID
+  getContractsByNegotiation: async (negotiationId: number): Promise<ContractDto[]> => {
     try {
-      const response = await api.get<ContractDto>(`${API_ENDPOINT}/${id}/with-phase`);
+      const response = await api.get<ContractDto[]>(`${API_ENDPOINT}/negotiation/${negotiationId}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching contract with phase:', error);
+      console.error('Error fetching contracts by negotiation:', error);
       throw error;
     }
-  },
+  }
 };

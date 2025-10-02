@@ -3,10 +3,7 @@ import {
   CheckCircle, 
   Workflow, 
   Users, 
-  DollarSign,
-  Calendar,
   MessageSquare,
-  FileText,
   ArrowRight,
   Star,
   Clock

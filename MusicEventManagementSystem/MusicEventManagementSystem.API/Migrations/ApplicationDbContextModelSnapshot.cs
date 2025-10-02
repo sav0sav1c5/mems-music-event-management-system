@@ -214,6 +214,38 @@ namespace MusicEventManagementSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ContractId"));
 
+                    b.Property<string>("AccommodationRequirements")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankAccountHolderName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankAccountNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankIBAN")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankRoutingNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankSWIFT")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContractFilePath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("ContractType")
                         .IsRequired()
                         .HasColumnType("text");
@@ -221,16 +253,58 @@ namespace MusicEventManagementSystem.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal?>("DepositAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("DepositDueDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("FinalPaymentAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("FinalPaymentDueDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("FinalVersionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDepositPaid")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFinalPaymentPaid")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("PerformerId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
+                    b.Property<bool>("ReviewedByStakeholders")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("SignedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("StakeholderReviewDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TechnicalRequirements")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -243,6 +317,8 @@ namespace MusicEventManagementSystem.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("ContractId");
+
+                    b.HasIndex("EventId");
 
                     b.HasIndex("PerformerId");
 
@@ -354,6 +430,8 @@ namespace MusicEventManagementSystem.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
 
                     b.ToTable("Events");
                 });
@@ -845,152 +923,152 @@ namespace MusicEventManagementSystem.Migrations
                         new
                         {
                             RequirementId = 1,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Initial contact with performer representatives",
                             IsRequired = true,
                             PhaseId = 1,
                             Title = "Contact Performer",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 2,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Confirm performer availability for event dates",
                             IsRequired = true,
                             PhaseId = 1,
                             Title = "Verify Availability",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 3,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Share comprehensive event information",
                             IsRequired = true,
                             PhaseId = 1,
                             Title = "Provide Event Details",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 4,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Initial fee and compensation discussions",
                             IsRequired = true,
                             PhaseId = 2,
                             Title = "Fee Discussion",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 5,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Discuss technical and venue requirements",
                             IsRequired = true,
                             PhaseId = 2,
                             Title = "Technical Requirements",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 6,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Coordinate scheduling and logistics",
                             IsRequired = true,
                             PhaseId = 2,
                             Title = "Schedule Coordination",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 7,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Negotiate detailed contract terms",
                             IsRequired = true,
                             PhaseId = 3,
                             Title = "Contract Terms",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 8,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Legal team review of contract terms",
                             IsRequired = true,
                             PhaseId = 3,
                             Title = "Legal Review",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 9,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Negotiate technical and hospitality riders",
                             IsRequired = true,
                             PhaseId = 3,
                             Title = "Rider Negotiations",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 10,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Prepare final contract draft",
                             IsRequired = true,
                             PhaseId = 4,
                             Title = "Draft Preparation",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 11,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "All stakeholders review draft",
                             IsRequired = true,
                             PhaseId = 4,
                             Title = "Stakeholder Review",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 12,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Incorporate any necessary revisions",
                             IsRequired = false,
                             PhaseId = 4,
                             Title = "Revisions",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 13,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "All parties sign the final contract",
                             IsRequired = true,
                             PhaseId = 5,
                             Title = "Contract Signing",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 14,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "Establish payment schedule and methods",
                             IsRequired = true,
                             PhaseId = 5,
                             Title = "Payment Schedule Setup",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         },
                         new
                         {
                             RequirementId = 15,
-                            CreatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370),
+                            CreatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457),
                             Description = "File and distribute final documentation",
                             IsRequired = true,
                             PhaseId = 5,
                             Title = "Documentation Filing",
-                            UpdatedAt = new DateTime(2025, 9, 27, 21, 38, 27, 369, DateTimeKind.Utc).AddTicks(7370)
+                            UpdatedAt = new DateTime(2025, 9, 28, 21, 35, 3, 981, DateTimeKind.Utc).AddTicks(457)
                         });
                 });
 
@@ -1568,11 +1646,17 @@ namespace MusicEventManagementSystem.Migrations
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Contract", b =>
                 {
+                    b.HasOne("MusicEventManagementSystem.API.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId");
+
                     b.HasOne("MusicEventManagementSystem.API.Models.Performer", "Performer")
                         .WithMany("Contracts")
                         .HasForeignKey("PerformerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Event");
 
                     b.Navigation("Performer");
                 });
@@ -1586,6 +1670,17 @@ namespace MusicEventManagementSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Negotiation");
+                });
+
+            modelBuilder.Entity("MusicEventManagementSystem.API.Models.Event", b =>
+                {
+                    b.HasOne("MusicEventManagementSystem.API.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("MusicEventManagementSystem.API.Models.Negotiation", b =>

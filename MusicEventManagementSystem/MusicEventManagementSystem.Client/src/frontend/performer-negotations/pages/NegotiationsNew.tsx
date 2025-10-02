@@ -19,6 +19,10 @@ import {
 } from 'lucide-react';
 import { negotiationService } from '../services/negotiationService';
 import type { NegotiationDto, CreateNegotiationDto } from '../services/negotiationService';
+import { performerService } from '../services/performerService';
+import type { PerformerDto } from '../services/performerService';
+import { eventService } from '../services/eventService';
+import type { EventDto } from '../services/eventService';
 
 // Status configurations
 const statusConfig = {
@@ -51,6 +55,8 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [performers, setPerformers] = useState<PerformerDto[]>([]);
+  const [events, setEvents] = useState<EventDto[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +80,31 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
+
+  const fetchPerformers = async () => {
+    try {
+      const data = await performerService.getAllPerformers();
+      setPerformers(data);
+    } catch (error) {
+      console.error('Failed to fetch performers:', error);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const data = await eventService.getAllEvents();
+      setEvents(data);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchPerformers();
+      fetchEvents();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -134,43 +165,51 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
               </select>
             </div>
 
-            {/* Event ID */}
+            {/* Event */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 <Building className="w-4 h-4 inline mr-1" />
-                Event ID
+                Event ({events.length} available)
               </label>
-              <input
-                type="number"
-                min="1"
+              <select
                 value={formData.eventId}
                 onChange={(e) => handleInputChange('eventId', parseInt(e.target.value) || 0)}
                 className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.eventId ? 'border-red-500' : 'border-gray-600'
                 }`}
-                placeholder="Enter event ID"
-              />
+              >
+                <option value={0}>Select an event</option>
+                {events.map(event => (
+                  <option key={event.id} value={event.id}>
+                    {event.name}
+                  </option>
+                ))}
+              </select>
               {errors.eventId && (
                 <p className="text-red-400 text-sm mt-1">{errors.eventId}</p>
               )}
             </div>
 
-            {/* Performer ID */}
+            {/* Performer */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 <User className="w-4 h-4 inline mr-1" />
-                Performer ID
+                Performer ({performers.length} available)
               </label>
-              <input
-                type="number"
-                min="1"
+              <select
                 value={formData.performerId}
                 onChange={(e) => handleInputChange('performerId', parseInt(e.target.value) || 0)}
                 className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.performerId ? 'border-red-500' : 'border-gray-600'
                 }`}
-                placeholder="Enter performer ID"
-              />
+              >
+                <option value={0}>Select a performer</option>
+                {performers.map(performer => (
+                  <option key={performer.performerId} value={performer.performerId}>
+                    {performer.name}
+                  </option>
+                ))}
+              </select>
               {errors.performerId && (
                 <p className="text-red-400 text-sm mt-1">{errors.performerId}</p>
               )}

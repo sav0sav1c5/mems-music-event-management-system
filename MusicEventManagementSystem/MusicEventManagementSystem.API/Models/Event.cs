@@ -11,7 +11,7 @@ namespace MusicEventManagementSystem.API.Models
         public EventStatus Status { get; set; } 
         public Guid CreatedById { get; set; }
         public int LocationId { get; set; }
-        //public Location Location { get; set; }
+        public Location Location { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }

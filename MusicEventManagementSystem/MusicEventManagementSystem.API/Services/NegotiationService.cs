@@ -165,6 +165,16 @@ namespace MusicEventManagementSystem.API.Services
                 return null;
             }
 
+            // Check if ProposedFee is being updated and validate phase
+            if (existingNegotiation.ProposedFee != updateDto.ProposedFee)
+            {
+                var currentPhase = await _negotiationPhaseRepository.GetCurrentNegotiationPhaseAsync(id);
+                if (currentPhase != null && !IsPhaseAllowedForFeeUpdate(currentPhase.PhaseId))
+                {
+                    throw new InvalidOperationException($"ProposedFee can only be updated in phases 3, 4, or 5. Current phase: {currentPhase.PhaseId}");
+                }
+            }
+
             existingNegotiation.ProposedFee = updateDto.ProposedFee;
             existingNegotiation.Status = updateDto.Status;
             existingNegotiation.StartDate = updateDto.StartDate;
@@ -175,6 +185,11 @@ namespace MusicEventManagementSystem.API.Services
             _negotiationRepository.Update(existingNegotiation);
             await _negotiationRepository.SaveChangesAsync();
             return existingNegotiation;
+        }
+
+        private static bool IsPhaseAllowedForFeeUpdate(int phaseId)
+        {
+            return phaseId == 3 || phaseId == 4 || phaseId == 5;
         }
 
         // Helper mapping methods

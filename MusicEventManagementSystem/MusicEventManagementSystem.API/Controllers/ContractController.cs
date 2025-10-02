@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Models;
 using MusicEventManagementSystem.API.Services;
 using MusicEventManagementSystem.API.Services.IService;
+using MusicEventManagementSystem.API.DTOs;
 using System;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -72,30 +73,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Contract>> UpdateContract(int id, [FromBody] Contract contract)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
 
-                var updatedContract = await _contractService.UpdateContractAsync(id, contract);
-
-                if (updatedContract == null)
-                {
-                    return NotFound($"Contract with ID {id} not found.");
-                }
-
-                return Ok(updatedContract);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteContract(int id)
@@ -110,6 +88,88 @@ namespace MusicEventManagementSystem.API.Controllers
                 }
 
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("draft/{negotiationId}")]
+        public async Task<ActionResult<ContractDto>> CreateContractDraft(int negotiationId)
+        {
+            try
+            {
+                var contract = await _contractService.CreateContractDraftFromNegotiationAsync(negotiationId);
+                return CreatedAtAction(nameof(GetContractWithDetails), new { id = contract.ContractId }, contract);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<ContractDto>> GetContractWithDetails(int id)
+        {
+            try
+            {
+                var contract = await _contractService.GetContractWithDetailsAsync(id);
+                if (contract == null)
+                {
+                    return NotFound($"Contract with ID {id} not found.");
+                }
+                return Ok(contract);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("negotiation/{negotiationId}")]
+        public async Task<ActionResult<IEnumerable<ContractDto>>> GetContractsByNegotiation(int negotiationId)
+        {
+            try
+            {
+                var contracts = await _contractService.GetContractsByNegotiationAsync(negotiationId);
+                return Ok(contracts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ContractDto>> UpdateContract(int id, [FromBody] UpdateContractDto updateDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var updatedContract = await _contractService.UpdateContractAsync(id, updateDto);
+                if (updatedContract == null)
+                {
+                    return NotFound($"Contract with ID {id} not found.");
+                }
+
+                return Ok(updatedContract);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

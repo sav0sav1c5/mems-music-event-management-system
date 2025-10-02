@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, X, FileText, ArrowUp, ArrowDown, CheckCircle, Clock } from "lucide-react";
 import { contractService } from "../services/contractService";
-import type { ContractDto } from "../services/contractService";
+import type { ContractDto, CreateContractDto } from "../services/contractService";
 
 const Contracts = () => {
   const [contracts, setContracts] = useState<ContractDto[]>([]);
@@ -9,7 +9,7 @@ const Contracts = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<ContractDto | null>(null);
-  const [formData, setFormData] = useState<Omit<ContractDto, 'contractId' | 'createdAt' | 'signedAt'>>({
+  const [formData, setFormData] = useState<CreateContractDto>({
     title: '',
     contractType: '',
     price: 0,
@@ -41,7 +41,7 @@ const Contracts = () => {
       if (editingContract) {
         const updated = await contractService.updateContract(
           editingContract.contractId,
-          { ...formData, contractId: editingContract.contractId, createdAt: editingContract.createdAt, signedAt: editingContract.signedAt }
+          formData
         );
         setContracts(prev => 
           prev.map(item => item.contractId === updated.contractId ? updated : item)
