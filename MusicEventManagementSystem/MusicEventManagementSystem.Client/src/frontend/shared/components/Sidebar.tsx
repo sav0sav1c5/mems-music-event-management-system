@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  LogOut, BarChart3, BarChart2, Music, Receipt, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, 
-  PlaySquare, ListChecks, FileText, CalendarDays, Briefcase, Building2, Tag, Home, ShoppingCart, CreditCard, User
+  LogOut, BarChart3, BarChart2, Music, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, 
+  PlaySquare, ListChecks, FileText, CalendarDays, Briefcase, Building2, Home, ShoppingCart, CreditCard,
+  Percent, Settings
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -32,8 +33,8 @@ const Sidebar = () => {
           { icon: <Building2 size={20} />, label: "Infrastructure", path: "/ticket-sales/infrastructure" },
           { icon: <Music size={20} />, label: "Performances", path: "/ticket-sales/performances" },
           { icon: <Ticket size={20} />, label: "Ticket Types", path: "/ticket-sales/ticket-types" },
-          { icon: <Tag size={20} />, label: "Pricing & Offers", path: "/ticket-sales/pricing-offers" },
-          { icon: <Receipt size={20} />, label: "Transactions", path: "/ticket-sales/sales-transactions" },
+          { icon: <Percent size={20} />, label: "Special Offers", path: "/ticket-sales/special-offers" },
+          { icon: <Settings size={20} />, label: "Pricing Rules", path: "/ticket-sales/pricing-rules" },
           { icon: <PieChart size={20} />, label: "Analytics", path: "/ticket-sales/analytics" },
         ];
       

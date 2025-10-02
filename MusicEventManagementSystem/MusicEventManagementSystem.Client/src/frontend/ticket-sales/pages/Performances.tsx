@@ -203,9 +203,9 @@ const Performances = () => {
 
   return (
     <div className="text-white h-full p-4 m-1 flex flex-col">
-      <div className="flex gap-4 h-full">
+      <div className="flex gap-4 h-full flex-1 min-h-0">
         {/* Left side - Performance list */}
-        <div className={`transition-all duration-300 flex flex-col ${
+        <div className={`transition-all duration-300 flex flex-col flex-1 min-h-0 ${
           (showVenuePanel || showPerformerPanel) ? 'w-3/5' : 'w-full'
         }`}>
           {/* Header */}
@@ -351,7 +351,7 @@ const Performances = () => {
           </div>
 
           {/* Performances Grid */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-white text-base">Loading performances...</div>
@@ -404,18 +404,17 @@ const Performances = () => {
                     {/* Event Information */}
                     {performance.event && (
                       <div className="bg-neutral-800/30 rounded-xl p-4 mb-4">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-blue-400" />
-                          <span className="text-white text-sm">{performance.event.name}</span>
-                        </div>
-                        <div className="text-xs text-neutral-400">
-                          {formatDateTime(performance.event.startDate)} - {formatDateTime(performance.event.endDate)}
+                          <span className="text-white text-sm">
+                            {performance.event.name}: {formatDateTime(performance.startTime)} - {formatDateTime(performance.endTime)}
+                          </span>
                         </div>
                       </div>
                     )}
 
                     {/* Performance Details */}
-                    <div className="space-y-3 text-sm">
+                    <div className="flex px-4 space-y-3 text-sm justify-between gap-2">
                       <div className="flex items-start gap-3">
                         <Clock className="w-4 h-4 text-yellow-400 mt-0.5" />
                         <div className="flex-1">
@@ -459,208 +458,210 @@ const Performances = () => {
 
         {/* Right side - Details Panel */}
         {(showPerformerPanel || showVenuePanel) && selectedPerformance && (
-          <div className="w-2/5 transition-all duration-300">
-            {/* Performer Details Panel */}
-            {showPerformerPanel && (
-              <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl shadow-lg h-full overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-lime-500/20 rounded-xl">
-                        <User className="w-6 h-6 text-lime-400" />
+          <div className="w-2/5 transition-all duration-300 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto">
+              {/* Performer Details Panel */}
+              {showPerformerPanel && (
+                <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl shadow-lg h-full">
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-lime-500/20 rounded-xl">
+                          <User className="w-6 h-6 text-lime-400" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl text-white">Performer Details</h2>
+                          <p className="text-sm text-neutral-400">Read-only information</p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="text-xl text-white">Performer Details</h2>
-                        <p className="text-sm text-neutral-400">Read-only information</p>
+                      <button
+                        onClick={closePerformerPanel}
+                        className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200"
+                      >
+                        <X size={20} className="text-neutral-400" />
+                      </button>
+                    </div>
+
+                    {selectedPerformance.performer && (
+                      <div className="space-y-4">
+                        <div className="bg-neutral-800/30 rounded-xl p-4">
+                          <h3 className="text-white text-lg mb-3">{selectedPerformance.performer.name}</h3>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-neutral-400">Genre</p>
+                              <span className={`inline-block px-2 py-1 rounded-xl text-xs ${getGenreColor(selectedPerformance.performer.genre)}`}>
+                                {selectedPerformance.performer.genre}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-neutral-400">Popularity</p>
+                              <p className="text-white">{selectedPerformance.performer.popularity}%</p>
+                            </div>
+                            <div>
+                              <p className="text-neutral-400">Email</p>
+                              <p className="text-white">{selectedPerformance.performer.email}</p>
+                            </div>
+                            <div>
+                              <p className="text-neutral-400">Contact</p>
+                              <p className="text-white">{selectedPerformance.performer.contact}</p>
+                            </div>
+                            <div>
+                              <p className="text-neutral-400">Price Range</p>
+                              <p className="text-green-400">
+                                ${selectedPerformance.performer.minPrice.toLocaleString()} - ${selectedPerformance.performer.maxPrice.toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-neutral-400">Status</p>
+                              <span className={`inline-block px-2 py-1 rounded-xl text-xs ${
+                                selectedPerformance.performer.status === 'Active' 
+                                  ? 'text-green-400 bg-green-500/20' 
+                                  : 'text-gray-400 bg-gray-500/20'
+                              }`}>
+                                {selectedPerformance.performer.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <button
+                            onClick={closePerformerPanel}
+                            className="bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl transition-all duration-200 border border-neutral-700"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Venue Assignment Panel */}
+              {showVenuePanel && (
+                <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl shadow-lg h-full">
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-lime-500/20 rounded-xl">
+                          <MapPin className="w-6 h-6 text-lime-400" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl text-white">Assign Venue</h2>
+                          <p className="text-sm text-neutral-400">Select a venue for this performance</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={closeVenuePanel}
+                        className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200"
+                      >
+                        <X size={20} className="text-neutral-400" />
+                      </button>
+                    </div>
+
+                    {error && (
+                      <div className="bg-red-900/30 border border-red-500/30 text-red-200 p-3 rounded-xl flex items-center gap-3 mb-6">
+                        <AlertCircle size={16} className="text-red-400" />
+                        <span className="text-sm">{error}</span>
+                      </div>
+                    )}
+
+                    {/* Performance Summary */}
+                    <div className="bg-neutral-800/30 rounded-xl p-4 mb-6">
+                      <h3 className="text-white text-base mb-3">Performance Details</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-neutral-400">Performer:</span>
+                          <p className="text-white">{selectedPerformance.performer?.name}</p>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Genre:</span>
+                          <span className={`inline-block px-2 py-1 rounded-xl text-xs ml-2 ${getGenreColor(selectedPerformance.performer?.genre || '')}`}>
+                            {selectedPerformance.performer?.genre}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Start Time:</span>
+                          <p className="text-white">{formatDateTime(selectedPerformance.startTime)}</p>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Duration:</span>
+                          <p className="text-white">{formatDuration(selectedPerformance.startTime, selectedPerformance.endTime)}</p>
+                        </div>
+                        {selectedPerformance.event && (
+                          <>
+                            <div>
+                              <span className="text-neutral-400">Event:</span>
+                              <p className="text-white">{selectedPerformance.event.name}</p>
+                            </div>
+                            <div>
+                              <span className="text-neutral-400">Event Date:</span>
+                              <p className="text-white">{formatDateTime(selectedPerformance.event.startDate)}</p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <button
-                      onClick={closePerformerPanel}
-                      className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200"
-                    >
-                      <X size={20} className="text-neutral-400" />
-                    </button>
-                  </div>
 
-                  {selectedPerformance.performer && (
+                    {/* Venue Selection */}
                     <div className="space-y-4">
-                      <div className="bg-neutral-800/30 rounded-xl p-4">
-                        <h3 className="text-white text-lg mb-3">{selectedPerformance.performer.name}</h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-neutral-400">Genre</p>
-                            <span className={`inline-block px-2 py-1 rounded-xl text-xs ${getGenreColor(selectedPerformance.performer.genre)}`}>
-                              {selectedPerformance.performer.genre}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-neutral-400">Popularity</p>
-                            <p className="text-white">{selectedPerformance.performer.popularity}%</p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-400">Email</p>
-                            <p className="text-white">{selectedPerformance.performer.email}</p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-400">Contact</p>
-                            <p className="text-white">{selectedPerformance.performer.contact}</p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-400">Price Range</p>
-                            <p className="text-green-400">
-                              ${selectedPerformance.performer.minPrice.toLocaleString()} - ${selectedPerformance.performer.maxPrice.toLocaleString()}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-400">Status</p>
-                            <span className={`inline-block px-2 py-1 rounded-xl text-xs ${
-                              selectedPerformance.performer.status === 'Active' 
-                                ? 'text-green-400 bg-green-500/20' 
-                                : 'text-gray-400 bg-gray-500/20'
-                            }`}>
-                              {selectedPerformance.performer.status}
-                            </span>
-                          </div>
+                      <div>
+                        <label className="block text-sm text-neutral-300 mb-3">
+                          Select Venue *
+                        </label>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {venues.map((venue) => (
+                            <button
+                              key={venue.venueId}
+                              onClick={() => setSelectedVenueId(venue.venueId)}
+                              className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
+                                selectedVenueId === venue.venueId
+                                  ? "bg-lime-500/20 border-2 border-lime-500"
+                                  : "bg-neutral-800/50 border-2 border-neutral-700 hover:border-neutral-600"
+                              }`}
+                              disabled={submitting}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <h4 className={`text-base ${selectedVenueId === venue.venueId ? "text-lime-400" : "text-white"}`}>
+                                    {venue.name || "Unnamed Venue"}
+                                  </h4>
+                                  <p className="text-neutral-400 text-sm">{venue.city} • {venue.address}</p>
+                                  <p className="text-neutral-400 text-xs mt-1">Capacity: {venue.capacity.toLocaleString()}</p>
+                                </div>
+                                {selectedVenueId === venue.venueId && (
+                                  <div className="p-2 bg-lime-500/30 rounded-xl">
+                                    <MapPin className="w-5 h-5 text-lime-400" />
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="flex justify-end">
+                      <div className="flex gap-3 pt-4">
                         <button
-                          onClick={closePerformerPanel}
-                          className="bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl transition-all duration-200 border border-neutral-700"
+                          onClick={assignVenue}
+                          disabled={submitting || selectedVenueId === 0}
+                          className="flex-1 bg-gradient-to-r from-lime-500 to-lime-600 hover:from-lime-600 hover:to-lime-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-black py-3 rounded-xl transition-all duration-200 shadow-lg"
                         >
-                          Close
+                          {submitting ? "Assigning..." : "Assign Venue"}
+                        </button>
+                        <button
+                          onClick={closeVenuePanel}
+                          disabled={submitting}
+                          className="flex-1 bg-neutral-800 hover:bg-neutral-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white py-3 rounded-xl transition-all duration-200 border border-neutral-700"
+                        >
+                          Cancel
                         </button>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Venue Assignment Panel */}
-            {showVenuePanel && (
-              <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl shadow-lg h-full overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-lime-500/20 rounded-xl">
-                        <MapPin className="w-6 h-6 text-lime-400" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl text-white">Assign Venue</h2>
-                        <p className="text-sm text-neutral-400">Select a venue for this performance</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={closeVenuePanel}
-                      className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200"
-                    >
-                      <X size={20} className="text-neutral-400" />
-                    </button>
-                  </div>
-
-                  {error && (
-                    <div className="bg-red-900/30 border border-red-500/30 text-red-200 p-3 rounded-xl flex items-center gap-3 mb-6">
-                      <AlertCircle size={16} className="text-red-400" />
-                      <span className="text-sm">{error}</span>
-                    </div>
-                  )}
-
-                  {/* Performance Summary */}
-                  <div className="bg-neutral-800/30 rounded-xl p-4 mb-6">
-                    <h3 className="text-white text-base mb-3">Performance Details</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-neutral-400">Performer:</span>
-                        <p className="text-white">{selectedPerformance.performer?.name}</p>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Genre:</span>
-                        <span className={`inline-block px-2 py-1 rounded-xl text-xs ml-2 ${getGenreColor(selectedPerformance.performer?.genre || '')}`}>
-                          {selectedPerformance.performer?.genre}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Start Time:</span>
-                        <p className="text-white">{formatDateTime(selectedPerformance.startTime)}</p>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Duration:</span>
-                        <p className="text-white">{formatDuration(selectedPerformance.startTime, selectedPerformance.endTime)}</p>
-                      </div>
-                      {selectedPerformance.event && (
-                        <>
-                          <div>
-                            <span className="text-neutral-400">Event:</span>
-                            <p className="text-white">{selectedPerformance.event.name}</p>
-                          </div>
-                          <div>
-                            <span className="text-neutral-400">Event Date:</span>
-                            <p className="text-white">{formatDateTime(selectedPerformance.event.startDate)}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Venue Selection */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm text-neutral-300 mb-3">
-                        Select Venue *
-                      </label>
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {venues.map((venue) => (
-                          <button
-                            key={venue.venueId}
-                            onClick={() => setSelectedVenueId(venue.venueId)}
-                            className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
-                              selectedVenueId === venue.venueId
-                                ? "bg-lime-500/20 border-2 border-lime-500"
-                                : "bg-neutral-800/50 border-2 border-neutral-700 hover:border-neutral-600"
-                            }`}
-                            disabled={submitting}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <h4 className={`text-base ${selectedVenueId === venue.venueId ? "text-lime-400" : "text-white"}`}>
-                                  {venue.name || "Unnamed Venue"}
-                                </h4>
-                                <p className="text-neutral-400 text-sm">{venue.city} • {venue.address}</p>
-                                <p className="text-neutral-400 text-xs mt-1">Capacity: {venue.capacity.toLocaleString()}</p>
-                              </div>
-                              {selectedVenueId === venue.venueId && (
-                                <div className="p-2 bg-lime-500/30 rounded-xl">
-                                  <MapPin className="w-5 h-5 text-lime-400" />
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        onClick={assignVenue}
-                        disabled={submitting || selectedVenueId === 0}
-                        className="flex-1 bg-gradient-to-r from-lime-500 to-lime-600 hover:from-lime-600 hover:to-lime-700 disabled:from-gray-700 disabled:to-gray-800 disabled:cursor-not-allowed text-black py-3 rounded-xl transition-all duration-200 shadow-lg"
-                      >
-                        {submitting ? "Assigning..." : "Assign Venue"}
-                      </button>
-                      <button
-                        onClick={closeVenuePanel}
-                        disabled={submitting}
-                        className="flex-1 bg-neutral-800 hover:bg-neutral-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white py-3 rounded-xl transition-all duration-200 border border-neutral-700"
-                      >
-                        Cancel
-                      </button>
-                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -9,8 +9,8 @@ import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
 import TicketSalesInfrastructure from "./frontend/ticket-sales/pages/Infrastructure";
 import TicketSalesPerformances from './frontend/ticket-sales/pages/Performances';
 import TicketSalesTicketTypes from "./frontend/ticket-sales/pages/TicketTypes";
-import TicketSalesPricingOffers from "./frontend/ticket-sales/pages/PricingOffers";
-import TicketSalesSalesTransactions from "./frontend/ticket-sales/pages/SalesTransactions";
+import TicketSalesSpecialOffers from "./frontend/ticket-sales/pages/SpecialOffer";
+import TicketSalesPricingRules from "./frontend/ticket-sales/pages/PricingRules";
 import TicketSalesAnalytics from './frontend/ticket-sales/pages/Analytics';
 
 // Event Organization imports
@@ -120,22 +120,22 @@ function App() {
         />
 
         <Route 
-          path="/ticket-sales/pricing-offers" 
+          path="/ticket-sales/special-offers" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
-                <TicketSalesPricingOffers />
+                <TicketSalesSpecialOffers />
               </Layout>
             </ProtectedRoute>
           } 
         />
 
         <Route 
-          path="/ticket-sales/sales-transactions" 
+          path="/ticket-sales/pricing-rules" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
-                <TicketSalesSalesTransactions />
+                <TicketSalesPricingRules/>
               </Layout>
             </ProtectedRoute>
           } 

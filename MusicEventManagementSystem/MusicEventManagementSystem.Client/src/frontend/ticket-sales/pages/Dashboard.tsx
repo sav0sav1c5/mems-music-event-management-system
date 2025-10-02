@@ -277,8 +277,8 @@ const Dashboard = () => {
     <div className="text-white h-full flex flex-col p-4 m-1">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-[26px] font-bold text-white mb-1">Dashboard</h1>
-        <p className="text-neutral-400 text-[15px]">Overview of ticket sales and venue performance</p>
+        <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
+        <p className="text-neutral-400 text-sm">Overview of ticket sales and venue performance</p>
       </div>
 
       <div className="space-y-4">
@@ -323,13 +323,13 @@ const Dashboard = () => {
           {/* Weekly Revenue Chart */}
           <div className="xl:col-span-2">
             <Card className="h-full pb-2">
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4 px-4">
-                <h3 className="text-lg font-semibold text-white">Weekly Revenue</h3>
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
+                <h3 className="text-xl font-semibold text-white">Weekly Revenue</h3>
                 <div className="text-lime-400 text-xl font-bold">
                   ${revenueData.reduce((sum, day) => sum + day.revenue, 0).toLocaleString()}
                 </div>
               </div>
-              <div className="h-80 -mt-1 px-2">
+              <div className="h-80">
                 <ResponsiveContainer width="%" height="100%">
                   <BarChart data={revenueData} barCategoryGap="15%" margin={{ top: 5, right: 20, left: -5, bottom: 5 }} >
                     <CartesianGrid strokeDasharray="3 3" stroke="#404040" />

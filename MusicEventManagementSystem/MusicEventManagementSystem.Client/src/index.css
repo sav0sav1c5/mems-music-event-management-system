@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflow-y-auto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
 /*
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
