@@ -409,356 +409,358 @@ const Analytics = () => {
   };
 
   return (
-    <div className="text-white h-full flex flex-col p-4 m-1">
-      {/* Header - Consistent Design */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Analytics Dashboard</h1>
-            <p className="text-neutral-400 text-sm">Comprehensive ticket sales analytics and insights</p>
-          </div>
-          <div className="flex gap-5">
-            <button
-              onClick={() => setIsLoading(!isLoading)}
-              disabled={isLoading}
-              className="inline-flex items-center px-4 py-3 border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 rounded-xl hover:bg-neutral-800 hover:text-white hover:border-neutral-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
-              <RefreshCw size={16} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            <button
-              onClick={exportData}
-              className="px-6 py-3 rounded-xl bg-lime-400 text-black font-medium hover:bg-lime-500 transition-all duration-200 shadow-lg flex items-center gap-2"
-            >
-              <Download size={16} />
-              Export
-            </button>
-          </div>
-        </div>
-        
-        {/* Date Range Selector - Consistent Design */}
-        <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center gap-5 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Calendar className="text-neutral-400" size={16} />
-              <span className="text-neutral-300 text-sm">Date Range:</span>
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+      <div className="text-white h-full flex flex-col p-4 m-1">
+        {/* Header - Consistent Design */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">Analytics Dashboard</h1>
+              <p className="text-neutral-400 text-sm">Comprehensive ticket sales analytics and insights</p>
             </div>
-            <input
-              type="date"
-              value={dateRange.from.toISOString().split('T')[0]}
-              onChange={(e) => setDateRange({...dateRange, from: new Date(e.target.value)})}
-              className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
-            />
-            <span className="text-neutral-400">to</span>
-            <input
-              type="date"
-              value={dateRange.to.toISOString().split('T')[0]}
-              onChange={(e) => setDateRange({...dateRange, to: new Date(e.target.value)})}
-              className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
-            />
-            <button
-              onClick={() => setIsLoading(!isLoading)}
-              disabled={isLoading}
-              className="inline-flex items-center px-4 py-2 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-xl hover:bg-lime-400/20 transition-all duration-200 disabled:opacity-50"
-            >
-              <Filter size={16} className="mr-2" />
-              Apply Filter
-            </button>
+            <div className="flex gap-5">
+              <button
+                onClick={() => setIsLoading(!isLoading)}
+                disabled={isLoading}
+                className="inline-flex items-center px-4 py-3 border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 rounded-xl hover:bg-neutral-800 hover:text-white hover:border-neutral-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                <RefreshCw size={16} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              <button
+                onClick={exportData}
+                className="px-6 py-3 rounded-xl bg-lime-400 text-black font-medium hover:bg-lime-500 transition-all duration-200 shadow-lg flex items-center gap-2"
+              >
+                <Download size={16} />
+                Export
+              </button>
+            </div>
           </div>
-          <p className="text-neutral-500 text-sm mt-4">
-            Last updated: {lastUpdated.toLocaleString()}
-          </p>
+          
+          {/* Date Range Selector - Consistent Design */}
+          <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-4 shadow-lg">
+            <div className="flex items-center gap-5 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-neutral-400" size={16} />
+                <span className="text-neutral-300 text-sm">Date Range:</span>
+              </div>
+              <input
+                type="date"
+                value={dateRange.from.toISOString().split('T')[0]}
+                onChange={(e) => setDateRange({...dateRange, from: new Date(e.target.value)})}
+                className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
+              />
+              <span className="text-neutral-400">to</span>
+              <input
+                type="date"
+                value={dateRange.to.toISOString().split('T')[0]}
+                onChange={(e) => setDateRange({...dateRange, to: new Date(e.target.value)})}
+                className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
+              />
+              <button
+                onClick={() => setIsLoading(!isLoading)}
+                disabled={isLoading}
+                className="inline-flex items-center px-4 py-2 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-xl hover:bg-lime-400/20 transition-all duration-200 disabled:opacity-50"
+              >
+                <Filter size={16} className="mr-2" />
+                Apply Filter
+              </button>
+            </div>
+            <p className="text-neutral-500 text-sm mt-4">
+              Last updated: {lastUpdated.toLocaleString()}
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Tabs - Consistent Design */}
-      <div className="space-y-4">
-        <div className="flex space-x-1 rounded-2xl bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 p-1 shadow-lg">
-          {[
-            { value: 'overview', label: 'Overview' },
-            { value: 'revenue', label: 'Revenue' },
-            { value: 'tickets', label: 'Tickets' },
-            { value: 'venues', label: 'Venues' },
-            { value: 'offers', label: 'Offers' }
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={`flex-1 px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
-                activeTab === tab.value
-                  ? 'bg-lime-400 text-black shadow-lg font-medium'
-                  : 'text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800/50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Tabs - Consistent Design */}
+        <div className="space-y-4">
+          <div className="flex space-x-1 rounded-2xl bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 p-1 shadow-lg">
+            {[
+              { value: 'overview', label: 'Overview' },
+              { value: 'revenue', label: 'Revenue' },
+              { value: 'tickets', label: 'Tickets' },
+              { value: 'venues', label: 'Venues' },
+              { value: 'offers', label: 'Offers' }
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`flex-1 px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
+                  activeTab === tab.value
+                    ? 'bg-lime-400 text-black shadow-lg font-medium'
+                    : 'text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800/50'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-        {/* Tab Content */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            {/* KPI Summary - Consistent Design */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
-                <div className="p-3 bg-lime-400/20 rounded-xl">
-                  <DollarSign className="text-lime-400 w-8 h-8" />
+          {/* Tab Content */}
+          {activeTab === 'overview' && (
+            <div className="space-y-4">
+              {/* KPI Summary - Consistent Design */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                  <div className="p-3 bg-lime-400/20 rounded-xl">
+                    <DollarSign className="text-lime-400 w-8 h-8" />
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-neutral-400 text-sm">Total Revenue</p>
+                    <p className="text-white text-2xl font-bold">{formatCurrency(kpis.totalRevenue)}</p>
+                    <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                      +{formatPercentage(kpis.revenueGrowth)}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Total Revenue</p>
-                  <p className="text-white text-2xl font-bold">{formatCurrency(kpis.totalRevenue)}</p>
-                  <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +{formatPercentage(kpis.revenueGrowth)}
+
+                <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                  <div className="p-3 bg-lime-400/20 rounded-xl">
+                    <Ticket className="text-lime-400 w-8 h-8" />
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-neutral-400 text-sm">Tickets Sold</p>
+                    <p className="text-white text-2xl font-bold">{kpis.totalTicketsSold.toLocaleString()}</p>
+                    <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                      +8.7%
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                  <div className="p-3 bg-lime-400/20 rounded-xl">
+                    <TrendingUp className="text-lime-400 w-8 h-8" />
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-neutral-400 text-sm">Conversion Rate</p>
+                    <p className="text-white text-2xl font-bold">{formatPercentage(kpis.conversionRate)}</p>
+                    <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                      +2.1%
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
+                  <div className="p-3 bg-lime-400/20 rounded-xl">
+                    <MapPin className="text-lime-400 w-8 h-8" />
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-neutral-400 text-sm">Capacity Utilization</p>
+                    <p className="text-white text-2xl font-bold">{formatPercentage(kpis.capacityUtilization)}</p>
+                    <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                      +5.3%
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
-                <div className="p-3 bg-lime-400/20 rounded-xl">
-                  <Ticket className="text-lime-400 w-8 h-8" />
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Tickets Sold</p>
-                  <p className="text-white text-2xl font-bold">{kpis.totalTicketsSold.toLocaleString()}</p>
-                  <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +8.7%
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Revenue Trend Chart */}
+                <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
+                  <div className="p-6 border-b border-neutral-800">
+                    <h3 className="text-xl font-semibold text-white">Revenue Trend</h3>
+                  </div>
+                  <div className="p-6">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={revenueData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="#9ca3af" 
+                          tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                        />
+                        <YAxis stroke="#9ca3af" tickFormatter={(value) => `${(value / 1000)}k`} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#171717', 
+                            border: '1px solid #404040',
+                            borderRadius: '12px',
+                            color: '#ffffff'
+                          }}
+                          labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                          formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="revenue" 
+                          stroke="#a3e635" 
+                          fill="#a3e635" 
+                          fillOpacity={0.2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
-                <div className="p-3 bg-lime-400/20 rounded-xl">
-                  <TrendingUp className="text-lime-400 w-8 h-8" />
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Conversion Rate</p>
-                  <p className="text-white text-2xl font-bold">{formatPercentage(kpis.conversionRate)}</p>
-                  <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +2.1%
+                {/* Ticket Status Distribution */}
+                <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
+                  <div className="p-6 border-b border-neutral-800">
+                    <h3 className="text-xl font-semibold text-white">Ticket Status Distribution</h3>
                   </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between px-6 py-6 bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg hover:border-neutral-700 transition-all duration-200">
-                <div className="p-3 bg-lime-400/20 rounded-xl">
-                  <MapPin className="text-lime-400 w-8 h-8" />
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-neutral-400 text-sm">Capacity Utilization</p>
-                  <p className="text-white text-2xl font-bold">{formatPercentage(kpis.capacityUtilization)}</p>
-                  <div className="flex items-center text-lime-400 text-sm font-medium mt-1">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +5.3%
+                  <div className="p-6">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={ticketStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={120}
+                          paddingAngle={5}
+                          dataKey="count"
+                        >
+                          {ticketStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#171717', 
+                            border: '1px solid #404040',
+                            borderRadius: '12px',
+                            color: '#ffffff'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      {ticketStatusData.map((item) => (
+                        <div key={item.status} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                          <span className="text-neutral-400 text-sm">{item.status}: {item.percentage.toFixed(1)}%</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Revenue Trend Chart */}
+          {activeTab === 'venues' && (
+            <div className="space-y-6">
+              {/* Venue Performance */}
               <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
                 <div className="p-6 border-b border-neutral-800">
-                  <h3 className="text-xl font-semibold text-white">Revenue Trend</h3>
+                  <h3 className="text-xl font-semibold text-white">Venue Performance Analysis</h3>
                 </div>
-                <div className="p-6">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#9ca3af" 
-                        tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                      />
-                      <YAxis stroke="#9ca3af" tickFormatter={(value) => `${(value / 1000)}k`} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#171717', 
-                          border: '1px solid #404040',
-                          borderRadius: '12px',
-                          color: '#ffffff'
-                        }}
-                        labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                        formatter={(value: number) => [formatCurrency(value), 'Revenue']}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stroke="#a3e635" 
-                        fill="#a3e635" 
-                        fillOpacity={0.2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="p-6 space-y-6">
+                  {venuePerformance.map((venue) => (
+                    <div key={venue.venueId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-lime-400/20 rounded-xl">
+                            <MapPin className="text-lime-400" size={20} />
+                          </div>
+                          <div>
+                            <h4 className="text-white font-medium text-lg">{venue.venueName}</h4>
+                            <p className="text-neutral-400 text-sm">Capacity: {venue.capacity.toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
+                          venue.occupancyRate >= 80 ? 'bg-green-500/20 text-green-400' :
+                          venue.occupancyRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {formatPercentage(venue.occupancyRate)} occupancy
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-6 text-sm mb-6">
+                        <div>
+                          <span className="text-neutral-400">Sold Tickets</span>
+                          <div className="text-white font-medium mt-1 text-base">{venue.soldTickets.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Revenue</span>
+                          <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(venue.revenue)}</div>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Avg Price</span>
+                          <div className="text-white font-medium mt-1 text-base">{formatCurrency(venue.avgTicketPrice)}</div>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Utilization</span>
+                          <div className="text-white font-medium mt-1 text-base">{formatPercentage(venue.occupancyRate)}</div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-neutral-700 rounded-full h-2">
+                        <div 
+                          className="bg-lime-400 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${venue.occupancyRate}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Ticket Status Distribution */}
+          {activeTab === 'offers' && (
+            <div className="space-y-6">
+              {/* Special Offers Performance */}
               <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
                 <div className="p-6 border-b border-neutral-800">
-                  <h3 className="text-xl font-semibold text-white">Ticket Status Distribution</h3>
+                  <h3 className="text-xl font-semibold text-white">Special Offers Performance</h3>
                 </div>
-                <div className="p-6">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={ticketStatusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={120}
-                        paddingAngle={5}
-                        dataKey="count"
-                      >
-                        {ticketStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#171717', 
-                          border: '1px solid #404040',
-                          borderRadius: '12px',
-                          color: '#ffffff'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    {ticketStatusData.map((item) => (
-                      <div key={item.status} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                        <span className="text-neutral-400 text-sm">{item.status}: {item.percentage.toFixed(1)}%</span>
+                <div className="p-6 space-y-6">
+                  {offerPerformance.map((offer) => (
+                    <div key={offer.offerId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-lime-400/20 rounded-xl">
+                            <Gift className="text-lime-400" size={20} />
+                          </div>
+                          <div>
+                            <h4 className="text-white font-medium text-lg">{offer.name}</h4>
+                            <p className="text-neutral-400 text-sm">Type: {offer.type}</p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
+                          offer.conversionRate >= 80 ? 'bg-green-500/20 text-green-400' :
+                          offer.conversionRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {formatPercentage(offer.conversionRate)} conversion
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'venues' && (
-          <div className="space-y-6">
-            {/* Venue Performance */}
-            <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
-              <div className="p-6 border-b border-neutral-800">
-                <h3 className="text-xl font-semibold text-white">Venue Performance Analysis</h3>
-              </div>
-              <div className="p-6 space-y-6">
-                {venuePerformance.map((venue) => (
-                  <div key={venue.venueId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-lime-400/20 rounded-xl">
-                          <MapPin className="text-lime-400" size={20} />
+                      <div className="grid grid-cols-4 gap-6 text-sm mb-6">
+                        <div>
+                          <span className="text-neutral-400">Usage Count</span>
+                          <div className="text-white font-medium mt-1 text-base">{offer.usageCount.toLocaleString()}</div>
                         </div>
                         <div>
-                          <h4 className="text-white font-medium text-lg">{venue.venueName}</h4>
-                          <p className="text-neutral-400 text-sm">Capacity: {venue.capacity.toLocaleString()}</p>
-                        </div>
-                      </div>
-                      <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
-                        venue.occupancyRate >= 80 ? 'bg-green-500/20 text-green-400' :
-                        venue.occupancyRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
-                        {formatPercentage(venue.occupancyRate)} occupancy
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-6 text-sm mb-6">
-                      <div>
-                        <span className="text-neutral-400">Sold Tickets</span>
-                        <div className="text-white font-medium mt-1 text-base">{venue.soldTickets.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Revenue</span>
-                        <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(venue.revenue)}</div>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Avg Price</span>
-                        <div className="text-white font-medium mt-1 text-base">{formatCurrency(venue.avgTicketPrice)}</div>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Utilization</span>
-                        <div className="text-white font-medium mt-1 text-base">{formatPercentage(venue.occupancyRate)}</div>
-                      </div>
-                    </div>
-                    <div className="w-full bg-neutral-700 rounded-full h-2">
-                      <div 
-                        className="bg-lime-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${venue.occupancyRate}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'offers' && (
-          <div className="space-y-6">
-            {/* Special Offers Performance */}
-            <div className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
-              <div className="p-6 border-b border-neutral-800">
-                <h3 className="text-xl font-semibold text-white">Special Offers Performance</h3>
-              </div>
-              <div className="p-6 space-y-6">
-                {offerPerformance.map((offer) => (
-                  <div key={offer.offerId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-lime-400/20 rounded-xl">
-                          <Gift className="text-lime-400" size={20} />
+                          <span className="text-neutral-400">Revenue Impact</span>
+                          <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(offer.revenueImpact)}</div>
                         </div>
                         <div>
-                          <h4 className="text-white font-medium text-lg">{offer.name}</h4>
-                          <p className="text-neutral-400 text-sm">Type: {offer.type}</p>
+                          <span className="text-neutral-400">Discount Given</span>
+                          <div className="text-red-400 font-medium mt-1 text-base">-{formatCurrency(offer.discountGiven)}</div>
+                        </div>
+                        <div>
+                          <span className="text-neutral-400">Net Impact</span>
+                          <div className="text-lime-400 font-medium mt-1 text-base">
+                            {formatCurrency(offer.revenueImpact - offer.discountGiven)}
+                          </div>
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
-                        offer.conversionRate >= 80 ? 'bg-green-500/20 text-green-400' :
-                        offer.conversionRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
-                        {formatPercentage(offer.conversionRate)} conversion
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-6 text-sm mb-6">
-                      <div>
-                        <span className="text-neutral-400">Usage Count</span>
-                        <div className="text-white font-medium mt-1 text-base">{offer.usageCount.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Revenue Impact</span>
-                        <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(offer.revenueImpact)}</div>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Discount Given</span>
-                        <div className="text-red-400 font-medium mt-1 text-base">-{formatCurrency(offer.discountGiven)}</div>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400">Net Impact</span>
-                        <div className="text-lime-400 font-medium mt-1 text-base">
-                          {formatCurrency(offer.revenueImpact - offer.discountGiven)}
-                        </div>
+                      <div className="w-full bg-neutral-700 rounded-full h-2">
+                        <div 
+                          className="bg-lime-400 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${offer.conversionRate}%` }}
+                        ></div>
                       </div>
                     </div>
-                    <div className="w-full bg-neutral-700 rounded-full h-2">
-                      <div 
-                        className="bg-lime-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${offer.conversionRate}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

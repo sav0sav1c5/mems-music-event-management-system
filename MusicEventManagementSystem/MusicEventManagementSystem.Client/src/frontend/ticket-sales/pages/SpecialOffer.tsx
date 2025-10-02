@@ -154,165 +154,186 @@ const SpecialOffers = () => {
   ];
 
   return (
-    <div className="text-white h-full flex flex-col p-4 m-1">
-      {/* Header */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Special Offers</h1>
-            <p className="text-neutral-400 text-sm">Manage discount offers and promotions</p>
-          </div>
-          <button className="bg-lime-400 hover:bg-lime-500 px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-200 text-black font-semibold shadow-lg">
-            <Plus size={16} />
-            New Offer
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        {stats.map((stat, index) => (
-          <KpiCard
-            key={index}
-            icon={stat.icon}
-            title={stat.title}
-            value={stat.value}
-            change={stat.change}
-            changeType="percentage"
-          />
-        ))}
-      </div>
-
-      {/* Search and Filters */}
-      <Card className="mb-4">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-            <input
-              placeholder="Search offers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all text-base"
-            />
-          </div>
-          
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white text-base focus:ring-2 focus:ring-lime-400 focus:border-lime-400"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="expired">Expired</option>
-            </select>
-            
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white text-base focus:ring-2 focus:ring-lime-400 focus:border-lime-400"
-            >
-              <option value="all">All Types</option>
-              <option value="0">Early Bird</option>
-              <option value="1">Student Discount</option>
-              <option value="2">Group Discount</option>
-              <option value="3">Senior Discount</option>
-              <option value="4">Loyalty Discount</option>
-              <option value="5">Season Pass</option>
-              <option value="6">Buy One Get One</option>
-              <option value="7">Percentage Off</option>
-              <option value="8">Fixed Amount Off</option>
-            </select>
-            
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white text-base focus:ring-2 focus:ring-lime-400 focus:border-lime-400"
-            >
-              <option value="name">Name</option>
-              <option value="discount">Discount</option>
-              <option value="startDate">Start Date</option>
-            </select>
-            
-            <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-2xl transition-all duration-200 text-white border border-neutral-700 hover:border-lime-500/30"
-            >
-              {sortOrder === 'asc' ? <ArrowUp className="w-5 h-5" /> : <ArrowDown className="w-5 h-5" />}
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+      <div className="text-white h-full flex flex-col p-4 m-1">
+        {/* Header */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">Special Offers</h1>
+              <p className="text-neutral-400 text-sm">Manage discount offers and promotions</p>
+            </div>
+            <button className="bg-lime-400 hover:bg-lime-500 px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-200 text-black font-semibold shadow-lg">
+              <Plus size={16} />
+              New Offer
             </button>
           </div>
         </div>
-      </Card>
 
-      {/* Offers Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-        {loading ? (
-          <div className="col-span-full text-center text-neutral-400 py-8 text-base">
-            Loading special offers...
-          </div>
-        ) : filteredOffers.length === 0 ? (
-          <div className="col-span-full text-center text-neutral-400 py-8 text-base">
-            No special offers found
-          </div>
-        ) : (
-          filteredOffers.map((offer) => {
-            const status = getOfferStatus(offer);
-            const StatusIcon = status.icon;
-            const TypeIcon = getOfferTypeIcon(offer.offerType);
+        {/* KPI Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          {stats.map((stat, index) => (
+            <KpiCard
+              key={index}
+              icon={stat.icon}
+              title={stat.title}
+              value={stat.value}
+              change={stat.change}
+              changeType="percentage"
+            />
+          ))}
+        </div>
 
-            return (
-              <Card key={offer.specialOfferId} hover={true} className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-lime-500/20 rounded-xl">
-                      <TypeIcon className="w-5 h-5 text-lime-400" />
+        {/* Search and Filters */}
+        <div className="flex gap-4 mb-4 flex-wrap">
+          <div className="flex-1 min-w-64">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+              <input
+                placeholder="Search offers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-neutral-800/50 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 border border-neutral-700 focus:border-lime-500 transition-all duration-200"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                statusFilter === 'all'
+                  ? "bg-lime-500 text-black"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              All Status
+            </button>
+            <button
+              onClick={() => setStatusFilter('active')}
+              className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                statusFilter === 'active'
+                  ? "bg-lime-500 text-black"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setStatusFilter('upcoming')}
+              className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                statusFilter === 'upcoming'
+                  ? "bg-lime-500 text-black"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              Upcoming
+            </button>
+            <button
+              onClick={() => setStatusFilter('expired')}
+              className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                statusFilter === 'expired'
+                  ? "bg-lime-500 text-black"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              Expired
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSortOrder('asc')}
+              className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                sortOrder === 'asc'
+                  ? "bg-blue-500 text-black"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              Asc
+            </button>
+            <button
+              onClick={() => setSortOrder('desc')}
+              className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                sortOrder === 'desc'
+                  ? "bg-blue-500 text-black"
+                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              Desc
+            </button>
+          </div>
+        </div>
+
+        {/* Offers Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+          {loading ? (
+            <div className="col-span-full text-center text-neutral-400 py-8 text-base">
+              Loading special offers...
+            </div>
+          ) : filteredOffers.length === 0 ? (
+            <div className="col-span-full text-center text-neutral-400 py-8 text-base">
+              No special offers found
+            </div>
+          ) : (
+            filteredOffers.map((offer) => {
+              const status = getOfferStatus(offer);
+              const StatusIcon = status.icon;
+              const TypeIcon = getOfferTypeIcon(offer.offerType);
+
+              return (
+                <Card key={offer.specialOfferId} hover={true} className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-lime-500/20 rounded-xl">
+                        <TypeIcon className="w-5 h-5 text-lime-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium text-lg">{offer.name || 'Unnamed Offer'}</h4>
+                        <p className="text-neutral-400 text-sm">{formatOfferType(offer.offerType)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-white font-medium text-lg">{offer.name || 'Unnamed Offer'}</h4>
-                      <p className="text-neutral-400 text-sm">{formatOfferType(offer.offerType)}</p>
+                    <div className={`px-3 py-1 rounded-xl text-sm font-medium border flex items-center gap-2 ${status.color}`}>
+                      <StatusIcon className="w-4 h-4" />
+                      {status.status}
                     </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-xl text-sm font-medium border flex items-center gap-2 ${status.color}`}>
-                    <StatusIcon className="w-4 h-4" />
-                    {status.status}
+                  
+                  {offer.description && (
+                    <p className="text-neutral-400 text-base mb-4 line-clamp-2">{offer.description}</p>
+                  )}
+                  
+                  <div className="space-y-3 mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-neutral-400 text-base">Discount</span>
+                      <span className="text-lime-400 font-medium text-base">{offer.discountValue}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-neutral-400 text-base">Period</span>
+                      <span className="text-white font-medium text-sm">
+                        {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                
-                {offer.description && (
-                  <p className="text-neutral-400 text-base mb-4 line-clamp-2">{offer.description}</p>
-                )}
-                
-                <div className="space-y-3 mb-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-neutral-400 text-base">Discount</span>
-                    <span className="text-lime-400 font-medium text-base">{offer.discountValue}%</span>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-neutral-400">
+                      {offer.ticketTypeIds?.length || 0} ticket types
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="p-2 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400">
+                        <Edit size={16} />
+                      </button>
+                      <button className="p-2 hover:bg-red-900/50 rounded-xl transition-all duration-200 text-neutral-400 hover:text-red-400">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-neutral-400 text-base">Period</span>
-                    <span className="text-white font-medium text-sm">
-                      {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm">
-                  <div className="text-neutral-400">
-                    {offer.ticketTypeIds?.length || 0} ticket types
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="p-2 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400">
-                      <Edit size={16} />
-                    </button>
-                    <button className="p-2 hover:bg-red-900/50 rounded-xl transition-all duration-200 text-neutral-400 hover:text-red-400">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </Card>
-            );
-          })
-        )}
+                </Card>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

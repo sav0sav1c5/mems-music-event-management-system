@@ -169,268 +169,270 @@ const Infrastructure = () => {
   }
 
   return (
-    <div className="text-white h-full flex flex-col p-4 m-1">
-      {selectedVenue ? (
-        <VenueDetailView 
-          venue={selectedVenue}
-          onBack={() => setSelectedVenue(null)}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          
-          {/* PRVA KOLONA - Leva strana (3/4) */}
-          <div className="lg:col-span-3 space-y-4">
-            {/* Header - Konzistentan sa Dashboard-om */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-white mb-1">Infrastructure Management</h1>
-                  <p className="text-neutral-400 text-sm">Manage venues, segments, and seating zones by event</p>
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+      <div className="text-white h-full flex flex-col p-4 m-1">
+        {selectedVenue ? (
+          <VenueDetailView 
+            venue={selectedVenue}
+            onBack={() => setSelectedVenue(null)}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            
+            {/* PRVA KOLONA - Leva strana (3/4) */}
+            <div className="lg:col-span-3 space-y-4">
+              {/* Header - Konzistentan sa Dashboard-om */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white mb-1">Infrastructure Management</h1>
+                    <p className="text-neutral-400 text-sm">Manage venues, segments, and seating zones by event</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={loadInitialData}
+                      className="px-4 py-3 rounded-xl bg-neutral-800 text-white font-medium hover:bg-neutral-700 transition-all duration-200 flex items-center gap-2 text-base"
+                    >
+                      <RefreshCw size={20} />
+                      Refresh
+                    </button>
+                    <button 
+                      onClick={() => setShowVenueModal(true)}
+                      className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-200 flex items-center gap-2 text-base"
+                    >
+                      <Plus size={20} />
+                      New Venue
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={loadInitialData}
-                    className="px-4 py-3 rounded-xl bg-neutral-800 text-white font-medium hover:bg-neutral-700 transition-all duration-200 flex items-center gap-2 text-base"
-                  >
-                    <RefreshCw size={20} />
-                    Refresh
-                  </button>
-                  <button 
-                    onClick={() => setShowVenueModal(true)}
-                    className="px-6 py-3 rounded-xl bg-lime-500 text-black font-medium hover:bg-lime-400 transition-all duration-200 flex items-center gap-2 text-base"
-                  >
-                    <Plus size={20} />
-                    New Venue
-                  </button>
+                
+                {/* Search Bar - Konzistentan stil */}
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search venues by name, city, or address..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
+                  />
                 </div>
               </div>
-              
-              {/* Search Bar - Konzistentan stil */}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search venues by name, city, or address..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
-                />
-              </div>
+
+              {/* Venues Section */}
+              <Card className="overflow-hidden">
+                <div className="flex items-center justify-between border-b border-neutral-800">
+                  <h3 className="text-xl font-semibold text-white mb-4">Venues</h3>
+                  <p className="text-neutral-400 text-sm">{filteredVenues.length} venue(s) found</p>
+                </div>
+                
+                <div className="">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                    {filteredVenues.map((venue) => (
+                      <Card
+                        key={venue.venueId}
+                        hover={true}
+                        onClick={() => setSelectedVenue(venue)}
+                        className="group cursor-pointer p-6"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="bg-lime-500/20 p-3 rounded-xl mr-4">
+                              <MapPin className="w-6 h-6 text-lime-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
+                                {venue.name || 'Unnamed Venue'}
+                              </h3>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getVenueTypeColor(venue.venueType)}`}>
+                                {getVenueTypeName(venue.venueType)}
+                              </span>
+                            </div>
+                          </div>
+                          <Edit className="w-5 h-5 text-neutral-400 group-hover:text-lime-400 transition-colors" />
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center text-neutral-300">
+                            <Users className="w-5 h-5 mr-3 text-neutral-400" />
+                            <span className="text-base">Capacity: {(venue.capacity || 0).toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center text-neutral-300">
+                            <MapPin className="w-5 h-5 mr-3 text-neutral-400" />
+                            <span className="text-base">{venue.city || 'Unknown City'}, {venue.address}</span>
+                          </div>
+                          <div className="text-sm text-neutral-500 mt-4 group-hover:text-lime-400/70 transition-colors">
+                            Click to configure seat layout and zones
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {filteredVenues.length === 0 && (
+                    <div className="text-center py-16 text-neutral-400">
+                      <MapPin size={64} className="mx-auto mb-4 opacity-50" />
+                      <h4 className="text-xl mb-2">No venues found</h4>
+                      <p className="text-base">
+                        {searchTerm ? 'Try adjusting your search criteria' : 'No venues available in the system'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
             </div>
 
-            {/* Venues Section */}
-            <Card className="overflow-hidden">
-              <div className="flex items-center justify-between border-b border-neutral-800">
-                <h3 className="text-xl font-semibold text-white mb-4">Venues</h3>
-                <p className="text-neutral-400 text-sm">{filteredVenues.length} venue(s) found</p>
-              </div>
-              
-              <div className="">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-                  {filteredVenues.map((venue) => (
+            {/* DRUGA KOLONA - Desna strana (1/4) */}
+            <div className="lg:col-span-1">
+              <Card className="overflow-hidden h-full">
+                <div className="flex items-center justify-between border-b border-neutral-800">
+                  <h3 className="text-xl font-semibold text-white mb-4">Upcoming Events</h3>
+                  <p className="text-neutral-400 text-sm">{events.length} total</p>
+                </div>
+                
+                <div 
+                  className="space-y-4 overflow-y-auto scrollbar-hide mt-4" 
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}
+                >
+                  {events.map((event) => (
                     <Card
-                      key={venue.venueId}
+                      key={event.id}
                       hover={true}
-                      onClick={() => setSelectedVenue(venue)}
-                      className="group cursor-pointer p-6"
+                      onClick={() => setSelectedEvent(event)}
+                      className={`p-4 cursor-pointer transition-all duration-200 ${
+                        selectedEvent?.id === event.id
+                          ? 'bg-lime-500/20 border-lime-500/50 shadow-lg'
+                          : ''
+                      }`}
                     >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="bg-lime-500/20 p-3 rounded-xl mr-4">
-                            <MapPin className="w-6 h-6 text-lime-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
-                              {venue.name || 'Unnamed Venue'}
-                            </h3>
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getVenueTypeColor(venue.venueType)}`}>
-                              {getVenueTypeName(venue.venueType)}
-                            </span>
-                          </div>
-                        </div>
-                        <Edit className="w-5 h-5 text-neutral-400 group-hover:text-lime-400 transition-colors" />
-                      </div>
+                      <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
                       
-                      <div className="space-y-3">
-                        <div className="flex items-center text-neutral-300">
-                          <Users className="w-5 h-5 mr-3 text-neutral-400" />
-                          <span className="text-base">Capacity: {(venue.capacity || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center text-neutral-300">
-                          <MapPin className="w-5 h-5 mr-3 text-neutral-400" />
-                          <span className="text-base">{venue.city || 'Unknown City'}, {venue.address}</span>
-                        </div>
-                        <div className="text-sm text-neutral-500 mt-4 group-hover:text-lime-400/70 transition-colors">
-                          Click to configure seat layout and zones
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(event.status)}`}>
+                          {getEventStatusName(event.status)}
+                        </span>
+                        <span className="text-xs text-neutral-500">
+                          {venues.length} venue{venues.length !== 1 ? 's' : ''}
+                        </span>
                       </div>
                     </Card>
                   ))}
+
+                  {events.length === 0 && (
+                    <div className="text-center py-12 text-neutral-400">
+                      <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+                      <p className="text-base">No events available</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+        
+        {/* Venue Creation Modal - ostaje isti */}
+        {showVenueModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
+            <Card className="w-full max-w-md p-6 border border-neutral-800 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-white">Create New Venue</h2>
+                <button
+                  onClick={() => setShowVenueModal(false)}
+                  className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Name</label>
+                  <input
+                    type="text"
+                    value={venueForm.name}
+                    onChange={(e) => setVenueForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                    placeholder="Enter venue name"
+                  />
                 </div>
 
-                {filteredVenues.length === 0 && (
-                  <div className="text-center py-16 text-neutral-400">
-                    <MapPin size={64} className="mx-auto mb-4 opacity-50" />
-                    <h4 className="text-xl mb-2">No venues found</h4>
-                    <p className="text-base">
-                      {searchTerm ? 'Try adjusting your search criteria' : 'No venues available in the system'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-neutral-300">Address</label>
+                  <input
+                    type="text"
+                    value={venueForm.address}
+                    onChange={(e) => setVenueForm(prev => ({ ...prev, address: e.target.value }))}
+                    className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                    placeholder="Enter venue address"
+                  />
+                </div>
 
-          {/* DRUGA KOLONA - Desna strana (1/4) */}
-          <div className="lg:col-span-1">
-            <Card className="overflow-hidden h-full">
-              <div className="flex items-center justify-between border-b border-neutral-800">
-                <h3 className="text-xl font-semibold text-white mb-4">Upcoming Events</h3>
-                <p className="text-neutral-400 text-sm">{events.length} total</p>
-              </div>
-              
-              <div 
-                className="space-y-4 overflow-y-auto scrollbar-hide mt-4" 
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none'
-                }}
-              >
-                {events.map((event) => (
-                  <Card
-                    key={event.id}
-                    hover={true}
-                    onClick={() => setSelectedEvent(event)}
-                    className={`p-4 cursor-pointer transition-all duration-200 ${
-                      selectedEvent?.id === event.id
-                        ? 'bg-lime-500/20 border-lime-500/50 shadow-lg'
-                        : ''
-                    }`}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-neutral-300">City</label>
+                  <input
+                    type="text"
+                    value={venueForm.city}
+                    onChange={(e) => setVenueForm(prev => ({ ...prev, city: e.target.value }))}
+                    className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                    placeholder="Enter city"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-neutral-300">Capacity</label>
+                  <input
+                    type="number"
+                    value={venueForm.capacity}
+                    onChange={(e) => setVenueForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
+                    className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                    placeholder="Enter capacity"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Type</label>
+                  <select
+                    value={venueForm.venueType}
+                    onChange={(e) => setVenueForm(prev => ({ ...prev, venueType: parseInt(e.target.value) as VenueType }))}
+                    className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   >
-                    <h4 className="font-medium text-base mb-3 leading-tight line-clamp-2">{event.name}</h4>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(event.status)}`}>
-                        {getEventStatusName(event.status)}
-                      </span>
-                      <span className="text-xs text-neutral-500">
-                        {venues.length} venue{venues.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </Card>
-                ))}
+                    <option value={VenueType.Indoor}>Indoor</option>
+                    <option value={VenueType.Outdoor}>Outdoor</option>
+                    <option value={VenueType.Stadium}>Stadium</option>
+                    <option value={VenueType.Arena}>Arena</option>
+                    <option value={VenueType.Theater}>Theater</option>
+                    <option value={VenueType.Club}>Club</option>
+                    <option value={VenueType.Festival}>Festival</option>
+                  </select>
+                </div>
 
-                {events.length === 0 && (
-                  <div className="text-center py-12 text-neutral-400">
-                    <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-                    <p className="text-base">No events available</p>
-                  </div>
-                )}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowVenueModal(false)}
+                    className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateVenue}
+                    className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold"
+                  >
+                    Create Venue
+                  </button>
+                </div>
               </div>
             </Card>
           </div>
-        </div>
-      )}
-      
-      {/* Venue Creation Modal - ostaje isti */}
-      {showVenueModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
-          <Card className="w-full max-w-md p-6 border border-neutral-800 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Create New Venue</h2>
-              <button
-                onClick={() => setShowVenueModal(false)}
-                className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Name</label>
-                <input
-                  type="text"
-                  value={venueForm.name}
-                  onChange={(e) => setVenueForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="Enter venue name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Address</label>
-                <input
-                  type="text"
-                  value={venueForm.address}
-                  onChange={(e) => setVenueForm(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="Enter venue address"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">City</label>
-                <input
-                  type="text"
-                  value={venueForm.city}
-                  onChange={(e) => setVenueForm(prev => ({ ...prev, city: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="Enter city"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Capacity</label>
-                <input
-                  type="number"
-                  value={venueForm.capacity}
-                  onChange={(e) => setVenueForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="Enter capacity"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Type</label>
-                <select
-                  value={venueForm.venueType}
-                  onChange={(e) => setVenueForm(prev => ({ ...prev, venueType: parseInt(e.target.value) as VenueType }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                >
-                  <option value={VenueType.Indoor}>Indoor</option>
-                  <option value={VenueType.Outdoor}>Outdoor</option>
-                  <option value={VenueType.Stadium}>Stadium</option>
-                  <option value={VenueType.Arena}>Arena</option>
-                  <option value={VenueType.Theater}>Theater</option>
-                  <option value={VenueType.Club}>Club</option>
-                  <option value={VenueType.Festival}>Festival</option>
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowVenueModal(false)}
-                  className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateVenue}
-                  className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold"
-                >
-                  Create Venue
-                </button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

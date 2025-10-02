@@ -345,400 +345,413 @@ const TicketTypes = () => {
   };
 
   return (
-    <div className="text-white h-full flex flex-col p-4 m-1">
-      <div className="flex gap-6 h-full">
-        {/* Main Content */}
-        <div className={`transition-all duration-300 flex flex-col ${showPanel ? 'w-2/3' : 'w-full'}`}>
-          
-          {/* Header */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">Ticket Types</h1>
-                <p className="text-neutral-400 text-sm">Manage and configure ticket types for events</p>
-              </div>
-            </div>
-          </div>
-
-          {error && (
-            <Card className="bg-red-500/20 border border-red-500/30 mb-4">
-              <div className="flex items-center gap-2 p-4">
-                <XCircle className="h-5 w-5 text-red-400" />
-                <span className="text-red-400 text-base">{error}</span>
-              </div>
-            </Card>
-          )}
-
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            {overviewStats.map((stat, index) => (
-              <KpiCard
-                key={index}
-                icon={stat.icon}
-                title={stat.title}
-                value={stat.value}
-                change={stat.change}
-                changeType="percentage"
-              />
-            ))}
-          </div>
-
-          {/* Search and Filters */}
-          <Card className="overflow-hidden mb-4">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-              <div className="relative flex-1 min-w-0">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-                <input
-                  placeholder="Search ticket types..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent transition-all text-base"
-                />
-              </div>
-
-              <div className="flex gap-3 flex-1 min-w-0">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white text-base focus:ring-2 focus:ring-lime-400 focus:border-lime-400 min-w-0"
-                >
-                  <option value="all">All Status</option>
-                  <option value="0">Active</option>
-                  <option value="1">Inactive</option>
-                  <option value="2">Sold Out</option>
-                  <option value="3">Coming Soon</option>
-                  <option value="4">Suspended</option>
-                </select>
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+      <div className="text-white h-full flex flex-col p-4 m-1">
+            <div className="flex gap-6 h-full">
+              {/* Main Content */}
+              <div className={`transition-all duration-300 flex flex-col ${showPanel ? 'w-2/3' : 'w-full'}`}>
                 
-                <select
-                  value={eventFilter}
-                  onChange={(e) => setEventFilter(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white text-base focus:ring-2 focus:ring-lime-400 focus:border-lime-400 min-w-0"
-                >
-                  <option value="all">All Events</option>
-                  {events.map(event => (
-                    <option key={event.id} value={event.id.toString()}>
-                      {event.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                {/* Header */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-2xl font-bold text-white mb-1">Ticket Types</h1>
+                      <p className="text-neutral-400 text-sm">Manage and configure ticket types for events</p>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="flex gap-2 flex-1 min-w-0">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-white text-base focus:ring-2 focus:ring-lime-400 focus:border-lime-400 min-w-0"
-                >
-                  <option value="name">Name</option>
-                  <option value="quantity">Quantity</option>
-                  <option value="status">Status</option>
-                </select>
-                
-                <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-2xl transition-all duration-200 text-white border border-neutral-700 hover:border-lime-500/30 flex-shrink-0"
-                >
-                  {sortOrder === 'asc' ? <ArrowUp className="w-5 h-5" /> : <ArrowDown className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Ticket Types List */}
-          <Card className="overflow-hidden flex-1">
-            {/* <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">All Ticket Types</h3>
-              <div className="bg-lime-500/20 text-lime-400 px-3 py-1 rounded-xl text-base">
-                {filteredTicketTypes.length}
-              </div>
-            </div> */}
-
-            <div className="space-y-3 max-h-[500px] overflow-y-auto">
-              {loading ? (
-                <div className="text-center text-neutral-400 py-8 text-base">Loading ticket types...</div>
-              ) : filteredTicketTypes.length === 0 ? (
-                <div className="text-center text-neutral-400 py-8 text-base">No ticket types found</div>
-              ) : (
-                filteredTicketTypes.map((type) => (
-                  <Card
-                    key={type.ticketTypeId}
-                    hover={true}
-                    onClick={() => openViewPanel(type)}
-                    className={`p-4 cursor-pointer transition-all duration-200 ${
-                      selectedTicketType?.ticketTypeId === type.ticketTypeId && showPanel
-                        ? 'bg-lime-500/20 border border-lime-500/30'
-                        : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-white font-medium text-lg mb-2">
-                          {type.name || 'Unnamed Ticket Type'}
-                        </h4>
-                        <p className="text-neutral-400 text-base mb-2 line-clamp-2">
-                          {type.description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-3">
-                          <div className="bg-neutral-700 text-neutral-300 text-sm px-3 py-1 rounded-xl">
-                            {type.availableQuantity} available
-                          </div>
-                          <div className="bg-neutral-700 text-neutral-300 text-sm px-3 py-1 rounded-xl">
-                            Event: {events.find(e => e.id === type.eventId)?.name || type.eventId}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <div className={`px-3 py-1 rounded-xl text-sm font-medium border ${getStatusColor(type.status)}`}>
-                          {formatTicketTypeStatus(type.status)}
-                        </div>
-                        <div className="flex gap-1">
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditPanel(type);
-                            }}
-                            className="p-2 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTicketType(type.ticketTypeId);
-                            }}
-                            className="p-2 hover:bg-red-900/50 rounded-xl transition-all duration-200 text-neutral-400 hover:text-red-400"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
+                {error && (
+                  <Card className="bg-red-500/20 border border-red-500/30 mb-4">
+                    <div className="flex items-center gap-2 p-4">
+                      <XCircle className="h-5 w-5 text-red-400" />
+                      <span className="text-red-400 text-base">{error}</span>
                     </div>
                   </Card>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Panel */}
-        {showPanel && (
-          <div className="w-1/3 transition-all duration-300 max-h-screen">
-            <Card className="overflow-hidden h-full">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">{getPanelTitle()}</h3>
-                <button
-                  onClick={closePanel}
-                  className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-white"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-                {error && (
-                  <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-400" />
-                      <span className="text-red-400 text-sm">{error}</span>
-                    </div>
-                  </div>
                 )}
 
-                {(panelMode === 'create' || panelMode === 'edit') ? (
-                  /* CREATE/EDIT FORM */
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Name *</label>
-                        <input
-                          type="text"
-                          value={ticketTypeForm.name}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                          placeholder="Enter ticket type name"
-                        />
-                      </div>
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  {overviewStats.map((stat, index) => (
+                    <KpiCard
+                      key={index}
+                      icon={stat.icon}
+                      title={stat.title}
+                      value={stat.value}
+                      change={stat.change}
+                      changeType="percentage"
+                    />
+                  ))}
+                </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Available Quantity *</label>
-                        <input
-                          type="number"
-                          value={ticketTypeForm.availableQuantity}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, availableQuantity: parseInt(e.target.value) || 0 }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                          placeholder="0"
-                          min="0"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-neutral-300">Description</label>
-                      <textarea
-                        value={ticketTypeForm.description}
-                        onChange={(e) => setTicketTypeForm(prev => ({ ...prev, description: e.target.value }))}
-                        className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                        placeholder="Enter description"
-                        rows={3}
+                {/* Search and Filters */}
+                <div className="flex gap-4 mb-4 flex-wrap">
+                  <div className="flex-1 min-w-64">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                      <input
+                        placeholder="Search ticket types..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-neutral-800/50 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 border border-neutral-700 focus:border-lime-500 transition-all duration-200"
                       />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Status *</label>
-                        <select
-                          value={ticketTypeForm.status}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, status: parseInt(e.target.value) as TicketTypeStatus }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                        >
-                          <option value={0}>Active</option>
-                          <option value={1}>Inactive</option>
-                          <option value={3}>Coming Soon</option>
-                          <option value={4}>Suspended</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Event *</label>
-                        <select
-                          value={ticketTypeForm.eventId}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, eventId: parseInt(e.target.value) || 0 }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                        >
-                          <option value={0}>Select Event</option>
-                          {events.map(event => (
-                            <option key={event.id} value={event.id}>
-                              {event.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-neutral-300">Zone *</label>
-                      <select
-                        value={ticketTypeForm.zoneId}
-                        onChange={(e) => setTicketTypeForm(prev => ({ ...prev, zoneId: parseInt(e.target.value) || 0 }))}
-                        className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                      >
-                        <option value={0}>Select Zone</option>
-                        {zones.map(zone => (
-                          <option key={zone.zoneId} value={zone.zoneId}>
-                            {zone.name} (Capacity: {zone.capacity})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={closePanel}
-                        className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={panelMode === 'create' ? handleCreateTicketType : handleUpdateTicketType}
-                        disabled={submitting}
-                        className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 disabled:bg-lime-500/50 rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
-                      >
-                        {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {submitting ? (panelMode === 'create' ? 'Creating...' : 'Updating...') : (panelMode === 'create' ? 'Create' : 'Update')}
-                      </button>
-                    </div>
                   </div>
-                ) : (
-                  /* VIEW MODE */
-                  selectedTicketType && (
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-white font-medium text-lg mb-2">
-                          {selectedTicketType.name || 'Unnamed Ticket Type'}
-                        </h4>
-                        {selectedTicketType.description && (
-                          <p className="text-neutral-400 text-base mb-4">
-                            {selectedTicketType.description}
-                          </p>
-                        )}
-                      </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setStatusFilter('all')}
+                      className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                        statusFilter === 'all'
+                          ? "bg-lime-500 text-black"
+                          : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      }`}
+                    >
+                      All Status
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('0')}
+                      className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                        statusFilter === '0'
+                          ? "bg-lime-500 text-black"
+                          : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      }`}
+                    >
+                      Active
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('2')}
+                      className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                        statusFilter === '2'
+                          ? "bg-lime-500 text-black"
+                          : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      }`}
+                    >
+                      Sold Out
+                    </button>
+                  </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Available Quantity</span>
-                          <span className="text-white text-base font-medium flex items-center">
-                            <Target className="w-4 h-4 mr-2 text-lime-400" />
-                            {selectedTicketType.availableQuantity}
-                          </span>
-                        </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEventFilter('all')}
+                      className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                        eventFilter === 'all'
+                          ? "bg-blue-500 text-black"
+                          : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      }`}
+                    >
+                      All Events
+                    </button>
+                    <button
+                      onClick={() => setSortOrder('asc')}
+                      className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                        sortOrder === 'asc'
+                          ? "bg-blue-500 text-black"
+                          : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      }`}
+                    >
+                      Asc
+                    </button>
+                    <button
+                      onClick={() => setSortOrder('desc')}
+                      className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
+                        sortOrder === 'desc'
+                          ? "bg-blue-500 text-black"
+                          : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      }`}
+                    >
+                      Desc
+                    </button>
+                  </div>
+                </div>
 
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Status</span>
-                          <span className="text-white text-base font-medium flex items-center">
-                            {selectedTicketType.status === 0 ? (
-                              <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
-                            ) : selectedTicketType.status === 2 ? (
-                              <XCircle className="w-4 h-4 mr-2 text-red-400" />
-                            ) : (
-                              <Clock className="w-4 h-4 mr-2 text-yellow-400" />
-                            )}
-                            {formatTicketTypeStatus(selectedTicketType.status)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Zone ID</span>
-                          <span className="text-white text-base">{selectedTicketType.zoneId}</span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Event</span>
-                          <span className="text-white text-base">
-                            {events.find(e => e.id === selectedTicketType.eventId)?.name || `Event ${selectedTicketType.eventId}`}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-neutral-800">
-                        <h5 className="text-white text-base mb-3 flex items-center">
-                          <TrendingUp className="w-4 h-4 mr-2 text-lime-400" />
-                          Related Data
-                        </h5>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="text-center p-3 bg-neutral-800/50 rounded-xl">
-                            <div className="text-lime-400 text-lg font-semibold">{selectedTicketType.ticketIds?.length || 0}</div>
-                            <div className="text-neutral-400 text-xs">Tickets</div>
+              {/* Ticket Types List */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto">
+                  {loading ? (
+                    <div className="col-span-full text-center text-neutral-400 py-8 text-base">Loading ticket types...</div>
+                  ) : filteredTicketTypes.length === 0 ? (
+                    <div className="col-span-full text-center text-neutral-400 py-8 text-base">No ticket types found</div>
+                  ) : (
+                    filteredTicketTypes.map((type) => (
+                      <Card
+                        key={type.ticketTypeId}
+                        hover={true}
+                        onClick={() => openViewPanel(type)}
+                        className={`p-4 cursor-pointer transition-all duration-200 h-full ${
+                          selectedTicketType?.ticketTypeId === type.ticketTypeId && showPanel
+                            ? 'bg-lime-500/20 border border-lime-500/30'
+                            : ''
+                        }`}
+                      >
+                        <div className="flex flex-col h-full">
+                          <div className="flex-1">
+                            <h4 className="text-white font-medium text-lg mb-2">
+                              {type.name || 'Unnamed Ticket Type'}
+                            </h4>
+                            <p className="text-neutral-400 text-base mb-2 line-clamp-2">
+                              {type.description}
+                            </p>
+                            <div className="flex items-center gap-2 mt-3 flex-wrap">
+                              <div className="bg-neutral-700 text-neutral-300 text-sm px-3 py-1 rounded-xl">
+                                {type.availableQuantity} available
+                              </div>
+                              <div className="bg-neutral-700 text-neutral-300 text-sm px-3 py-1 rounded-xl">
+                                Event: {events.find(e => e.id === type.eventId)?.name || type.eventId}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-center p-3 bg-neutral-800/50 rounded-xl">
-                            <div className="text-lime-400 text-lg font-semibold">{selectedTicketType.specialOfferIds?.length || 0}</div>
-                            <div className="text-neutral-400 text-xs">Special Offers</div>
+                          
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-neutral-800">
+                            <div className={`px-3 py-1 rounded-xl text-sm font-medium border ${getStatusColor(type.status)}`}>
+                              {formatTicketTypeStatus(type.status)}
+                            </div>
+                            <div className="flex gap-1">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditPanel(type);
+                                }}
+                                className="p-2 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTicketType(type.ticketTypeId);
+                                }}
+                                className="p-2 hover:bg-red-900/50 rounded-xl transition-all duration-200 text-neutral-400 hover:text-red-400"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex gap-2 pt-4">
-                        <button 
-                          onClick={() => openEditPanel(selectedTicketType)}
-                          className="flex-1 bg-lime-500 hover:bg-lime-600 text-black font-semibold px-3 py-2 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-sm"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Edit
-                        </button>
-                        <button className="border border-neutral-700 text-neutral-300 hover:text-white px-3 py-2 rounded-xl text-sm transition-all duration-200 hover:border-lime-500/30">
-                          Update Qty
-                        </button>
-                      </div>
-                    </div>
-                  )
-                )}
+                      </Card>
+                    ))
+                  )}
+                </div>
               </div>
-            </Card>
+
+              {/* Right Panel */}
+              {showPanel && (
+                <div className="w-1/3 transition-all duration-300 max-h-screen">
+                  <Card className="overflow-hidden h-full">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-white">{getPanelTitle()}</h3>
+                      <button
+                        onClick={closePanel}
+                        className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-white"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+                      {error && (
+                        <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
+                          <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4 text-red-400" />
+                            <span className="text-red-400 text-sm">{error}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {(panelMode === 'create' || panelMode === 'edit') ? (
+                        /* CREATE/EDIT FORM */
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-neutral-300">Name *</label>
+                              <input
+                                type="text"
+                                value={ticketTypeForm.name}
+                                onChange={(e) => setTicketTypeForm(prev => ({ ...prev, name: e.target.value }))}
+                                className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                                placeholder="Enter ticket type name"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-neutral-300">Available Quantity *</label>
+                              <input
+                                type="number"
+                                value={ticketTypeForm.availableQuantity}
+                                onChange={(e) => setTicketTypeForm(prev => ({ ...prev, availableQuantity: parseInt(e.target.value) || 0 }))}
+                                className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                                placeholder="0"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2 text-neutral-300">Description</label>
+                            <textarea
+                              value={ticketTypeForm.description}
+                              onChange={(e) => setTicketTypeForm(prev => ({ ...prev, description: e.target.value }))}
+                              className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                              placeholder="Enter description"
+                              rows={3}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-neutral-300">Status *</label>
+                              <select
+                                value={ticketTypeForm.status}
+                                onChange={(e) => setTicketTypeForm(prev => ({ ...prev, status: parseInt(e.target.value) as TicketTypeStatus }))}
+                                className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                              >
+                                <option value={0}>Active</option>
+                                <option value={1}>Inactive</option>
+                                <option value={3}>Coming Soon</option>
+                                <option value={4}>Suspended</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-neutral-300">Event *</label>
+                              <select
+                                value={ticketTypeForm.eventId}
+                                onChange={(e) => setTicketTypeForm(prev => ({ ...prev, eventId: parseInt(e.target.value) || 0 }))}
+                                className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                              >
+                                <option value={0}>Select Event</option>
+                                {events.map(event => (
+                                  <option key={event.id} value={event.id}>
+                                    {event.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2 text-neutral-300">Zone *</label>
+                            <select
+                              value={ticketTypeForm.zoneId}
+                              onChange={(e) => setTicketTypeForm(prev => ({ ...prev, zoneId: parseInt(e.target.value) || 0 }))}
+                              className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
+                            >
+                              <option value={0}>Select Zone</option>
+                              {zones.map(zone => (
+                                <option key={zone.zoneId} value={zone.zoneId}>
+                                  {zone.name} (Capacity: {zone.capacity})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="flex gap-3 pt-4">
+                            <button
+                              type="button"
+                              onClick={closePanel}
+                              className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={panelMode === 'create' ? handleCreateTicketType : handleUpdateTicketType}
+                              disabled={submitting}
+                              className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 disabled:bg-lime-500/50 rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
+                            >
+                              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                              {submitting ? (panelMode === 'create' ? 'Creating...' : 'Updating...') : (panelMode === 'create' ? 'Create' : 'Update')}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* VIEW MODE */
+                        selectedTicketType && (
+                          <div className="space-y-6">
+                            <div>
+                              <h4 className="text-white font-medium text-lg mb-2">
+                                {selectedTicketType.name || 'Unnamed Ticket Type'}
+                              </h4>
+                              {selectedTicketType.description && (
+                                <p className="text-neutral-400 text-base mb-4">
+                                  {selectedTicketType.description}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-neutral-300 text-base">Available Quantity</span>
+                                <span className="text-white text-base font-medium flex items-center">
+                                  <Target className="w-4 h-4 mr-2 text-lime-400" />
+                                  {selectedTicketType.availableQuantity}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <span className="text-neutral-300 text-base">Status</span>
+                                <span className="text-white text-base font-medium flex items-center">
+                                  {selectedTicketType.status === 0 ? (
+                                    <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
+                                  ) : selectedTicketType.status === 2 ? (
+                                    <XCircle className="w-4 h-4 mr-2 text-red-400" />
+                                  ) : (
+                                    <Clock className="w-4 h-4 mr-2 text-yellow-400" />
+                                  )}
+                                  {formatTicketTypeStatus(selectedTicketType.status)}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <span className="text-neutral-300 text-base">Zone ID</span>
+                                <span className="text-white text-base">{selectedTicketType.zoneId}</span>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <span className="text-neutral-300 text-base">Event</span>
+                                <span className="text-white text-base">
+                                  {events.find(e => e.id === selectedTicketType.eventId)?.name || `Event ${selectedTicketType.eventId}`}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-neutral-800">
+                              <h5 className="text-white text-base mb-3 flex items-center">
+                                <TrendingUp className="w-4 h-4 mr-2 text-lime-400" />
+                                Related Data
+                              </h5>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="text-center p-3 bg-neutral-800/50 rounded-xl">
+                                  <div className="text-lime-400 text-lg font-semibold">{selectedTicketType.ticketIds?.length || 0}</div>
+                                  <div className="text-neutral-400 text-xs">Tickets</div>
+                                </div>
+                                <div className="text-center p-3 bg-neutral-800/50 rounded-xl">
+                                  <div className="text-lime-400 text-lg font-semibold">{selectedTicketType.specialOfferIds?.length || 0}</div>
+                                  <div className="text-neutral-400 text-xs">Special Offers</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-4">
+                              <button 
+                                onClick={() => openEditPanel(selectedTicketType)}
+                                className="flex-1 bg-lime-500 hover:bg-lime-600 text-black font-semibold px-3 py-2 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-sm"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Edit
+                              </button>
+                              <button className="border border-neutral-700 text-neutral-300 hover:text-white px-3 py-2 rounded-xl text-sm transition-all duration-200 hover:border-lime-500/30">
+                                Update Qty
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
     </div>
   );
 };

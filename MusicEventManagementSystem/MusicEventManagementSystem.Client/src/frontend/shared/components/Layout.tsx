@@ -22,9 +22,7 @@ const Layout = ({ children }: LayoutProps) => {
 
         {/* Scrollable main content */}
         <main className="flex-1 overflow-y-auto p-3">
-          <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>

@@ -274,188 +274,190 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="text-white h-full flex flex-col p-4 m-1">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
-        <p className="text-neutral-400 text-sm">Overview of ticket sales and venue performance</p>
-      </div>
-
-      <div className="space-y-4">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <KpiCard
-            icon={DollarSign}
-            title="Daily Revenue"
-            value={`$${kpis?.dailyRevenue.toLocaleString() || '8,480'}`}
-            change={kpis?.revenueChange || 400}
-            changeType="percentage"
-          />
-
-          <KpiCard
-            icon={Users}
-            title="Total Sales"
-            value={kpis?.totalSales || '51'}
-            change={kpis?.salesChange || 100}
-            changeType="percentage"
-          />
-
-          <KpiCard
-            icon={Activity}
-            title="Avg Occupancy"
-            value={`${kpis?.avgOccupancy.toFixed(1) || '48.5'}%`}
-            change={kpis?.occupancyChange || -0.2}
-            changeType="percentage"
-          />
-
-          <KpiCard
-            icon={AlertTriangle}
-            title="Active Promotions"
-            value={kpis?.activePromotions || '6'}
-            change={kpis?.promotionsChange || 1}
-            changeType="value"
-          />
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+      <div className="text-white h-full flex flex-col p-4 m-1">
+        {/* Header */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
+          <p className="text-neutral-400 text-sm">Overview of ticket sales and venue performance</p>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-          
-          {/* Weekly Revenue Chart */}
-          <div className="xl:col-span-2">
-            <Card className="h-full pb-2">
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
-                <h3 className="text-xl font-semibold text-white">Weekly Revenue</h3>
-                <div className="text-lime-400 text-xl font-bold">
-                  ${revenueData.reduce((sum, day) => sum + day.revenue, 0).toLocaleString()}
-                </div>
-              </div>
-              <div className="h-80">
-                <ResponsiveContainer width="%" height="100%">
-                  <BarChart data={revenueData} barCategoryGap="15%" margin={{ top: 5, right: 20, left: -5, bottom: 5 }} >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                    <XAxis 
-                      dataKey="date" 
-                      stroke="#9ca3af"
-                      tick={{ fill: '#9ca3af', fontSize: 12 }}
-                    />
-                    <YAxis 
-                      stroke="#9ca3af"
-                      tick={{ fill: '#9ca3af', fontSize: 12 }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#171717', 
-                        border: '1px solid #404040',
-                        borderRadius: '12px',
-                        color: '#ffffff',
-                        fontSize: '14px'
-                      }} 
-                    />
-                    <Bar 
-                      dataKey="revenue" 
-                      fill="#84cc16" 
-                      radius={[6, 6, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
+        <div className="space-y-4">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <KpiCard
+              icon={DollarSign}
+              title="Daily Revenue"
+              value={`$${kpis?.dailyRevenue.toLocaleString() || '8,480'}`}
+              change={kpis?.revenueChange || 400}
+              changeType="percentage"
+            />
+
+            <KpiCard
+              icon={Users}
+              title="Total Sales"
+              value={kpis?.totalSales || '51'}
+              change={kpis?.salesChange || 100}
+              changeType="percentage"
+            />
+
+            <KpiCard
+              icon={Activity}
+              title="Avg Occupancy"
+              value={`${kpis?.avgOccupancy.toFixed(1) || '48.5'}%`}
+              change={kpis?.occupancyChange || -0.2}
+              changeType="percentage"
+            />
+
+            <KpiCard
+              icon={AlertTriangle}
+              title="Active Promotions"
+              value={kpis?.activePromotions || '6'}
+              change={kpis?.promotionsChange || 1}
+              changeType="value"
+            />
           </div>
 
-          {/* Ticket Status Overview */}
-          <div className="xl:col-span-1">
-            <Card className="h-full">
-              <div className="flex items-center justify-between border-b border-neutral-800 mb-3">
-                <h3 className="text-xl font-semibold text-white mb-3">Ticket Status Overview</h3>
-              </div>  
-              
-              {Object.keys(ticketStats).length > 0 ? (
-                <>
-                  <div className="space-y-3">
-                    {Object.entries(ticketStats).map(([status, count]) => {
-                      const total = Object.values(ticketStats).reduce((sum, val) => sum + val, 0);
-                      const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
-                      const statusName = status === '2' ? 'Sold' : 
-                                      status === '0' ? 'Available' : 
-                                      status === '1' ? 'Reserved' : 
-                                      status === '3' ? 'Used' : 
-                                      status === '4' ? 'Cancelled' : 
-                                      status === '5' ? 'Expired' : 'Refunded';
-                      
-                      const color = status === '2' ? '#84cc16' :
-                                  status === '0' ? '#22c55e' :
-                                  status === '1' ? '#f59e0b' :
-                                  status === '3' ? '#3b82f6' :
-                                  '#ef4444';
-
-                      return (
-                        <div key={status} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: color }}
-                            ></div>
-                            <span className="text-neutral-300 text-sm mb-1.5">{statusName}</span>
-                          </div>
-                          <div className="text-white text-sm font-medium">
-                            {count} <span className="text-neutral-400 text-xs">({percentage}%)</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+            
+            {/* Weekly Revenue Chart */}
+            <div className="xl:col-span-2">
+              <Card className="h-full pb-2">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
+                  <h3 className="text-xl font-semibold text-white">Weekly Revenue</h3>
+                  <div className="text-lime-400 text-xl font-bold">
+                    ${revenueData.reduce((sum, day) => sum + day.revenue, 0).toLocaleString()}
                   </div>
-                  <div className="mt-4 pt-4 border-t border-neutral-800">
-                    <div className="text-center">
-                      <div className="text-white text-lg font-semibold">
-                        Total: {Object.values(ticketStats).reduce((sum, val) => sum + val, 0)}
+                </div>
+                <div className="h-80">
+                  <ResponsiveContainer width="%" height="100%">
+                    <BarChart data={revenueData} barCategoryGap="15%" margin={{ top: 5, right: 20, left: -5, bottom: 5 }} >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="#9ca3af"
+                        tick={{ fill: '#9ca3af', fontSize: 12 }}
+                      />
+                      <YAxis 
+                        stroke="#9ca3af"
+                        tick={{ fill: '#9ca3af', fontSize: 12 }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#171717', 
+                          border: '1px solid #404040',
+                          borderRadius: '12px',
+                          color: '#ffffff',
+                          fontSize: '14px'
+                        }} 
+                      />
+                      <Bar 
+                        dataKey="revenue" 
+                        fill="#84cc16" 
+                        radius={[6, 6, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+            </div>
+
+            {/* Ticket Status Overview */}
+            <div className="xl:col-span-1">
+              <Card className="h-full">
+                <div className="flex items-center justify-between border-b border-neutral-800 mb-3">
+                  <h3 className="text-xl font-semibold text-white mb-3">Ticket Status Overview</h3>
+                </div>  
+                
+                {Object.keys(ticketStats).length > 0 ? (
+                  <>
+                    <div className="space-y-3">
+                      {Object.entries(ticketStats).map(([status, count]) => {
+                        const total = Object.values(ticketStats).reduce((sum, val) => sum + val, 0);
+                        const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
+                        const statusName = status === '2' ? 'Sold' : 
+                                        status === '0' ? 'Available' : 
+                                        status === '1' ? 'Reserved' : 
+                                        status === '3' ? 'Used' : 
+                                        status === '4' ? 'Cancelled' : 
+                                        status === '5' ? 'Expired' : 'Refunded';
+                        
+                        const color = status === '2' ? '#84cc16' :
+                                    status === '0' ? '#22c55e' :
+                                    status === '1' ? '#f59e0b' :
+                                    status === '3' ? '#3b82f6' :
+                                    '#ef4444';
+
+                        return (
+                          <div key={status} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: color }}
+                              ></div>
+                              <span className="text-neutral-300 text-sm mb-1.5">{statusName}</span>
+                            </div>
+                            <div className="text-white text-sm font-medium">
+                              {count} <span className="text-neutral-400 text-xs">({percentage}%)</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-neutral-800">
+                      <div className="text-center">
+                        <div className="text-white text-lg font-semibold">
+                          Total: {Object.values(ticketStats).reduce((sum, val) => sum + val, 0)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center text-neutral-400 py-8">
-                  <Activity size={32} className="mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No ticket data available</p>
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* System Alerts */}
-          <div className="xl:col-span-1">
-            <Card className="h-full overflow-hidden">
-              <div className="flex items-center justify-between border-b border-neutral-800 mb-3">
-                <h3 className="text-xl font-semibold text-white mb-3 w-full">System Alerts</h3>
-              </div>  
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {alerts.length > 0 ? alerts.map((alert) => (
-                  <div key={alert.id} className={`p-3 rounded-xl border ${
-                    alert.type === 'error' ? 'bg-red-950/50 border-red-900' :
-                    alert.type === 'warning' ? 'bg-yellow-950/50 border-yellow-900' :
-                    'bg-blue-950/50 border-blue-900'
-                  }`}>
-                    <div className="flex items-center gap-3">
-                      <AlertTriangle size={16} className={
-                        alert.type === 'error' ? 'text-red-400' :
-                        alert.type === 'warning' ? 'text-yellow-400' :
-                        'text-blue-400'
-                      } />
-                      <div className="text-white text-sm">{alert.message}</div>
-                    </div>
-                    <div className="text-neutral-400 text-xs mt-2">{alert.time}</div>
-                  </div>
-                )) : (
+                  </>
+                ) : (
                   <div className="text-center text-neutral-400 py-8">
-                    <AlertTriangle size={32} className="mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">No alerts at this time</p>
+                    <Activity size={32} className="mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No ticket data available</p>
                   </div>
                 )}
-              </div>
-            </Card>
+              </Card>
+            </div>
+
+            {/* System Alerts */}
+            <div className="xl:col-span-1">
+              <Card className="h-full overflow-hidden">
+                <div className="flex items-center justify-between border-b border-neutral-800 mb-3">
+                  <h3 className="text-xl font-semibold text-white mb-3 w-full">System Alerts</h3>
+                </div>  
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {alerts.length > 0 ? alerts.map((alert) => (
+                    <div key={alert.id} className={`p-3 rounded-xl border ${
+                      alert.type === 'error' ? 'bg-red-950/50 border-red-900' :
+                      alert.type === 'warning' ? 'bg-yellow-950/50 border-yellow-900' :
+                      'bg-blue-950/50 border-blue-900'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle size={16} className={
+                          alert.type === 'error' ? 'text-red-400' :
+                          alert.type === 'warning' ? 'text-yellow-400' :
+                          'text-blue-400'
+                        } />
+                        <div className="text-white text-sm">{alert.message}</div>
+                      </div>
+                      <div className="text-neutral-400 text-xs mt-2">{alert.time}</div>
+                    </div>
+                  )) : (
+                    <div className="text-center text-neutral-400 py-8">
+                      <AlertTriangle size={32} className="mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">No alerts at this time</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </div> 
   );
 };
 
