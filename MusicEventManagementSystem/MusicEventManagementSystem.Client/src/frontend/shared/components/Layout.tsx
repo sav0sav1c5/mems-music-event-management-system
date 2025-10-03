@@ -1,5 +1,5 @@
-import Sidebar from "./SideBar";
-import Topbar from "./TopBar";
+import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 import BottomBar from "./BottomBar";
 import { useState, useEffect } from "react";
 
