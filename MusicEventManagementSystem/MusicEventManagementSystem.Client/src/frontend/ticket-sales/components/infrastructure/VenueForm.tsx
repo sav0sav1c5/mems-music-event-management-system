@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Card } from '../card';
-import { CustomSelect } from '../customSelect';
+import { Card } from '../ui/card';
+import { CustomSelect } from '../ui/customSelect';
 import VenueService from '../../services/venueService';
 import type { VenueResponse } from '../../types/api/venue';
 import type { EventResponse } from '../../../event-organization/types/api/event';
 import type { VenueCreateForm, VenueUpdateForm } from '../../types/forms/venue';
 import { VenueType } from '../../types/enums/TicketSales';
-import { showToast } from '../toast';
+import { showToast } from '../ui/toast';
 
 interface VenueFormProps {
   venue?: VenueResponse | null;

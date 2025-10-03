@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Edit, X, Users } from 'lucide-react';
-import { Card } from '../card';
-import { CustomSelect } from '../customSelect';
+import { Card } from '../ui/card';
+import { CustomSelect } from '../ui/customSelect';
 import SegmentService from '../../services/segmentService';
 import type { SegmentResponse } from '../../types/api/segment';
 import type { SegmentCreateForm } from '../../types/forms/segment';

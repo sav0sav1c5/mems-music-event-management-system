@@ -15,7 +15,7 @@ import { SpecialOfferService } from '../services/specialOfferService';
 import { TransactionStatus, TicketStatus } from '../types/enums/TicketSales';
 
 // Import Card components
-import { Card, KpiCard } from '../components/card';
+import { Card, KpiCard } from '../components/ui/card';
 
 // Dashboard data interfaces
 interface DashboardKPIs {

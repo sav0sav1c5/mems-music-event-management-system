@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Filter, Calendar, MapPin, Ticket, X, Clock, Users, Tag } from "lucide-react";
 import { EventService } from "../../event-organization/services/eventService";
 import type { EventResponse } from "../../event-organization/types/api/event";
-import { Card } from "../../ticket-sales/components/card";
+import { Card } from "../../ticket-sales/components/ui/card";
 import { TicketTypeService } from "../../ticket-sales/services/ticketTypeService";
 import type { TicketTypeResponse } from "../../ticket-sales/types/api/ticketType";
 import { ZoneService } from "../../ticket-sales/services/zoneService";

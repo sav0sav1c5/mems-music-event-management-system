@@ -12,8 +12,9 @@ import type { TicketResponse } from '../types/api/ticket';
 import type { RecordedSaleResponse } from '../types/api/recordedSale';
 import type { SpecialOfferResponse } from '../types/api/specialOffer';
 import type { VenueResponse } from '../types/api/venue';
-import { Card, KpiCard } from '../components/card';
-import { CustomSelect } from '../components/customSelect';
+import { Card, KpiCard } from '../components/ui/card';
+import { CustomSelect } from '../components/ui/customSelect';
+import { CustomDatePicker } from '../components/ui/customDatePicker';
 
 // Type definitions for analytics data
 interface RevenueDataPoint {
@@ -430,27 +431,21 @@ const Analytics = () => {
                 {/* Search and Filter - INTEGRATED IN HEADER LIKE OTHER PAGES */}
                 <div className="flex items-center gap-3 flex-1 justify-end">
                   <div className="min-w-0 flex-1 max-w-60">
-                    <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-                      <input
-                        type="date"
-                        value={dateRange.from.toISOString().split('T')[0]}
-                        onChange={(e) => setDateRange({...dateRange, from: new Date(e.target.value)})}
-                        className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
-                      />
-                    </div>
+                    <CustomDatePicker
+                      value={dateRange.from.toISOString().split('T')[0]}
+                      onChange={(value) => setDateRange({...dateRange, from: new Date(value)})}
+                      placeholder="Start date"
+                      className="w-full"
+                    />
                   </div>
-                  
+
                   <div className="min-w-0 flex-1 max-w-60">
-                    <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-                      <input
-                        type="date"
-                        value={dateRange.to.toISOString().split('T')[0]}
-                        onChange={(e) => setDateRange({...dateRange, to: new Date(e.target.value)})}
-                        className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
-                      />
-                    </div>
+                    <CustomDatePicker
+                      value={dateRange.to.toISOString().split('T')[0]}
+                      onChange={(value) => setDateRange({...dateRange, to: new Date(value)})}
+                      placeholder="End date"
+                      className="w-full"
+                    />
                   </div>
 
                   <div className="min-w-0 flex-1 max-w-40">

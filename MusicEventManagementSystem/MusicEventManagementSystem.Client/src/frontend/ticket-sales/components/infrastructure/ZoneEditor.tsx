@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Edit, X, MapPin } from 'lucide-react';
-import { Card } from '../card';
-import { CustomSelect } from '../customSelect';
+import { Card } from '../ui/card';
+import { CustomSelect } from '../ui/customSelect';
 import ZoneService from '../../services/zoneService';
 import type { ZoneResponse } from '../../types/api/zone';
 import type { SegmentResponse } from '../../types/api/segment';

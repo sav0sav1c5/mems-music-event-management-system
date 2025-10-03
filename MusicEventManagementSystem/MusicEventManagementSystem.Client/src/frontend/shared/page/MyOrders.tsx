@@ -1,7 +1,7 @@
 // MyOrders.tsx - Client verzija
 import { useState } from "react";
 import { Calendar, MapPin, Ticket, Download, Eye, QrCode, Clock, CheckCircle, XCircle } from "lucide-react";
-import { Card } from "../../ticket-sales/components/card";
+import { Card } from "../../ticket-sales/components/ui/card";
 
 interface Order {
   id: string;

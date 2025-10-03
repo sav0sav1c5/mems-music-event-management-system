@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Trash2, Plus, Minus, ShoppingCart, Calendar, MapPin, Ticket, CreditCard, AlertCircle, ArrowLeft } from "lucide-react";
-import { Card } from "../../ticket-sales/components/card";
+import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 interface CartItem {

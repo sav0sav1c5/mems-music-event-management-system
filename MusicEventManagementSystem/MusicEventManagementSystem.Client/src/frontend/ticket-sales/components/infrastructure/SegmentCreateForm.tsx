@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CustomSelect } from '../customSelect';
+import { CustomSelect } from '../ui/customSelect';
 import SegmentService from '../../services/segmentService';
 import type { SegmentResponse } from '../../types/api/segment';
 import type { SegmentCreateForm as SegmentFormType } from '../../types/forms/segment';

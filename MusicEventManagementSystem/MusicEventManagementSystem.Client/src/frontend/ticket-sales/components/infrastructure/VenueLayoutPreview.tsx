@@ -1,5 +1,5 @@
 import { MapPin } from 'lucide-react';
-import { Card } from '../card';
+import { Card } from '../ui/card';
 import type { VenueResponse } from '../../types/api/venue';
 import type { SegmentResponse } from '../../types/api/segment';
 import type { ZoneResponse } from '../../types/api/zone';

@@ -10,7 +10,7 @@ import type { VenueResponse } from '../types/api/venue';
 import type { EventResponse } from '../../event-organization/types/api/event';
 
 // Import komponenti
-import { CustomSelect } from '../components/customSelect';
+import { CustomSelect } from '../components/ui/customSelect';
 import VenueList from '../components/infrastructure/VenueList';
 import VenueForm from '../components/infrastructure/VenueForm';
 import VenueDetailView from '../components/infrastructure/VenueDetailView';

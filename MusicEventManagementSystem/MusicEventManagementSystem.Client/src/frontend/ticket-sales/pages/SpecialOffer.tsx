@@ -1,11 +1,11 @@
-import { Card, KpiCard } from '../components/card';
+import { Card, KpiCard } from '../components/ui/card';
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Gift, Percent, Tag, Clock, Users, Target, CheckCircle, XCircle, X, Save, Loader2, Search, Filter, RefreshCw } from 'lucide-react';
 import { SpecialOfferService } from '../services/specialOfferService';
 import type { SpecialOfferResponse, OfferType } from '../types';
 import type { SpecialOfferCreateForm, SpecialOfferUpdateForm } from '../types/forms/specialOffer';
-import { CustomSelect } from '../components/customSelect';
-import type { CustomSelectOption } from '../components/customSelect';
+import { CustomSelect } from '../components/ui/customSelect';
+import type { CustomSelectOption } from '../components/ui/customSelect';
 import { toast } from 'react-toastify';
 
 const formatOfferType = (offerType: OfferType): string => {
@@ -465,21 +465,33 @@ const SpecialOffers = () => {
                                 </div>
                               )}
                               
-                              <div className="flex items-center">
-                                <Percent className="w-5 h-5 mr-2 text-neutral-400" />
-                                <span className="text-base">Discount: <span className="text-lime-400 font-medium">{offer.discountValue}%</span></span>
+                              {/* Discount Value */}
+                              <div className="flex items-start gap-3">
+                                <Percent className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-lime-400 text-sm font-medium block">{offer.discountValue}% Discount</span>
+                                  <span className="text-neutral-400 text-xs">Discount Value</span>
+                                </div>
                               </div>
                               
-                              <div className="flex items-center">
-                                <Users className="w-5 h-5 mr-2 text-neutral-400" />
-                                <span className="text-base">Ticket Limit: {offer.ticketLimit.toLocaleString()}</span>
+                              {/* Ticket Limit */}
+                              <div className="flex items-start gap-3">
+                                <Users className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-white text-sm font-medium block">{offer.ticketLimit.toLocaleString()} tickets</span>
+                                  <span className="text-neutral-400 text-xs">Ticket Limit</span>
+                                </div>
                               </div>
                               
-                              <div className="flex items-center">
-                                <Clock className="w-5 h-5 mr-2 text-neutral-400" />
-                                <span className="text-base">
-                                  {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
-                                </span>
+                              {/* Date Range */}
+                              <div className="flex items-start gap-3">
+                                <Clock className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-white text-sm font-medium block">
+                                    {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
+                                  </span>
+                                  <span className="text-neutral-400 text-xs">Valid Period</span>
+                                </div>
                               </div>
                             </div>
                           </Card>

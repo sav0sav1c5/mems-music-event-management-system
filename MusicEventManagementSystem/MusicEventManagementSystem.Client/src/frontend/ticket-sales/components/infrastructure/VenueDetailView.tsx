@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Eye, Users } from 'lucide-react';
-import { Card } from '../card';
+import { Card } from '../ui/card';
 import SegmentService from '../../services/segmentService';
 import ZoneService from '../../services/zoneService';
 import type { VenueResponse } from '../../types/api/venue';

@@ -1,7 +1,7 @@
 // Checkout.tsx - Client verzija
 import { useState } from "react";
 import { CreditCard, User, Lock, Ticket, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
-import { Card } from "../../ticket-sales/components/card";
+import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 interface OrderSummary {
