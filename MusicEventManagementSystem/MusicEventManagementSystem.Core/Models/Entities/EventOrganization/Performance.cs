@@ -13,7 +13,7 @@ namespace MusicEventManagementSystem.Core.Models.Entities.EventOrganization
         public int PerformerId { get; set; }
         public Performer Performer { get; set; } = null!;
 
-        public int VenueId { get; set; }
+        public int? VenueId { get; set; }
         public Venue Venue { get; set; } = null!;
 
 

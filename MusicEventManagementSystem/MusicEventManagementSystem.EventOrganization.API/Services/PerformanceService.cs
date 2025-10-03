@@ -113,7 +113,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Services
             {
                 Id = performance.Id,
                 PerformerId = performance.PerformerId,
-                VenueId = performance.VenueId,
+                VenueId = performance.VenueId ?? 0,
                 StartTime = performance.StartTime,
                 EndTime = performance.EndTime,
                 SetupTime = performance.SetupTime,

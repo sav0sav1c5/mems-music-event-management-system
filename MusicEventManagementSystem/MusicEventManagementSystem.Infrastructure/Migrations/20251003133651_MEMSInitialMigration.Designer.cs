@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MusicEventManagementSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250929200038_MEMSInitialMigration")]
+    [Migration("20251003133651_MEMSInitialMigration")]
     partial class MEMSInitialMigration
     {
         /// <inheritdoc />
@@ -405,7 +405,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VenueId")
+                    b.Property<int?>("VenueId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -1547,8 +1547,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.HasOne("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Venue", "Venue")
                         .WithMany("Performances")
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Performer");
 

@@ -6,7 +6,7 @@ import ProtectedRoute from "./frontend/shared/components/ProtectedRoute";
 
 // Ticket Sales imports
 import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
-import TicketSalesInfrastructure from "./frontend/ticket-sales/pages/Infrastructure";
+import TicketSalesInfrastructure from "./frontend/ticket-sales/components/ui/Infrastructure";
 import TicketSalesPerformances from './frontend/ticket-sales/pages/Performances';
 import TicketSalesTicketTypes from "./frontend/ticket-sales/pages/TicketTypes";
 import TicketSalesSpecialOffers from "./frontend/ticket-sales/pages/SpecialOffer";

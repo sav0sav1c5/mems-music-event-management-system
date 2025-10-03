@@ -21,10 +21,12 @@ export function CustomSelect({
   options, 
   placeholder = 'Select...', 
   className = '',
-  icon // Nova prop
+  icon
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
   const selectRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selectedOption = options.find(opt => opt.value === value);
 
@@ -39,33 +41,66 @@ export function CustomSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const calculateDropdownDirection = () => {
+    if (!buttonRef.current) return 'down';
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+    const estimatedDropdownHeight = Math.min(options.length * 48, 300); // ~48px po opciji, max 300px
+    
+    return spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow ? 'up' : 'down';
+  };
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      setDropdownDirection(calculateDropdownDirection());
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleOptionClick = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+  };
+
   return (
     <div ref={selectRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full px-4 py-2 bg-neutral-800 text-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 border border-neutral-700 focus:border-lime-500 transition-all duration-200 hover:bg-neutral-750"
+        onClick={handleToggle}
+        className="flex items-center justify-between w-full px-4 py-3 bg-neutral-800 text-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 border border-neutral-700 focus:border-lime-500 transition-all duration-200 hover:bg-neutral-750 text-sm"
       >
         <div className="flex items-center gap-2">
           {icon && <span className="flex-shrink-0">{icon}</span>}
-          <span>{selectedOption?.label || placeholder}</span>
+          <span className="truncate">{selectedOption?.label || placeholder}</span>
         </div>
         <ChevronDown 
-          className={`w-5 h-5 text-lime-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-lime-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-xl overflow-hidden shadow-xl">
+        <div 
+          className={`
+            absolute z-50 w-full overflow-hidden bg-neutral-800 border border-neutral-700 rounded-xl shadow-xl
+            ${dropdownDirection === 'up' 
+              ? 'bottom-full mb-2' 
+              : 'top-full mt-2'
+            }
+          `}
+          style={{
+            maxHeight: '300px',
+            overflowY: 'auto'
+          }}
+        >
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className={`w-full text-left px-4 py-3 transition-colors duration-150 ${
+              onClick={() => handleOptionClick(option.value)}
+              className={`w-full text-left px-4 py-3 transition-colors duration-150 border-b border-neutral-700 last:border-b-0 ${
                 option.value === value
                   ? 'bg-lime-500 text-neutral-900 font-medium'
                   : 'text-neutral-300 hover:bg-neutral-700'

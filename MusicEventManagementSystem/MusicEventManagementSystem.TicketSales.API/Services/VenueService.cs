@@ -129,7 +129,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
             {
                 Id = p.Id,
                 PerformerId = p.PerformerId,
-                VenueId = p.VenueId,
+                VenueId = p.VenueId ?? 0,
                 StartTime = p.StartTime,
                 EndTime = p.EndTime,
                 SetupTime = p.SetupTime,

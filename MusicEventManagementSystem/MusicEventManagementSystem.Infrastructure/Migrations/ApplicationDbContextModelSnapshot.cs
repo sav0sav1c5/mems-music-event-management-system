@@ -402,7 +402,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VenueId")
+                    b.Property<int?>("VenueId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -1544,8 +1544,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     b.HasOne("MusicEventManagementSystem.Core.Models.Entities.TicketSales.Venue", "Venue")
                         .WithMany("Performances")
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Performer");
 
