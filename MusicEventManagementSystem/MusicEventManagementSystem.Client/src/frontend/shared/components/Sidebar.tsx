@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   LogOut, BarChart3, BarChart2, Music, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, 
-  PlaySquare, ListChecks, FileText, CalendarDays, Briefcase, Building2, Home, ShoppingCart, CreditCard,
+  PlaySquare, ListChecks, FileText, CalendarDays, Briefcase, Building2, ShoppingCart, CreditCard,
   Percent, Settings
 } from "lucide-react";
 
-const Sidebar = () => {
+const SideBar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [activeItem, setActiveItem] = useState(0);
   const [userDepartment, setUserDepartment] = useState<number>(1);
@@ -239,4 +239,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SideBar;

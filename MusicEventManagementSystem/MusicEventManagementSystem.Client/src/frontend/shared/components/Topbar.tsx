@@ -1,6 +1,6 @@
 import { Bell, Search } from "lucide-react";
 
-const Topbar = () => {
+const TopBar = () => {
   // Get user from localStorage
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -105,4 +105,4 @@ const Topbar = () => {
   );
 };
 
-export default Topbar;
+export default TopBar;
