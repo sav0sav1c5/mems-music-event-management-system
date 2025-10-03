@@ -28,7 +28,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedDepart
         case 4: // MediaCampaign
           return <Navigate to="/media-campaign/dashboard" replace />;
         case 5: // MEMS Client
-          return <Navigate to="/client/dashboard" replace />;
+          return <Navigate to="/client/browse-events" replace />;
         default:
           return <Navigate to="/login" replace />;
       }

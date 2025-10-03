@@ -61,7 +61,7 @@ const Login = () => {
       case 4: // MediaCampaign
         return '/media-campaign/dashboard';
       case 5: // MEMS Client
-        return '/client/dashboard';
+        return '/client/browse-events';
       default:
         return '/dashboard';
     }

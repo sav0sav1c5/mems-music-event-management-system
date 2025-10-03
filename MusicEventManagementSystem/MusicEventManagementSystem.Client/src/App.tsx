@@ -23,7 +23,6 @@ import MediaCampaignDashboard from "./frontend/media-campaign/pages/Dashboard";
 import ArtistCommunicationDashboard from "./frontend/performer-communication/pages/Dashboard";
 
 // MEMS Client imports
-import ClientDashboard from "../src/frontend/shared/page/Dashboard";
 import ClientEvents from "../src/frontend/shared/page/Events";
 import ClientMyCart from "../src/frontend/shared/page/MyCart";
 import ClientCheckout from "../src/frontend/shared/page/Checkout";
@@ -186,17 +185,7 @@ function App() {
         />
 
         {/* Protected routes - MEMS Client*/}
-        <Route path="/client/dashboard" 
-          element={
-            <ProtectedRoute allowedDepartments={[5]}>
-              <Layout>
-                <ClientDashboard />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route path="/client/events" 
+        <Route path="/client/browse-events" 
           element={
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
