@@ -17,26 +17,14 @@ namespace MusicEventManagementSystem.API.Controllers
             _orderService = orderService;
         }
 
-        private string GetUserId()
-        {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                   throw new UnauthorizedAccessException("User not authenticated");
-        }
-
-        [HttpPost("checkout")]
-        public async Task<ActionResult<CheckoutResponseDto>> Checkout([FromBody] CheckoutRequestDto checkoutRequest)
+        [HttpPost("{userId}/checkout")]
+        public async Task<ActionResult<CheckoutResponseDto>> Checkout(string userId, [FromBody] CheckoutRequestDto checkoutRequest)
         {
             try
             {
-                var userId = GetUserId();
                 checkoutRequest.ApplicationUserId = userId;
-
                 var result = await _orderService.CheckoutAsync(userId, checkoutRequest);
                 return Ok(result);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
             }
             catch (InvalidOperationException ex)
             {
@@ -48,18 +36,13 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDto>>> GetUserOrders()
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<IEnumerable<OrderDto>>> GetUserOrders(string userId)
         {
             try
             {
-                var userId = GetUserId();
                 var orders = await _orderService.GetUserOrdersAsync(userId);
                 return Ok(orders);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
             }
             catch (Exception ex)
             {
@@ -67,12 +50,11 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
-        [HttpGet("{orderId}")]
-        public async Task<ActionResult<OrderDetailsDto>> GetOrderDetails(int orderId)
+        [HttpGet("{userId}/{orderId}")]
+        public async Task<ActionResult<OrderDetailsDto>> GetOrderDetails(string userId, int orderId)
         {
             try
             {
-                var userId = GetUserId();
                 var orderDetails = await _orderService.GetOrderDetailsAsync(orderId, userId);
                 if (orderDetails == null)
                 {
@@ -80,22 +62,17 @@ namespace MusicEventManagementSystem.API.Controllers
                 }
                 return Ok(orderDetails);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpPost("{orderId}/cancel")]
-        public async Task<ActionResult> CancelOrder(int orderId)
+        [HttpPost("{userId}/{orderId}/cancel")]
+        public async Task<ActionResult> CancelOrder(string userId, int orderId)
         {
             try
             {
-                var userId = GetUserId();
                 var result = await _orderService.CancelOrderAsync(orderId, userId);
                 if (result)
                 {
@@ -103,22 +80,17 @@ namespace MusicEventManagementSystem.API.Controllers
                 }
                 return BadRequest("Unable to cancel order");
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpGet("tickets/{ticketId}")]
-        public async Task<ActionResult<OrderTicketDto>> GetTicketDetails(int ticketId)
+        [HttpGet("{userId}/tickets/{ticketId}")]
+        public async Task<ActionResult<OrderTicketDto>> GetTicketDetails(string userId, int ticketId)
         {
             try
             {
-                var userId = GetUserId();
                 var ticket = await _orderService.GetTicketDetailsAsync(ticketId, userId);
                 if (ticket == null)
                 {
@@ -126,22 +98,17 @@ namespace MusicEventManagementSystem.API.Controllers
                 }
                 return Ok(ticket);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpGet("tickets/{ticketId}/pdf")]
-        public async Task<ActionResult> GenerateTicketPdf(int ticketId)
+        [HttpGet("{userId}/tickets/{ticketId}/pdf")]
+        public async Task<ActionResult> GenerateTicketPdf(string userId, int ticketId)
         {
             try
             {
-                var userId = GetUserId();
                 var pdfBytes = await _orderService.GenerateTicketPdfAsync(ticketId, userId);
 
                 if (pdfBytes == null || pdfBytes.Length == 0)
@@ -150,10 +117,6 @@ namespace MusicEventManagementSystem.API.Controllers
                 }
 
                 return File(pdfBytes, "application/pdf", $"ticket-{ticketId}.pdf");
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
             }
             catch (InvalidOperationException ex)
             {

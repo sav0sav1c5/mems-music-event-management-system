@@ -48,7 +48,10 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<ClientEventDto>>> SearchEvents([FromQuery] string? keyword, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        public async Task<ActionResult<IEnumerable<ClientEventDto>>> SearchEvents(
+            [FromQuery] string? keyword,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate)
         {
             try
             {

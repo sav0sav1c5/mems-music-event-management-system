@@ -49,7 +49,9 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<PerformerInfoDto>>> SearchPerformers([FromQuery] string? keyword, [FromQuery] string? genre)
+        public async Task<ActionResult<IEnumerable<PerformerInfoDto>>> SearchPerformers(
+            [FromQuery] string? keyword,
+            [FromQuery] string? genre)
         {
             try
             {

@@ -17,94 +17,67 @@ namespace MusicEventManagementSystem.API.Controllers
             _cartService = cartService;
         }
 
-        private string GetUserId()
-        {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                   throw new UnauthorizedAccessException("User not authenticated");
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<CartDto>> GetCart()
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<CartDto>> GetCart(string userId)
         {
             try
             {
-                var userId = GetUserId();
                 var cart = await _cartService.GetCartAsync(userId);
                 return Ok(cart);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpPost("add")]
-        public async Task<ActionResult<CartDto>> AddToCart([FromBody] AddToCartDto addToCartDto)
+        [HttpPost("{userId}/add")]
+        public async Task<ActionResult<CartDto>> AddToCart(string userId, [FromBody] AddToCartDto addToCartDto)
         {
             try
             {
-                var userId = GetUserId();
                 var cart = await _cartService.AddToCartAsync(userId, addToCartDto);
                 return Ok(cart);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpPut("update")]
-        public async Task<ActionResult<CartDto>> UpdateCartItem([FromBody] UpdateCartItemDto updateDto)
+        [HttpPut("{userId}/update")]
+        public async Task<ActionResult<CartDto>> UpdateCartItem(string userId, [FromBody] UpdateCartItemDto updateDto)
         {
             try
             {
-                var userId = GetUserId();
                 var cart = await _cartService.UpdateCartItemAsync(userId, updateDto);
                 return Ok(cart);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpDelete("remove/{ticketTypeId}")]
-        public async Task<ActionResult<CartDto>> RemoveFromCart(int ticketTypeId)
+        [HttpDelete("{userId}/remove/{ticketTypeId}")]
+        public async Task<ActionResult<CartDto>> RemoveFromCart(string userId, int ticketTypeId)
         {
             try
             {
-                var userId = GetUserId();
                 var cart = await _cartService.RemoveFromCartAsync(userId, ticketTypeId);
                 return Ok(cart);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpPost("clear")]
-        public async Task<ActionResult> ClearCart()
+        [HttpPost("{userId}/clear")]
+        public async Task<ActionResult> ClearCart(string userId)
         {
             try
             {
-                var userId = GetUserId();
                 var result = await _cartService.ClearCartAsync(userId);
                 if (result)
                 {
@@ -112,47 +85,33 @@ namespace MusicEventManagementSystem.API.Controllers
                 }
                 return BadRequest("Failed to clear cart");
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpGet("total")]
-        public async Task<ActionResult<decimal>> GetCartTotal()
+        [HttpGet("{userId}/total")]
+        public async Task<ActionResult<decimal>> GetCartTotal(string userId)
         {
             try
             {
-                var userId = GetUserId();
                 var total = await _cartService.CalculateCartTotalAsync(userId);
                 return Ok(total);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [HttpGet("validate")]
-        public async Task<ActionResult<bool>> ValidateCart()
+        [HttpGet("{userId}/validate")]
+        public async Task<ActionResult<bool>> ValidateCart(string userId)
         {
             try
             {
-                var userId = GetUserId();
                 var isValid = await _cartService.ValidateCartAsync(userId);
                 return Ok(isValid);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized();
             }
             catch (Exception ex)
             {
