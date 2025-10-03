@@ -65,5 +65,10 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
         {
             return await _context.TicketTypes.Where(tt => tt.EventId == eventId).SumAsync(tt => tt.AvailableQuantity);
         }
+
+        public async Task<IEnumerable<TicketType>> GetByIdsAsync(List<int> ids)
+        {
+            return await _context.TicketTypes.Include(tt => tt.Zone).Include(tt => tt.Event).Include(tt => tt.Tickets).Include(tt => tt.SpecialOffers).Include(tt => tt.PricingRules).Where(tt => ids.Contains(tt.TicketTypeId)).ToListAsync();
+        }
     }
 }

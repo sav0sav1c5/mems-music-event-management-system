@@ -6,7 +6,7 @@ import ProtectedRoute from "./frontend/shared/components/ProtectedRoute";
 
 // Ticket Sales imports
 import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
-import TicketSalesInfrastructure from "./frontend/ticket-sales/components/ui/Infrastructure";
+import TicketSalesInfrastructure from "./frontend/ticket-sales/pages/Infratructure";
 import TicketSalesPerformances from './frontend/ticket-sales/pages/Performances';
 import TicketSalesTicketTypes from "./frontend/ticket-sales/pages/TicketTypes";
 import TicketSalesSpecialOffers from "./frontend/ticket-sales/pages/SpecialOffer";
@@ -31,6 +31,23 @@ import ClientOrders from "../src/frontend/shared/page/MyOrders";
 // Add these imports for react-toastify
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+<ToastContainer 
+  position="top-right"
+  autoClose={3000}
+  hideProgressBar={false}
+  newestOnTop={true}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+  theme="dark"
+  style={{
+    top: '1rem',
+    right: '1rem',
+  }}
+/>
 
 // Helper function to get user's department
 const getUserDepartment = (): number | null => {

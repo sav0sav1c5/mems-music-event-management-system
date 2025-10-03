@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { Calendar, Download, Filter, TrendingUp, DollarSign, Ticket, MapPin, Gift, RefreshCw } from 'lucide-react';
+import { Users, Calendar, Download, Filter, TrendingUp, DollarSign, Ticket, MapPin, Gift, RefreshCw, Search, XCircle, AlertCircle } from 'lucide-react';
 
 // Import services
 import { TicketService } from '../services/ticketService';
@@ -13,6 +13,7 @@ import type { RecordedSaleResponse } from '../types/api/recordedSale';
 import type { SpecialOfferResponse } from '../types/api/specialOffer';
 import type { VenueResponse } from '../types/api/venue';
 import { Card, KpiCard } from '../components/card';
+import { CustomSelect } from '../components/customSelect';
 
 // Type definitions for analytics data
 interface RevenueDataPoint {
@@ -66,19 +67,19 @@ interface DashboardKPIs {
   capacityUtilization: number;
 }
 
-  const getPaymentMethodName = (method: PaymentMethod): string => {
-    switch (method) {
-      case PaymentMethod.CreditCard: return 'Credit Card';
-      case PaymentMethod.DebitCard: return 'Debit Card';
-      case PaymentMethod.Cash: return 'Cash';
-      case PaymentMethod.BankTransfer: return 'Bank Transfer';
-      case PaymentMethod.PayPal: return 'PayPal';
-      case PaymentMethod.ApplePay: return 'Apple Pay';
-      case PaymentMethod.GooglePay: return 'Google Pay';
-      case PaymentMethod.Cryptocurrency: return 'Cryptocurrency';
-      default: return 'Unknown';
-    }
-  };
+const getPaymentMethodName = (method: PaymentMethod): string => {
+  switch (method) {
+    case PaymentMethod.CreditCard: return 'Credit Card';
+    case PaymentMethod.DebitCard: return 'Debit Card';
+    case PaymentMethod.Cash: return 'Cash';
+    case PaymentMethod.BankTransfer: return 'Bank Transfer';
+    case PaymentMethod.PayPal: return 'PayPal';
+    case PaymentMethod.ApplePay: return 'Apple Pay';
+    case PaymentMethod.GooglePay: return 'Google Pay';
+    case PaymentMethod.Cryptocurrency: return 'Cryptocurrency';
+    default: return 'Unknown';
+  }
+};
 
 const getTicketStatusName = (status: TicketStatus): string => {
   switch (status) {
@@ -115,6 +116,7 @@ const Analytics = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [error, setError] = useState<string | null>(null);
 
   // Data states
   const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
@@ -133,6 +135,10 @@ const Analytics = () => {
     capacityUtilization: 0
   });
 
+  // Filter states
+  const [chartTypeFilter, setChartTypeFilter] = useState('revenue');
+  const [venueFilter, setVenueFilter] = useState('all');
+
   // Load data on component mount and when date range changes
   useEffect(() => {
     loadAnalyticsData();
@@ -140,6 +146,7 @@ const Analytics = () => {
 
   const loadAnalyticsData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       // Fetch data from services
       const [tickets, sales, offers, venues] = await Promise.all([
@@ -164,8 +171,10 @@ const Analytics = () => {
       await processAnalyticsData(filteredTickets, filteredSales, offers, venues);
       
       setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error loading analytics data:', error);
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to load analytics data. Please try again.";
+      setError(errorMessage);
+      console.error("Error loading analytics data:", err);
     } finally {
       setIsLoading(false);
     }
@@ -404,302 +413,324 @@ const Analytics = () => {
   };
 
   return (
-    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl shadow-xl h-full">
       <div className="text-white h-full flex flex-col p-4 m-1">
-        {/* Header - Updated Design */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Analytics Dashboard</h1>
-              <p className="text-neutral-400 text-sm">Comprehensive ticket sales analytics and insights</p>
-            </div>
-            <div className="flex gap-5">
-              <button
-                onClick={loadAnalyticsData}
-                disabled={isLoading}
-                className="inline-flex items-center px-4 py-3 border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 rounded-xl hover:bg-neutral-800 hover:text-white hover:border-neutral-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              >
-                <RefreshCw size={16} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              <button
-                onClick={exportData}
-                className="px-6 py-3 rounded-xl bg-lime-400 text-black font-medium hover:bg-lime-500 transition-all duration-200 shadow-lg flex items-center gap-2"
-              >
-                <Download size={16} />
-                Export
-              </button>
-            </div>
-          </div>
-          
-          {/* Date Range Selector - Moved to left side like other pages */}
-          <div className="flex items-center gap-4 flex-wrap mb-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="text-neutral-400" size={16} />
-              <span className="text-neutral-300 text-sm">Date Range:</span>
-            </div>
-            <input
-              type="date"
-              value={dateRange.from.toISOString().split('T')[0]}
-              onChange={(e) => setDateRange({...dateRange, from: new Date(e.target.value)})}
-              className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
-            />
-            <span className="text-neutral-400">to</span>
-            <input
-              type="date"
-              value={dateRange.to.toISOString().split('T')[0]}
-              onChange={(e) => setDateRange({...dateRange, to: new Date(e.target.value)})}
-              className="px-4 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-2xl focus:outline-none focus:border-lime-400 transition-all duration-200"
-            />
-            <button
-              onClick={loadAnalyticsData}
-              disabled={isLoading}
-              className="inline-flex items-center px-4 py-2 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-xl hover:bg-lime-400/20 transition-all duration-200 disabled:opacity-50"
-            >
-              <Filter size={16} className="mr-2" />
-              Apply Filter
-            </button>
-          </div>
-          
-          <div className="text-neutral-500 text-sm">
-            Last updated: {lastUpdated.toLocaleString()}
-          </div>
-        </div>
-
-        {/* KPI Summary - Consistent Design */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <KpiCard
-            icon={DollarSign}
-            title="Total Revenue"
-            value={formatCurrency(kpis.totalRevenue)}
-            change={kpis.revenueGrowth}
-            changeType="percentage"
-            color="lime"
-          />
-
-          <KpiCard
-            icon={Ticket}
-            title="Tickets Sold"
-            value={kpis.totalTicketsSold.toLocaleString()}
-            change={8.7}
-            changeType="percentage"
-            color="lime"
-          />
-
-          <KpiCard
-            icon={TrendingUp}
-            title="Conversion Rate"
-            value={formatPercentage(kpis.conversionRate)}
-            change={2.1}
-            changeType="percentage"
-            color="lime"
-          />
-
-          <KpiCard
-            icon={MapPin}
-            title="Capacity Utilization"
-            value={formatPercentage(kpis.capacityUtilization)}
-            change={5.3}
-            changeType="percentage"
-            color="lime"
-          />
-        </div>
-
-        {/* Revenue Trend Chart */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-          <Card className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
-            <div className="mb-3 border-b border-neutral-800">
-              <h3 className="text-xl font-semibold text-white mb-3">Revenue Trend</h3>
-            </div>
-            <div className="">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#9ca3af" 
-                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                  />
-                  <YAxis stroke="#9ca3af" tickFormatter={(value) => `${(value / 1000)}k`} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#171717', 
-                      border: '1px solid #404040',
-                      borderRadius: '12px',
-                      color: '#ffffff'
-                    }}
-                    labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                    formatter={(value: number) => [formatCurrency(value), 'Revenue']}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#a3e635" 
-                    fill="#a3e635" 
-                    fillOpacity={0.2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          {/* Ticket Status Distribution */}
-          <Card className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
-            <div className="mb-3 border-b border-neutral-800">
-              <h3 className="text-xl font-semibold text-white mb-3">Ticket Status Distribution</h3>
-            </div>
-            <div className="">
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={ticketStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    dataKey="count"
-                  >
-                    {ticketStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#171717', 
-                      border: '1px solid #404040',
-                      borderRadius: '12px',
-                      color: '#ffffff'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                {ticketStatusData.map((item) => (
-                  <div key={item.status} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-neutral-400 text-sm">{item.status}: {item.percentage.toFixed(1)}%</span>
+        {/* Main Content Area */}
+        <div className="flex-1 flex gap-4 min-h-0">
+          {/* Left Side - Header, Statistics, and Analytics Content */}
+          <div className="flex-1 flex flex-col transition-all duration-300 w-full">
+            {/* Header - MOVES WITH THE CONTENT */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">Analytics Dashboard</h1>
+                  <p className="text-neutral-400 text-sm">Comprehensive ticket sales analytics and insights</p>
+                </div>
+                
+                {/* Search and Filter - INTEGRATED IN HEADER LIKE OTHER PAGES */}
+                <div className="flex items-center gap-3 flex-1 justify-end">
+                  <div className="min-w-0 flex-1 max-w-60">
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                      <input
+                        type="date"
+                        value={dateRange.from.toISOString().split('T')[0]}
+                        onChange={(e) => setDateRange({...dateRange, from: new Date(e.target.value)})}
+                        className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
+                      />
+                    </div>
                   </div>
-                ))}
+                  
+                  <div className="min-w-0 flex-1 max-w-60">
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                      <input
+                        type="date"
+                        value={dateRange.to.toISOString().split('T')[0]}
+                        onChange={(e) => setDateRange({...dateRange, to: new Date(e.target.value)})}
+                        className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 flex-1 max-w-40">
+                    <CustomSelect
+                      value={chartTypeFilter}
+                      onChange={setChartTypeFilter}
+                      options={[
+                        { value: 'revenue', label: 'Revenue' },
+                        { value: 'tickets', label: 'Tickets' },
+                        { value: 'conversion', label: 'Conversion' }
+                      ]}
+                      placeholder="Chart Type"
+                      icon={<Filter className="w-5 h-5 text-neutral-400" />}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={loadAnalyticsData}
+                    disabled={isLoading}
+                    className="px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-lime-500 text-black hover:bg-lime-400 disabled:bg-neutral-700 disabled:text-neutral-500"
+                  >
+                    <RefreshCw size={20} className={isLoading ? 'animate-spin' : ''} />
+                    {isLoading ? 'Refreshing...' : 'Refresh'}
+                  </button>
+
+                  <button 
+                    onClick={exportData}
+                    className="px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700"
+                  >
+                    <Download size={20} />
+                    Export
+                  </button>
+                </div>
               </div>
             </div>
-          </Card>
-        </div>
 
-        {/* Venue Performance Section */}
-        <div className="mb-6">
-          <Card className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
-            <div className="mb-3 border-b border-neutral-800">
-              <h3 className="text-xl font-semibold text-white mb-3">Venue Performance Analysis</h3>
+            {/* Error Message - MOVES WITH THE CONTENT */}
+            {error && (
+              <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-xl flex items-center gap-3 backdrop-blur-sm mb-6">
+                <div className="p-2 bg-red-500/20 rounded-xl">
+                  <AlertCircle size={20} className="text-red-400" />
+                </div>
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            {/* Statistics - MOVES WITH THE CONTENT */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+              <KpiCard
+                icon={DollarSign}
+                title="Total Revenue"
+                value={formatCurrency(kpis.totalRevenue)}
+                change={kpis.revenueGrowth}
+                changeType="percentage"
+                color="lime"
+              />
+
+              <KpiCard
+                icon={Ticket}
+                title="Tickets Sold"
+                value={kpis.totalTicketsSold.toLocaleString()}
+                change={8.7}
+                changeType="percentage"
+                color="lime"
+              />
+
+              <KpiCard
+                icon={TrendingUp}
+                title="Conversion Rate"
+                value={formatPercentage(kpis.conversionRate)}
+                change={2.1}
+                changeType="percentage"
+                color="lime"
+              />
+
+              <KpiCard
+                icon={MapPin}
+                title="Capacity Utilization"
+                value={formatPercentage(kpis.capacityUtilization)}
+                change={5.3}
+                changeType="percentage"
+                color="lime"
+              />
             </div>
-            <div className="space-y-4">
-              {venuePerformance.map((venue) => (
-                <div key={venue.venueId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-lime-400/20 rounded-xl">
-                        <MapPin className="text-lime-400" size={20} />
-                      </div>
-                      <div>
-                        <h4 className="text-white font-medium text-lg">{venue.venueName}</h4>
-                        <p className="text-neutral-400 text-sm">Capacity: {venue.capacity.toLocaleString()}</p>
-                      </div>
-                    </div>
-                    <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
-                      venue.occupancyRate >= 80 ? 'bg-green-500/20 text-green-400' :
-                      venue.occupancyRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {formatPercentage(venue.occupancyRate)} occupancy
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-6 text-sm mb-4">
-                    <div>
-                      <span className="text-neutral-400">Sold Tickets</span>
-                      <div className="text-white font-medium mt-1 text-base">{venue.soldTickets.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="text-neutral-400">Revenue</span>
-                      <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(venue.revenue)}</div>
-                    </div>
-                    <div>
-                      <span className="text-neutral-400">Avg Price</span>
-                      <div className="text-white font-medium mt-1 text-base">{formatCurrency(venue.avgTicketPrice)}</div>
-                    </div>
-                    <div>
-                      <span className="text-neutral-400">Utilization</span>
-                      <div className="text-white font-medium mt-1 text-base">{formatPercentage(venue.occupancyRate)}</div>
-                    </div>
-                  </div>
-                  <div className="w-full bg-neutral-700 rounded-full h-2">
-                    <div 
-                      className="bg-lime-400 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${venue.occupancyRate}%` }}
-                    ></div>
+
+            {/* Analytics Content - MOVES WITH THE CONTENT */}
+            <div className="flex-1 overflow-y-auto min-h-0 space-y-6">
+              {/* Revenue Trend Chart */}
+              <Card className="overflow-hidden">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                  <h3 className="text-xl font-semibold text-white">Revenue Trend</h3>
+                  <div className="flex items-center gap-4">
+                    <p className="text-neutral-400 text-sm">Last 30 days</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+                
+                <div className="mt-4 p-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={revenueData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="#9ca3af" 
+                        tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                      />
+                      <YAxis stroke="#9ca3af" tickFormatter={(value) => `${(value / 1000)}k`} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#171717', 
+                          border: '1px solid #404040',
+                          borderRadius: '12px',
+                          color: '#ffffff'
+                        }}
+                        labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                        formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#a3e635" 
+                        fill="#a3e635" 
+                        fillOpacity={0.2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
 
-        {/* Special Offers Performance */}
-        <div>
-          <Card className="bg-neutral-900/80 backdrop-blur-sm rounded-2xl border border-neutral-800 shadow-lg overflow-hidden hover:border-neutral-700 transition-all duration-200">
-            <div className="mb-3 border-b border-neutral-800">
-              <h3 className="text-xl font-semibold text-white mb-3">Special Offers Performance</h3>
-            </div>
-            <div className="space-y-4">
-              {offerPerformance.map((offer) => (
-                <div key={offer.offerId} className="p-6 bg-neutral-800/50 border border-neutral-700 rounded-2xl hover:border-neutral-600 transition-all duration-200">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-lime-400/20 rounded-xl">
-                        <Gift className="text-lime-400" size={20} />
-                      </div>
-                      <div>
-                        <h4 className="text-white font-medium text-lg">{offer.name}</h4>
-                        <p className="text-neutral-400 text-sm">Type: {offer.type}</p>
-                      </div>
-                    </div>
-                    <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
-                      offer.conversionRate >= 80 ? 'bg-green-500/20 text-green-400' :
-                      offer.conversionRate >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {formatPercentage(offer.conversionRate)} conversion
-                    </span>
+              {/* Charts Grid */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Ticket Status Distribution */}
+                <Card className="overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                    <h3 className="text-xl font-semibold text-white">Ticket Status Distribution</h3>
                   </div>
-                  <div className="grid grid-cols-4 gap-6 text-sm mb-4">
-                    <div>
-                      <span className="text-neutral-400">Usage Count</span>
-                      <div className="text-white font-medium mt-1 text-base">{offer.usageCount.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="text-neutral-400">Revenue Impact</span>
-                      <div className="text-lime-400 font-medium mt-1 text-base">{formatCurrency(offer.revenueImpact)}</div>
-                    </div>
-                    <div>
-                      <span className="text-neutral-400">Discount Given</span>
-                      <div className="text-red-400 font-medium mt-1 text-base">-{formatCurrency(offer.discountGiven)}</div>
-                    </div>
-                    <div>
-                      <span className="text-neutral-400">Net Impact</span>
-                      <div className="text-lime-400 font-medium mt-1 text-base">
-                        {formatCurrency(offer.revenueImpact - offer.discountGiven)}
-                      </div>
+                  <div className="mt-4 p-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={ticketStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={120}
+                          paddingAngle={5}
+                          dataKey="count"
+                        >
+                          {ticketStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#171717', 
+                            border: '1px solid #404040',
+                            borderRadius: '12px',
+                            color: '#ffffff'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      {ticketStatusData.map((item) => (
+                        <div key={item.status} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                          <span className="text-neutral-400 text-sm">{item.status}: {item.percentage.toFixed(1)}%</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="w-full bg-neutral-700 rounded-full h-2">
-                    <div 
-                      className="bg-lime-400 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${offer.conversionRate}%` }}
-                    ></div>
+                </Card>
+
+                {/* Venue Performance */}
+                <Card className="overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                    <h3 className="text-xl font-semibold text-white">Top Venues Performance</h3>
+                  </div>
+                  <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
+                    {venuePerformance.slice(0, 5).map((venue) => (
+                      <div key={venue.venueId} className="p-4 bg-neutral-800/30 border border-neutral-700 rounded-xl hover:border-lime-500/50 transition-all duration-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-lime-500/20 p-2 rounded-xl border border-lime-500/30">
+                              <MapPin className="w-4 h-4 text-lime-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-medium">{venue.venueName}</h4>
+                              <p className="text-neutral-400 text-sm">Capacity: {venue.capacity.toLocaleString()}</p>
+                            </div>
+                          </div>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                            venue.occupancyRate >= 80 ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                            venue.occupancyRate >= 60 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                            'bg-red-500/20 text-red-400 border-red-500/30'
+                          } border`}>
+                            {formatPercentage(venue.occupancyRate)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-neutral-400">Sold</span>
+                            <div className="text-white font-medium">{venue.soldTickets.toLocaleString()}</div>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400">Revenue</span>
+                            <div className="text-lime-400 font-medium">{formatCurrency(venue.revenue)}</div>
+                          </div>
+                          <div>
+                            <span className="text-neutral-400">Avg Price</span>
+                            <div className="text-white font-medium">{formatCurrency(venue.avgTicketPrice)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              {/* Special Offers Performance */}
+              <Card className="overflow-hidden">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                  <h3 className="text-xl font-semibold text-white">Special Offers Performance</h3>
+                  <div className="flex items-center gap-4">
+                    <p className="text-neutral-400 text-sm">{offerPerformance.length} active offers</p>
                   </div>
                 </div>
-              ))}
+                <div className="mt-4 space-y-4">
+                  {offerPerformance.map((offer) => (
+                    <div key={offer.offerId} className="p-6 bg-neutral-800/30 border border-neutral-700 rounded-xl hover:border-lime-500/50 transition-all duration-200 group">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center">
+                          <div className="bg-lime-500/20 p-3 rounded-xl border border-lime-500/30 mr-4">
+                            <Gift className="w-6 h-6 text-lime-400" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
+                              {offer.name}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                {offer.type}
+                              </span>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                offer.conversionRate >= 80 ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                offer.conversionRate >= 60 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                                'bg-red-500/20 text-red-400 border-red-500/30'
+                              } border`}>
+                                {formatPercentage(offer.conversionRate)} conversion
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-neutral-400" />
+                            <span>Usage: {offer.usageCount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-lime-400" />
+                            <span className="text-lime-400">Revenue: {formatCurrency(offer.revenueImpact)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-red-400" />
+                            <span className="text-red-400">Discount: -{formatCurrency(offer.discountGiven)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-lime-400" />
+                            <span className="text-lime-400">Net: {formatCurrency(offer.revenueImpact - offer.discountGiven)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

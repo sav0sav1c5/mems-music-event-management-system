@@ -12,5 +12,6 @@ namespace MusicEventManagementSystem.Core.Interfaces.Repositories
         Task<bool> UpdateAvailableQuantityAsync(int id, int quantity);
         Task<IEnumerable<TicketType>> GetByZoneAndEventAsync(int zoneId, int eventId);
         Task<int> GetTotalAvailableQuantityByEventAsync(int eventId);
+        Task<IEnumerable<TicketType>> GetByIdsAsync(List<int> ids);
     }
 }

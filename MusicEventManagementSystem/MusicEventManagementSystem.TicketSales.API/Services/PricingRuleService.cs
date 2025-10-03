@@ -1,16 +1,21 @@
 ﻿using MusicEventManagementSystem.Core.Interfaces.Repositories;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using MusicEventManagementSystem.Infrastructure.Repositories;
 
 namespace MusicEventManagementSystem.TicketSales.API.Services
 {
     public class PricingRuleService : IPricingRuleService
     {
         private readonly IPricingRuleRepository _pricingRuleRepository;
+        private readonly IEventRepository _eventRepository;
+        private readonly ITicketTypeRepository _ticketTypeRepository;
 
-        public PricingRuleService(IPricingRuleRepository pricingRuleRepository)
+        public PricingRuleService(IPricingRuleRepository pricingRuleRepository, IEventRepository eventRepository, ITicketTypeRepository ticketTypeRepository)
         {
             _pricingRuleRepository = pricingRuleRepository;
+            _eventRepository = eventRepository;
+            _ticketTypeRepository = ticketTypeRepository;
         }
 
         public async Task<IEnumerable<PricingRuleResponseDto>> GetAllPricingRulesAsync()
@@ -34,6 +39,20 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         public async Task<PricingRuleResponseDto> CreatePricingRuleAsync(PricingRuleCreateDto createPricingRuleDto)
         {
             var pricingRule = MapToEntity(createPricingRuleDto);
+
+            // Associate Events
+            if (createPricingRuleDto.EventIds?.Any() == true)
+            {
+                var events = await _eventRepository.GetByIdsAsync(createPricingRuleDto.EventIds);
+                pricingRule.Events = events.ToList();
+            }
+
+            // Associate TicketTypes
+            if (createPricingRuleDto.TicketTypeIds?.Any() == true)
+            {
+                var ticketTypes = await _ticketTypeRepository.GetByIdsAsync(createPricingRuleDto.TicketTypeIds);
+                pricingRule.TicketTypes = ticketTypes.ToList();
+            }
 
             await _pricingRuleRepository.AddAsync(pricingRule);
             await _pricingRuleRepository.SaveChangesAsync();
@@ -81,6 +100,28 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
             if (updatePricingRuleDto.Modifier.HasValue)
                 existingPricingRule.Modifier = updatePricingRuleDto.Modifier.Value;
+
+            // Update associated Events
+            if (updatePricingRuleDto.EventIds != null)
+            {
+                existingPricingRule.Events.Clear();
+                if (updatePricingRuleDto.EventIds.Any())
+                {
+                    var events = await _eventRepository.GetByIdsAsync(updatePricingRuleDto.EventIds);
+                    existingPricingRule.Events = events.ToList();
+                }
+            }
+
+            // Update associated TicketTypes
+            if (updatePricingRuleDto.TicketTypeIds != null)
+            {
+                existingPricingRule.TicketTypes.Clear();
+                if (updatePricingRuleDto.TicketTypeIds.Any())
+                {
+                    var ticketTypes = await _ticketTypeRepository.GetByIdsAsync(updatePricingRuleDto.TicketTypeIds);
+                    existingPricingRule.TicketTypes = ticketTypes.ToList();
+                }
+            }
 
             _pricingRuleRepository.Update(existingPricingRule);
             await _pricingRuleRepository.SaveChangesAsync();

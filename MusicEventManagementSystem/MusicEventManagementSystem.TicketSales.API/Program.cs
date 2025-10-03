@@ -45,6 +45,7 @@ builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IRecordedSaleRepository, RecordedSaleRepository>();
 builder.Services.AddScoped<IPricingRuleRepository, PricingRuleRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 // 5. Register Services - Ticket Sales
 builder.Services.AddScoped<IVenueService, VenueService>();

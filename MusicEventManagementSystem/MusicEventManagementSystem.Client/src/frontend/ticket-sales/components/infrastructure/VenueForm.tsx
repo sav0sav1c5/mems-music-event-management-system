@@ -7,7 +7,7 @@ import type { VenueResponse } from '../../types/api/venue';
 import type { EventResponse } from '../../../event-organization/types/api/event';
 import type { VenueCreateForm, VenueUpdateForm } from '../../types/forms/venue';
 import { VenueType } from '../../types/enums/TicketSales';
-import { toast } from 'react-toastify';
+import { showToast } from '../toast';
 
 interface VenueFormProps {
   venue?: VenueResponse | null;
@@ -62,15 +62,15 @@ const VenueForm = ({
       if (isEdit && venue) {
         const updated = await VenueService.updateVenue(venue.venueId, venueForm);
         onVenueUpdated(updated);
-        toast.success('Venue updated successfully');
+        showToast.success('Venue updated successfully');
       } else {
         const created = await VenueService.createVenue(venueForm as VenueCreateForm);
         onVenueCreated(created);
-        toast.success('Venue created successfully');
+        showToast.success('Venue created successfully');
       }
     } catch (error) {
       console.error(`Failed to ${isEdit ? 'update' : 'create'} venue:`, error);
-      toast.error(`Failed to ${isEdit ? 'update' : 'create'} venue`);
+      showToast.error(`Failed to ${isEdit ? 'update' : 'create'} venue`);
     }
   };
 

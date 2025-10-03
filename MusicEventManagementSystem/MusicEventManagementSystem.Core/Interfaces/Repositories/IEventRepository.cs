@@ -9,5 +9,6 @@ namespace MusicEventManagementSystem.Core.Interfaces.Repositories
         Task<IEnumerable<Event>> GetByStatusAsync(EventStatus status);
         Task<IEnumerable<Event>> GetByDateRangeAsync(DateTime start, DateTime end);
         Task<IEnumerable<Event>> GetByCreatedByIdAsync(Guid createdById);
+        Task<IEnumerable<Event>> GetByIdsAsync(List<int> ids);
     }
 }

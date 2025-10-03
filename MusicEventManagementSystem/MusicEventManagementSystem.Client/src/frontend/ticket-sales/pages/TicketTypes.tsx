@@ -1,7 +1,6 @@
 import { Card, KpiCard } from '../components/card';
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Target, Users, CheckCircle, XCircle, Clock, TrendingUp, X, Save, Loader2
-} from 'lucide-react';
+import { Plus, Edit, Trash2, Target, Users, CheckCircle, XCircle, Clock, TrendingUp, X, Save, Loader2, Search, Filter, RefreshCw, Eye } from 'lucide-react';
 import { TicketTypeService } from '../services/ticketTypeService';
 import { ZoneService } from '../services/zoneService';
 import { EventService } from '../../event-organization/services/eventService';
@@ -34,15 +33,13 @@ const getStatusColor = (status: TicketTypeStatus) => {
   }
 };
 
-
-
 const TicketTypes = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketTypeResponse[]>([]);
   const [selectedTicketType, setSelectedTicketType] = useState<TicketTypeResponse | null>(null);
-  const [showPanel, setShowPanel] = useState(false);
-  const [panelMode, setPanelMode] = useState<'view' | 'create' | 'edit'>('view');
+  const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [searchTerm, setSearchTerm] = useState('');
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [zones, setZones] = useState<ZoneResponse[]>([]);
@@ -132,8 +129,7 @@ const TicketTypes = () => {
       setTicketTypes(prev => [...prev, created]);
 
       toast.success('Ticket type created successfully');
-
-      closePanel();
+      closeForm();
       resetForm();
       
     } catch (err: any) {
@@ -170,11 +166,9 @@ const TicketTypes = () => {
           type.ticketTypeId === selectedTicketType.ticketTypeId ? updated : type
         )
       );
-      setSelectedTicketType(updated);
 
       toast.success('Ticket type updated successfully');
-
-      setPanelMode('view');
+      closeForm();
       resetForm();
       
     } catch (err: any) {
@@ -194,10 +188,6 @@ const TicketTypes = () => {
       setTicketTypes(prev => prev.filter(type => type.ticketTypeId !== ticketTypeId));
       
       toast.success('Ticket type deleted successfully!');
-
-      if (selectedTicketType?.ticketTypeId === ticketTypeId) {
-        closePanel();
-      }
     } catch (err: any) {
       setError(err.message || 'Failed to delete ticket type');
       toast.error(err.message || 'Failed to delete ticket type');
@@ -215,15 +205,15 @@ const TicketTypes = () => {
     });
   };
 
-  const openCreatePanel = () => {
+  const openCreateForm = () => {
     resetForm();
     setSelectedTicketType(null);
-    setPanelMode('create');
-    setShowPanel(true);
+    setFormMode('create');
+    setShowForm(true);
     setError(null);
   };
 
-  const openEditPanel = (ticketType: TicketTypeResponse) => {
+  const openEditForm = (ticketType: TicketTypeResponse) => {
     setSelectedTicketType(ticketType);
     setTicketTypeForm({
       name: ticketType.name || '',
@@ -233,22 +223,15 @@ const TicketTypes = () => {
       zoneId: ticketType.zoneId,
       eventId: ticketType.eventId
     });
-    setPanelMode('edit');
-    setShowPanel(true);
+    setFormMode('edit');
+    setShowForm(true);
     setError(null);
   };
 
-  const openViewPanel = (ticketType: TicketTypeResponse) => {
-    setSelectedTicketType(ticketType);
-    setPanelMode('view');
-    setShowPanel(true);
-    setError("");
-  };
-
-  const closePanel = () => {
-    setShowPanel(false);
+  const closeForm = () => {
+    setShowForm(false);
     setSelectedTicketType(null);
-    setPanelMode('view');
+    setFormMode('create');
     setError("");
     resetForm();
   };
@@ -274,6 +257,7 @@ const TicketTypes = () => {
         change: activeChange,
         trend: activeChange >= 0 ? "up" as const : "down" as const,
         icon: Target,
+        color: "lime" as const
       },
       {
         title: "Available Tickets",
@@ -281,6 +265,7 @@ const TicketTypes = () => {
         change: availableChange,
         trend: availableChange >= 0 ? "up" as const : "down" as const,
         icon: Users,
+        color: "lime" as const
       },
       {
         title: "Sold Out",
@@ -288,6 +273,7 @@ const TicketTypes = () => {
         change: soldOutChange,
         trend: soldOutChange >= 0 ? "down" as const : "up" as const,
         icon: XCircle,
+        color: "orange" as const
       },
       {
         title: "Total Types",
@@ -295,6 +281,7 @@ const TicketTypes = () => {
         change: 0,
         trend: "up" as const,
         icon: CheckCircle,
+        color: "sky" as const
       }
     ];
   };
@@ -338,393 +325,349 @@ const TicketTypes = () => {
   const overviewStats = getOverviewStats();
   const filteredTicketTypes = getFilteredTicketTypes();
 
-  const getPanelTitle = () => {
-    switch (panelMode) {
-      case 'create': return 'Create New Ticket Type';
-      case 'edit': return 'Edit Ticket Type';
-      default: return 'Ticket Type Details';
-    }
+  const getFormTitle = () => {
+    return formMode === 'create' ? 'Create New Ticket Type' : 'Edit Ticket Type';
   };
 
   return (
-    <div className="relative flex gap-3">
-      {/* Main Content - Left Side */}
-      <div className={`bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl shadow-xl transition-all duration-300 ${showPanel ? 'w-2/3' : 'w-full'}`}>
-        <div className="text-white flex flex-col p-4 m-1">
-          {/* Header */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">Ticket Types</h1>
-                <p className="text-neutral-400 text-sm">Manage and configure ticket types for events</p>
-              </div>
-              <div className="flex gap-4 flex-wrap items-end">
-                <div className="flex gap-4 flex-wrap">
-                  {/* Custom Status Select */}
-                  <CustomSelect
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={statusOptions}
-                    className="min-w-40"
-                  />
+    <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl shadow-xl h-full">
+      <div className="text-white h-full flex flex-col p-4 m-1">
+        {/* Main Content Area with Right Panel - EXACTLY LIKE PERFORMANCES */}
+        <div className="flex-1 flex gap-4 min-h-0">
+          {/* Left Side - Header, Statistics, and Ticket Types List - ALL MOVES TOGETHER */}
+          <div className={`flex-1 flex flex-col transition-all duration-300 ${showForm ? 'w-3/5' : 'w-full'}`}>
+            {/* Header - MOVES WITH THE CONTENT */}
+            <div className="">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">Ticket Types Management</h1>
+                  <p className="text-neutral-400 text-sm">Manage and configure ticket types for events</p>
+                </div>
+                
+                {/* Search and Filter - INTEGRATED IN HEADER LIKE PERFORMANCES */}
+                <div className="flex items-center gap-3 flex-1 justify-end">
+                  <div className="min-w-0 flex-1 max-w-80">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        placeholder="Search ticket types by name or description..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-neutral-900/90 text-white pl-12 pr-4 py-3 rounded-2xl border border-neutral-800 focus:border-lime-500 focus:outline-none focus:ring-1 focus:ring-lime-500 transition-all text-base"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="min-w-0 flex-1 max-w-40">
+                    <CustomSelect
+                      value={statusFilter}
+                      onChange={setStatusFilter}
+                      options={statusOptions}
+                      placeholder="All Status"
+                      icon={<Filter className="w-5 h-5 text-neutral-400" />}
+                    />
+                  </div>
 
-                  {/* Custom Event Select */}
-                  <CustomSelect
-                    value={eventFilter}
-                    onChange={setEventFilter}
-                    options={eventOptions}
-                    className="min-w-60"
-                  />  
+                  <div className="min-w-0 flex-1 max-w-60">
+                    <CustomSelect
+                      value={eventFilter}
+                      onChange={setEventFilter}
+                      options={eventOptions}
+                      placeholder="All Events"
+                      icon={<Filter className="w-5 h-5 text-neutral-400" />}
+                    />
+                  </div>
 
-                  <button
-                    onClick={openCreatePanel}
-                    className="bg-lime-500 hover:bg-lime-600 text-black font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-200"
+                  <button 
+                    onClick={openCreateForm}
+                    className="px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-lime-500 text-black hover:bg-lime-400"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus size={20} />
                     New Ticket Type
                   </button>
                 </div>
               </div>
             </div>
-          </div>
 
-          {error && (
-            <Card className="bg-red-500/20 border border-red-500/30 mb-4">
-              <div className="flex items-center gap-2 p-4">
-                <XCircle className="h-5 w-5 text-red-400" />
-                <span className="text-red-400 text-base">{error}</span>
+            {/* Error Message - MOVES WITH THE CONTENT */}
+            {error && !showForm && (
+              <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-xl flex items-center gap-3 backdrop-blur-sm mb-6">
+                <div className="p-2 bg-red-500/20 rounded-xl">
+                  <XCircle size={20} className="text-red-400" />
+                </div>
+                <span className="text-sm">{error}</span>
               </div>
-            </Card>
-          )}
-
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            {overviewStats.map((stat, index) => (
-              <KpiCard
-                key={index}
-                icon={stat.icon}
-                title={stat.title}
-                value={stat.value}
-                change={stat.change}
-                changeType="percentage"
-              />
-            ))}
-          </div>
-
-          {/* Ticket Types List */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
-            {loading ? (
-              <div className="col-span-full text-center text-neutral-400 py-8 text-base">Loading ticket types...</div>
-            ) : filteredTicketTypes.length === 0 ? (
-              <div className="col-span-full text-center text-neutral-400 py-8 text-base">No ticket types found</div>
-            ) : (
-              filteredTicketTypes.map((type) => {
-                const event = events.find(e => e.id === type.eventId);
-                
-                return (
-                  <Card
-                    key={type.ticketTypeId}
-                    hover={true}
-                    onClick={() => openViewPanel(type)}
-                    className={`p-6 cursor-pointer transition-all duration-200 ${
-                      selectedTicketType?.ticketTypeId === type.ticketTypeId && showPanel
-                        ? 'bg-lime-500/20 border border-lime-500/30'
-                        : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-lime-500/20 rounded-xl">
-                          <Target className="w-5 h-5 text-lime-400" />
-                        </div>
-                        <div>
-                          <h4 className="text-white font-medium text-lg">{type.name || 'Unnamed Ticket Type'}</h4>
-                          {type.description && (
-                            <p className="text-neutral-400 text-sm line-clamp-1">{type.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className={`px-3 py-1 rounded-xl text-sm font-medium border flex items-center gap-2 ${getStatusColor(type.status)}`}>
-                        {type.status === 0 ? (
-                          <CheckCircle className="w-4 h-4" />
-                        ) : type.status === 2 ? (
-                          <XCircle className="w-4 h-4" />
-                        ) : (
-                          <Clock className="w-4 h-4" />
-                        )}
-                        {formatTicketTypeStatus(type.status)}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3 mb-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-neutral-400 text-base">Available</span>
-                        <span className="text-white font-medium text-base">{type.availableQuantity}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-neutral-400 text-base">Event</span>
-                        <span className="text-white font-medium text-sm">
-                          {event?.name || `Event ${type.eventId}`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-neutral-400 text-base">Zone</span>
-                        <span className="text-white font-medium text-base">#{type.zoneId}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="text-neutral-400">
-                        {type.ticketIds?.length || 0} tickets
-                      </div>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditPanel(type);
-                          }}
-                          className="p-2 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTicketType(type.ticketTypeId);
-                          }}
-                          className="p-2 hover:bg-red-900/50 rounded-xl transition-all duration-200 text-neutral-400 hover:text-red-400"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Right Panel - Outside main container */}
-      {showPanel && (
-        <div className="w-1/3 transition-all duration-300">
-          <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl shadow-xl h-max">
-            <div className="p-4 m-1 h-full flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">{getPanelTitle()}</h3>
-                <button
-                  onClick={closePanel}
-                  className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-white"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+            {/* Statistics - MOVES WITH THE CONTENT */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+              {overviewStats.map((stat, index) => (
+                <KpiCard
+                  key={index}
+                  icon={stat.icon}
+                  title={stat.title}
+                  value={stat.value}
+                  change={stat.change}
+                  changeType="percentage"
+                  color={stat.color}
+                />
+              ))}
+            </div>
 
-              <div className="space-y-6 overflow-y-auto flex-1">
-                {error && (
-                  <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-400" />
-                      <span className="text-red-400 text-sm">{error}</span>
-                    </div>
+            {/* Ticket Types List - MOVES WITH THE CONTENT */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <Card className="overflow-hidden h-full">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                  <h3 className="text-xl font-semibold text-white">Ticket Types</h3>
+                  <div className="flex items-center gap-4">
+                    {eventFilter !== 'all' && (
+                      <span className="text-neutral-400 text-sm">
+                        Filtered by: {events.find(e => e.id.toString() === eventFilter)?.name}
+                      </span>
+                    )}
+                    <p className="text-neutral-400 text-sm">{filteredTicketTypes.length} type(s) found</p>
                   </div>
-                )}
+                </div>
+                
+                <div className="mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <RefreshCw className="w-10 h-10 text-lime-400 animate-spin mb-3" />
+                      <p className="text-neutral-400 text-base">Loading ticket types...</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {filteredTicketTypes.map((type) => {
+                        const event = events.find(e => e.id === type.eventId);
+                        const zone = zones.find(z => z.zoneId === type.zoneId);
+                        
+                        return (
+                          <Card
+                            key={type.ticketTypeId}
+                            className="group p-6 relative border border-neutral-800 hover:border-lime-500/50 transition-all duration-200"
+                          >
+                            {/* Action Buttons - Always Visible */}
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-100 transition-opacity duration-200">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditForm(type);
+                                }}
+                                className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
+                                title="Edit ticket type"
+                              >
+                                <Edit className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTicketType(type.ticketTypeId);
+                                }}
+                                className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
+                                title="Delete ticket type"
+                              >
+                                <Trash2 className="w-5 h-5 text-neutral-400 hover:text-red-400 transition-colors" />
+                              </button>
+                            </div>
 
-                {(panelMode === 'create' || panelMode === 'edit') ? (
-                  /* CREATE/EDIT FORM */
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Name *</label>
-                        <input
-                          type="text"
-                          value={ticketTypeForm.name}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                          placeholder="Enter ticket type name"
-                        />
-                      </div>
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center">
+                                <div className="bg-lime-500/20 p-3 rounded-xl border border-lime-500/30 mr-4">
+                                  <Target className="w-6 h-6 text-lime-400" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-lg group-hover:text-lime-400 transition-colors">
+                                    {type.name || 'Unnamed Ticket Type'}
+                                  </h3>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(type.status)}`}>
+                                      {formatTicketTypeStatus(type.status)}
+                                    </span>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-300">
+                                      Event: {event?.name || `Event ${type.eventId}`}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <div className="flex items-center">
+                                <Users className="w-5 h-5 mr-2 text-neutral-400" />
+                                <span className="text-base">Available: {type.availableQuantity.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Target className="w-5 h-5 mr-2 text-neutral-400" />
+                                <span className="text-base">Zone: {zone?.name || `Zone ${type.zoneId}`}</span>
+                              </div>
+                              {/* {type.description && (
+                                <div className="text-neutral-300 text-sm line-clamp-2">
+                                  {type.description}
+                                </div>
+                              )} */}
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Available Quantity *</label>
-                        <input
-                          type="number"
-                          value={ticketTypeForm.availableQuantity}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, availableQuantity: parseInt(e.target.value) || 0 }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                          placeholder="0"
-                          min="0"
-                        />
+                  {filteredTicketTypes.length === 0 && !loading && (
+                    <div className="text-center py-16 text-neutral-400">
+                      <Target size={64} className="mx-auto mb-4 opacity-50" />
+                      <h4 className="text-xl mb-2">No ticket types found</h4>
+                      <p className="text-base">
+                        {searchTerm || statusFilter !== 'all' || eventFilter !== 'all' 
+                          ? 'Try adjusting your search criteria or filters' 
+                          : 'No ticket types available in the system'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {/* Right Form Panel - Desno od CELOG SADRŽAJA (kao u Performances) */}
+          {showForm && (
+            <div className="w-2/5 transition-all duration-300">
+              <Card className="overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-900/60 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-neutral-800">
+                  <h2 className="text-xl font-bold text-lime-400">
+                    {getFormTitle()}
+                  </h2>
+                  <button
+                    onClick={closeForm}
+                    className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 overflow-y-auto px-1">
+                  {error && (
+                    <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-4 w-4 text-red-400" />
+                        <span className="text-red-400 text-sm">{error}</span>
                       </div>
                     </div>
+                  )}
 
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-neutral-300">Name *</label>
+                    <input
+                      type="text"
+                      value={ticketTypeForm.name}
+                      onChange={(e) => setTicketTypeForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                      placeholder="Enter ticket type name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-neutral-300">Description</label>
+                    <textarea
+                      value={ticketTypeForm.description}
+                      onChange={(e) => setTicketTypeForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
+                      placeholder="Enter description"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-neutral-300">Description</label>
-                      <textarea
-                        value={ticketTypeForm.description}
-                        onChange={(e) => setTicketTypeForm(prev => ({ ...prev, description: e.target.value }))}
+                      <label className="block text-sm font-medium mb-2 text-neutral-300">Available Quantity *</label>
+                      <input
+                        type="number"
+                        value={ticketTypeForm.availableQuantity}
+                        onChange={(e) => setTicketTypeForm(prev => ({ ...prev, availableQuantity: parseInt(e.target.value) || 0 }))}
                         className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                        placeholder="Enter description"
-                        rows={3}
+                        placeholder="0"
+                        min="0"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Status *</label>
-                        <select
-                          value={ticketTypeForm.status}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, status: parseInt(e.target.value) as TicketTypeStatus }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                        >
-                          <option value={0}>Active</option>
-                          <option value={1}>Inactive</option>
-                          <option value={3}>Coming Soon</option>
-                          <option value={4}>Suspended</option>
-                        </select>
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-neutral-300">Status *</label>
+                      <CustomSelect
+                        value={ticketTypeForm.status.toString()}
+                        onChange={(value) => setTicketTypeForm(prev => ({ ...prev, status: parseInt(value) as TicketTypeStatus }))}
+                        options={[
+                          { value: '0', label: 'Active' },
+                          { value: '1', label: 'Inactive' },
+                          { value: '3', label: 'Coming Soon' },
+                          { value: '4', label: 'Suspended' }
+                        ]}
+                        placeholder="Select Status"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-neutral-300">Event *</label>
-                        <select
-                          value={ticketTypeForm.eventId}
-                          onChange={(e) => setTicketTypeForm(prev => ({ ...prev, eventId: parseInt(e.target.value) || 0 }))}
-                          className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                        >
-                          <option value={0}>Select Event</option>
-                          {events.map(event => (
-                            <option key={event.id} value={event.id}>
-                              {event.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-neutral-300">Event *</label>
+                      <CustomSelect
+                        value={ticketTypeForm.eventId.toString()}
+                        onChange={(value) => setTicketTypeForm(prev => ({ ...prev, eventId: parseInt(value) || 0 }))}
+                        options={[
+                          { value: '0', label: 'Select Event' },
+                          ...events.map(event => ({
+                            value: event.id.toString(),
+                            label: event.name
+                          }))
+                        ]}
+                        placeholder="Select Event"
+                        className="w-full"
+                      />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium mb-2 text-neutral-300">Zone *</label>
-                      <select
-                        value={ticketTypeForm.zoneId}
-                        onChange={(e) => setTicketTypeForm(prev => ({ ...prev, zoneId: parseInt(e.target.value) || 0 }))}
-                        className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                      >
-                        <option value={0}>Select Zone</option>
-                        {zones.map(zone => (
-                          <option key={zone.zoneId} value={zone.zoneId}>
-                            {zone.name} (Capacity: {zone.capacity})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={closePanel}
-                        className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={panelMode === 'create' ? handleCreateTicketType : handleUpdateTicketType}
-                        disabled={submitting}
-                        className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 disabled:bg-lime-500/50 rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
-                      >
-                        {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {submitting ? (panelMode === 'create' ? 'Creating...' : 'Updating...') : (panelMode === 'create' ? 'Create' : 'Update')}
-                      </button>
+                      <CustomSelect
+                        value={ticketTypeForm.zoneId.toString()}
+                        onChange={(value) => setTicketTypeForm(prev => ({ ...prev, zoneId: parseInt(value) || 0 }))}
+                        options={[
+                          { value: '0', label: 'Select Zone' },
+                          ...zones.map(zone => ({
+                            value: zone.zoneId.toString(),
+                            label: `${zone.name} (${zone.capacity})`
+                          }))
+                        ]}
+                        placeholder="Select Zone"
+                        className="w-full"
+                      />
                     </div>
                   </div>
-                ) : (
-                  /* VIEW MODE */
-                  selectedTicketType && (
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-white font-medium text-lg mb-2">
-                          {selectedTicketType.name || 'Unnamed Ticket Type'}
-                        </h4>
-                        {selectedTicketType.description && (
-                          <p className="text-neutral-400 text-base mb-4">
-                            {selectedTicketType.description}
-                          </p>
-                        )}
-                      </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Available Quantity</span>
-                          <span className="text-white text-base font-medium flex items-center">
-                            <Target className="w-4 h-4 mr-2 text-lime-400" />
-                            {selectedTicketType.availableQuantity}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Status</span>
-                          <span className="text-white text-base font-medium flex items-center">
-                            {selectedTicketType.status === 0 ? (
-                              <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
-                            ) : selectedTicketType.status === 2 ? (
-                              <XCircle className="w-4 h-4 mr-2 text-red-400" />
-                            ) : (
-                              <Clock className="w-4 h-4 mr-2 text-yellow-400" />
-                            )}
-                            {formatTicketTypeStatus(selectedTicketType.status)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Zone ID</span>
-                          <span className="text-white text-base">{selectedTicketType.zoneId}</span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-300 text-base">Event</span>
-                          <span className="text-white text-base">
-                            {events.find(e => e.id === selectedTicketType.eventId)?.name || `Event ${selectedTicketType.eventId}`}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-neutral-800">
-                        <h5 className="text-white text-base mb-3 flex items-center">
-                          <TrendingUp className="w-4 h-4 mr-2 text-lime-400" />
-                          Related Data
-                        </h5>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="text-center p-3 bg-neutral-800/50 rounded-xl">
-                            <div className="text-lime-400 text-lg font-semibold">{selectedTicketType.ticketIds?.length || 0}</div>
-                            <div className="text-neutral-400 text-xs">Tickets</div>
-                          </div>
-                          <div className="text-center p-3 bg-neutral-800/50 rounded-xl">
-                            <div className="text-lime-400 text-lg font-semibold">{selectedTicketType.specialOfferIds?.length || 0}</div>
-                            <div className="text-neutral-400 text-xs">Special Offers</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 pt-4">
-                        <button 
-                          onClick={() => openEditPanel(selectedTicketType)}
-                          className="flex-1 bg-lime-500 hover:bg-lime-600 text-black font-semibold px-3 py-2 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-sm"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Edit
-                        </button>
-                        <button className="border border-neutral-700 text-neutral-300 hover:text-white px-3 py-2 rounded-xl text-sm transition-all duration-200 hover:border-lime-500/30">
-                          Update Qty
-                        </button>
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
+                  <div className="flex gap-3 pt-4 border-t border-neutral-800">
+                    <button
+                      type="button"
+                      onClick={closeForm}
+                      className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={formMode === 'create' ? handleCreateTicketType : handleUpdateTicketType}
+                      disabled={submitting || !ticketTypeForm.name || ticketTypeForm.availableQuantity < 0 || ticketTypeForm.zoneId === 0 || ticketTypeForm.eventId === 0}
+                      className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
+                    >
+                      {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {submitting ? (formMode === 'create' ? 'Creating...' : 'Updating...') : (formMode === 'create' ? 'Create' : 'Update')}
+                    </button>
+                  </div>
+                </div>
+              </Card>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

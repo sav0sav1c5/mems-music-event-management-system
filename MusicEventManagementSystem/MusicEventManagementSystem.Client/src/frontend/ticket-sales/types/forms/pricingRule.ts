@@ -13,6 +13,8 @@ export interface PricingRuleCreateForm {
   pricingCondition: PricingCondition;
   dynamicCondition?: string;
   modifier: number;
+  eventIds?: number[];
+  ticketTypesIds?: number[];
 }
 
 export interface PricingRuleUpdateForm {
@@ -28,4 +30,6 @@ export interface PricingRuleUpdateForm {
   pricingCondition?: PricingCondition;
   dynamicCondition?: string;
   modifier?: number;
+  eventIds?: number[];
+  ticketTypesIds?: number[];
 }

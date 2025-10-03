@@ -6,11 +6,11 @@ import ZoneService from '../../services/zoneService';
 import type { VenueResponse } from '../../types/api/venue';
 import type { SegmentResponse } from '../../types/api/segment';
 import type { ZoneResponse } from '../../types/api/zone';
-import SegmentEditor from '../infrastructure/SegmentEditor';
-import ZoneEditor from '../infrastructure/ZoneEditor';
-import SegmentCreateForm from '../infrastructure/SegmentCreateForm';
-import ZoneCreateForm from '../infrastructure/ZoneCreateForm';
-import LayoutViewModal from '../infrastructure/LayoutViewModal';
+import SegmentEditor from './SegmentEditor';
+import ZoneEditor from './ZoneEditor';
+import SegmentCreateForm from './SegmentCreateForm';
+import ZoneCreateForm from './ZoneCreateForm';
+import LayoutViewModal from './LayoutViewModal';
 import { getVenueTypeName } from '../../utils/venueUtils';
 
 interface VenueDetailViewProps {

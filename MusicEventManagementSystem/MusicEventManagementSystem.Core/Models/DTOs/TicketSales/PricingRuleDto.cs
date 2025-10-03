@@ -65,6 +65,9 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
 
         [Required]
         public decimal Modifier { get; set; }
+
+        public List<int>? EventIds { get; set; }
+        public List<int>? TicketTypeIds { get; set; }
     }
 
     public class PricingRuleUpdateDto
@@ -101,6 +104,9 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
 
         public string? DynamicCondition { get; set; }
         public decimal? Modifier { get; set; }
+
+        public List<int>? EventIds { get; set; }
+        public List<int>? TicketTypeIds { get; set; }
     }
 
     public class CalculatePriceRequestDto
