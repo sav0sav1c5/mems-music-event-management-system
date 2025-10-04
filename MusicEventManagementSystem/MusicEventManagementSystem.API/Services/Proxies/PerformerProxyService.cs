@@ -8,12 +8,14 @@ namespace MusicEventManagementSystem.API.Services.Proxies
     public class PerformerProxyService : IPerformerProxyService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<PerformerProxyService> _logger;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public PerformerProxyService(IHttpClientFactory httpClientFactory, ILogger<PerformerProxyService> logger)
+        public PerformerProxyService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<PerformerProxyService> logger)
         {
             _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
@@ -21,6 +23,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<PerformerResponseDto> CreatePerformerAsync(CreatePerformerDto performerDto)
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PostAsJsonAsync("/api/performer", performerDto);
@@ -38,6 +49,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<PerformerResponseDto?> GetPerformerByIdAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/performer/{id}");
@@ -55,6 +75,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<PerformerResponseDto>> GetAllPerformersAsync()
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync("/api/performer");
@@ -72,6 +101,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<PerformerResponseDto?> GetByNameAsync(string name)
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/performer/by-name/{Uri.EscapeDataString(name)}");
@@ -89,6 +127,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<PerformerResponseDto>> GetByGenreAsync(string genre)
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/performer/by-genre/{Uri.EscapeDataString(genre)}");
@@ -106,6 +153,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<PerformerResponseDto?> UpdatePerformerAsync(int id, UpdatePerformerDto performerDto)
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PutAsJsonAsync($"/api/performer/{id}", performerDto);
@@ -123,6 +179,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> DeletePerformerAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("PerformerCommunicationAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.DeleteAsync($"/api/performer/{id}");

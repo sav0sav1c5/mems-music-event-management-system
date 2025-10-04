@@ -79,7 +79,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 6. Register HttpClient services for microservices communication
+// 6. Register HttpContextAccessor to check access from this Gateway API to other subsystems
+builder.Services.AddHttpContextAccessor();
+
+// 7. Register HttpClient services for microservices communication
 builder.Services.AddHttpClient("TicketSalesAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["MicroserviceUrls:TicketSales"] ?? "https://localhost:7011");
@@ -98,10 +101,10 @@ builder.Services.AddHttpClient("PerformerCommunicationAPI", client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-// 7. Register JWT Token Service
+// 8. Register JWT Token Service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// 8. Register Gateway-specific services (Auth + Client-facing orchestration)
+// 9. Register Gateway-specific services (Auth + Client-facing orchestration)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClientEventService, ClientEventService>();
 builder.Services.AddScoped<IClientPerformerService, ClientPerformerService>();
@@ -109,11 +112,11 @@ builder.Services.AddScoped<IClientVenueService, ClientVenueService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
-// 9. Register HTTP proxy services for EventOrganization microservice
+// 10. Register HTTP proxy services for EventOrganization microservice
 builder.Services.AddScoped<IEventProxyService, EventProxyService>();
 builder.Services.AddScoped<IPerformanceProxyService, PerformanceProxyService>();
 
-// 10. Register HTTP proxy services for TicketSales microservice
+// 11. Register HTTP proxy services for TicketSales microservice
 builder.Services.AddScoped<IVenueProxyService, VenueProxyService>();
 builder.Services.AddScoped<IZoneProxyService, ZoneProxyService>();
 builder.Services.AddScoped<ITicketTypeProxyService, TicketTypeProxyService>();
@@ -121,11 +124,11 @@ builder.Services.AddScoped<ITicketProxyService, TicketProxyService>();
 builder.Services.AddScoped<ISpecialOfferProxyService, SpecialOfferProxyService>();
 builder.Services.AddScoped<IRecordedSaleProxyService, RecordedSaleProxyService>();
 
-// 11. Register HTTP proxy services for PerformerCommunication microservice
+// 12. Register HTTP proxy services for PerformerCommunication microservice
 builder.Services.AddScoped<IPerformerProxyService, PerformerProxyService>();
 
 
-// 12. Configure Controllers with JSON options
+// 13. Configure Controllers with JSON options
 builder.Services.AddControllers()
     .ConfigureApplicationPartManager(manager =>
     {
@@ -172,7 +175,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Database seeding (only for Auth)
+// Database seeding
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -183,14 +186,7 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
 
         // Seed roles for the entire system
-        string[] roles = {
-            "TicketSales",
-            "EventOrganization",
-            "ArtistCommunication",
-            "MediaCampaign",
-            "MEMSClient",
-            "Administrator"
-        };
+        string[] roles = { "TicketSales", "EventOrganization", "ArtistCommunication", "MediaCampaign", "MEMSClient", "Administrator" };
 
         foreach (var role in roles)
         {

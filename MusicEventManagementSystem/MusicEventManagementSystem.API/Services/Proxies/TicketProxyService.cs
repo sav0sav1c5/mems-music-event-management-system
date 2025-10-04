@@ -8,12 +8,14 @@ namespace MusicEventManagementSystem.API.Services.Proxies
     public class TicketProxyService : ITicketProxyService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<TicketProxyService> _logger;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public TicketProxyService(IHttpClientFactory httpClientFactory, ILogger<TicketProxyService> logger)
+        public TicketProxyService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<TicketProxyService> logger)
         {
             _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
@@ -21,6 +23,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto> CreateTicketAsync(TicketCreateDto createDto)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PostAsJsonAsync("/api/ticket", createDto);
@@ -38,6 +49,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> GetTicketByIdAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/{id}");
@@ -55,6 +75,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<TicketResponseDto>> GetAllTicketsAsync()
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync("/api/ticket");
@@ -72,6 +101,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<TicketResponseDto>> GetTicketsByStatusAsync(TicketStatus status)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/status/{status}");
@@ -89,6 +127,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> GetTicketByUniqueCodeAsync(string uniqueCode)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/unique-code/{uniqueCode}");
@@ -106,6 +153,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> GetTicketByQrCodeAsync(string qrCode)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/qr-code/{qrCode}");
@@ -123,6 +179,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<TicketResponseDto>> GetSoldTicketsAsync()
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync("/api/ticket/sold");
@@ -140,6 +205,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<TicketResponseDto>> GetTodaysTicketsAsync()
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync("/api/ticket/today");
@@ -157,6 +231,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> UpdateTicketAsync(int id, TicketUpdateDto updateDto)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PutAsJsonAsync($"/api/ticket/{id}", updateDto);
@@ -174,6 +257,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> DeleteTicketAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.DeleteAsync($"/api/ticket/{id}");
@@ -191,6 +283,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> SellTicketAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PostAsync($"/api/ticket/{id}/sell", null);
@@ -208,6 +309,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> UseTicketAsync(string uniqueCode)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PostAsync($"/api/ticket/use/{Uri.EscapeDataString(uniqueCode)}", null);
@@ -225,6 +335,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<TicketResponseDto?> CancelTicketAsync(int ticketId)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PostAsync($"/api/ticket/{ticketId}/cancel", null);
@@ -242,6 +361,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<int> GetTicketsCountByStatusAsync(TicketStatus status)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/statistics/count/{status}");
@@ -258,6 +386,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<decimal> GetTotalRevenueAsync()
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/statistics/revenue/total");
@@ -274,6 +411,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<decimal> GetRevenueByDateRangeAsync(DateTime from, DateTime to)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/statistics/revenue/date-range?from={from:o}&to={to:o}");
@@ -290,6 +436,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<decimal> GetRevenueByStatusAsync(TicketStatus status)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/statistics/revenue/status/{status}");
@@ -306,6 +461,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> IsUniqueCodeValidAsync(string uniqueCode)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/validate/unique-code/{uniqueCode}");
@@ -322,6 +486,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> IsQrCodeValidAsync(string qrCode)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/validate/qr-code/{qrCode}");
@@ -338,6 +511,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> CanTicketBeUsedAsync(string uniqueCode)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/ticket/can-use/{Uri.EscapeDataString(uniqueCode)}");

@@ -8,12 +8,14 @@ namespace MusicEventManagementSystem.API.Services.Proxies
     public class SpecialOfferProxyService : ISpecialOfferProxyService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<SpecialOfferProxyService> _logger;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public SpecialOfferProxyService(IHttpClientFactory httpClientFactory, ILogger<SpecialOfferProxyService> logger)
+        public SpecialOfferProxyService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<SpecialOfferProxyService> logger)
         {
             _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
@@ -21,6 +23,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<SpecialOfferResponseDto> CreateSpecialOfferAsync(SpecialOfferCreateDto createDto)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PostAsJsonAsync("/api/specialoffer", createDto);
@@ -38,6 +49,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<SpecialOfferResponseDto?> GetSpecialOfferByIdAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/{id}");
@@ -55,6 +75,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<SpecialOfferResponseDto>> GetAllSpecialOffersAsync()
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync("/api/specialoffer");
@@ -72,6 +101,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<SpecialOfferResponseDto>> GetActiveOffersAsync(DateTime currentDate)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/active?date={currentDate:o}");
@@ -89,6 +127,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<SpecialOfferResponseDto>> GetByOfferTypeAsync(OfferType offerType)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/by-type/{offerType}");
@@ -106,6 +153,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<SpecialOfferResponseDto>> GetByDateRangeAsync(DateTime start, DateTime end)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/date-range?start={start:o}&end={end:o}");
@@ -123,6 +179,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<IEnumerable<SpecialOfferResponseDto>> GetByTicketTypeAsync(int ticketTypeId)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/by-ticket-type/{ticketTypeId}");
@@ -140,6 +205,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<SpecialOfferResponseDto?> UpdateSpecialOfferAsync(int id, SpecialOfferUpdateDto updateDto)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.PutAsJsonAsync($"/api/specialoffer/{id}", updateDto);
@@ -157,6 +231,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> DeleteSpecialOfferAsync(int id)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.DeleteAsync($"/api/specialoffer/{id}");
@@ -174,6 +257,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> IsOfferValidAsync(int specialOfferId, DateTime checkDate)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/{specialOfferId}/is-valid?checkDate={checkDate:o}");
@@ -190,6 +282,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         public async Task<bool> HasActiveOfferForTicketTypeAsync(int ticketTypeId, DateTime currentDate)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
             try
             {
                 var response = await client.GetAsync($"/api/specialoffer/ticket-type/{ticketTypeId}/has-active-offer?checkDate={currentDate:o}");
