@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, Ticket, Download, QrCode, Clock, CheckCircle, XCircle, X } from "lucide-react";
+import { Calendar, MapPin, Ticket, Download, QrCode, Clock, CheckCircle, XCircle, ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { ordersService } from "../../shared/services/client/ordersService";
 import type { OrderDto, OrderDetailsDto } from "../../shared/types/api/order";
@@ -9,6 +9,7 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetailsDto | null>(null);
   const [orderLoading, setOrderLoading] = useState(false);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
   // Mock user ID - replace with actual user ID from auth context
   const userId = "user123";
@@ -34,6 +35,7 @@ const MyOrders = () => {
       setOrderLoading(true);
       const orderDetails = await ordersService.getOrderDetails(userId, orderId);
       setSelectedOrder(orderDetails);
+      setShowOrderDetails(true);
     } catch (error) {
       console.error("Error fetching order details:", error);
     } finally {
@@ -71,6 +73,7 @@ const MyOrders = () => {
       await ordersService.cancelOrder(userId, orderId);
       alert("Order cancelled successfully");
       await fetchOrders();
+      setShowOrderDetails(false);
       setSelectedOrder(null);
     } catch (error) {
       console.error("Error cancelling order:", error);
@@ -96,13 +99,13 @@ const MyOrders = () => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
       case 'completed':
-        return 'text-green-400 bg-green-500/10 border-green-500/30';
+        return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'pending':
-        return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
+        return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'cancelled':
-        return 'text-red-400 bg-red-500/10 border-red-500/30';
+        return 'bg-red-500/20 text-red-400 border-red-500/30';
       default:
-        return 'text-neutral-400 bg-neutral-500/10 border-neutral-500/30';
+        return 'bg-neutral-500/20 text-neutral-400 border-neutral-500/30';
     }
   };
 
@@ -129,7 +132,10 @@ const MyOrders = () => {
       <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
         <div className="text-white h-full flex flex-col p-4 m-1">
           <div className="flex items-center justify-center h-full">
-            <div className="text-neutral-400 text-base">Loading orders...</div>
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+              <p className="text-neutral-400 text-base">Loading orders...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -153,139 +159,161 @@ const MyOrders = () => {
             </div>
             <p className="text-neutral-400 text-base mb-2">No orders yet</p>
             <p className="text-neutral-500 text-sm mb-6">Browse events and purchase tickets to see them here</p>
+            <button 
+              onClick={() => window.location.href = "/client/events"}
+              className="px-6 py-3 rounded-xl bg-orange-400 text-black font-medium hover:bg-orange-500 transition-all duration-200 shadow-lg"
+            >
+              Browse Events
+            </button>
           </Card>
         ) : (
-          /* Orders Grid */
-          <div className="space-y-4 overflow-y-auto">
-            {orders.map((order) => (
-              <Card key={order.orderId} className="p-6 hover:bg-neutral-800/50 transition-colors">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  {/* Order Info */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-white text-lg font-medium mb-1">
-                          Order #{order.orderId}
-                        </h3>
-                        <div className="flex items-center gap-4 text-sm text-neutral-400">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4 text-orange-400" />
-                            <span>{formatDateTime(order.orderDate)}</span>
+          <div className={`flex gap-6 transition-all duration-300 ${showOrderDetails ? 'overflow-hidden' : ''}`}>
+            {/* Orders List - Left Side */}
+            <div className={`flex-1 transition-all duration-300 ${showOrderDetails ? 'w-2/3' : 'w-full'}`}>
+              <div className="space-y-4 overflow-y-auto">
+                {orders.map((order) => (
+                  <Card key={order.orderId} hover={true} className="p-6 group cursor-pointer" onClick={() => handleViewTickets(order)}>
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      {/* Order Info */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="text-white text-lg font-medium mb-1 group-hover:text-orange-400 transition-colors">
+                              Order #{order.orderId}
+                            </h3>
+                            <div className="flex items-center gap-4 text-sm text-neutral-400">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4 text-orange-400" />
+                                <span>{formatDateTime(order.orderDate)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full border text-xs font-medium flex items-center gap-1 ${getStatusColor(order.status || '')}`}>
+                            {getStatusIcon(order.status || '')}
+                            {order.status || 'Unknown'}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-neutral-400">Total Items</p>
+                            <p className="text-white font-medium">{order.totalTickets || 0} tickets</p>
+                          </div>
+                          <div>
+                            <p className="text-neutral-400">Payment Method</p>
+                            <p className="text-white font-medium flex items-center gap-1">
+                              <CreditCard className="w-4 h-4 text-orange-400" />
+                              {order.paymentMethod || 'N/A'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-neutral-400">Total</p>
+                            <p className="text-orange-400 text-lg font-bold">{formatCurrency(order.totalAmount || 0)}</p>
                           </div>
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full border text-xs font-medium flex items-center gap-1 ${getStatusColor(order.status || '')}`}>
-                        {getStatusIcon(order.status || '')}
-                        {order.status || 'Unknown'}
+
+                      {/* Actions */}
+                      <div className="flex flex-col sm:flex-row gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleViewTickets(order)}
+                          className="px-4 py-2 bg-orange-400 hover:bg-orange-500 text-black font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                        >
+                          <QrCode size={16} />
+                          View Details
+                        </button>
+                        {order.status?.toLowerCase() === 'confirmed' && (
+                          <button
+                            onClick={() => handleCancelOrder(order.orderId)}
+                            className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2 border border-neutral-700"
+                          >
+                            <XCircle size={16} />
+                            Cancel
+                          </button>
+                        )}
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <p className="text-neutral-400">Total Items</p>
-                        <p className="text-white font-medium">{order.totalTickets || 0} tickets</p>
-                      </div>
-                      <div>
-                        <p className="text-neutral-400">Payment Method</p>
-                        <p className="text-white font-medium">{order.paymentMethod || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-neutral-400">Total</p>
-                        <p className="text-orange-400 text-lg font-bold">{formatCurrency(order.totalAmount || 0)}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <button
-                      onClick={() => handleViewTickets(order)}
-                      className="px-4 py-2 bg-orange-400 hover:bg-orange-500 text-black font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <QrCode size={16} />
-                      View Details
-                    </button>
-                    {order.status?.toLowerCase() === 'confirmed' && (
-                      <button
-                        onClick={() => handleCancelOrder(order.orderId)}
-                        className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-                      >
-                        <XCircle size={16} />
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Order Details Modal */}
-        {selectedOrder && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-neutral-800 sticky top-0 bg-neutral-900 z-10">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Order #{selectedOrder.orderId}</h2>
-                  <p className="text-neutral-400 text-sm">{formatDateTime(selectedOrder.orderDate)}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedOrder(null)}
-                  className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6 text-neutral-400" />
-                </button>
+                  </Card>
+                ))}
               </div>
+            </div>
 
-              {/* Content */}
-              <div className="p-6">
-                {orderLoading ? (
-                  <div className="text-center text-neutral-400 py-8">
-                    Loading order details...
+            {/* Order Details Side Panel */}
+            {showOrderDetails && (
+              <div className="w-1/3 transition-all duration-300">
+                <Card className="overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-900/60 backdrop-blur-sm h-full">
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b border-neutral-800">
+                    <button
+                      onClick={() => {
+                        setShowOrderDetails(false);
+                        setSelectedOrder(null);
+                      }}
+                      className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-orange-400"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h2 className="text-xl font-bold text-orange-400">
+                      Order Details
+                    </h2>
+                    <div className="w-5"></div> {/* Spacer for alignment */}
                   </div>
-                ) : (
-                  <>
-                    {/* Order Summary */}
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">Order Information</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card className="p-4">
-                          <p className="text-neutral-400 text-sm mb-1">Status</p>
-                          <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(selectedOrder.status || '')}`}>
-                            {getStatusIcon(selectedOrder.status || '')}
-                            {selectedOrder.status || 'Unknown'}
-                          </div>
-                        </Card>
-                        <Card className="p-4">
-                          <p className="text-neutral-400 text-sm mb-1">Payment Method</p>
-                          <p className="text-white font-medium">{selectedOrder.paymentMethod || 'N/A'}</p>
-                        </Card>
-                      </div>
-                    </div>
 
-                    {/* Tickets */}
-                    {selectedOrder.tickets && selectedOrder.tickets.length > 0 && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">Your Tickets</h3>
-                        <div className="space-y-4">
-                          {selectedOrder.tickets.map((ticket) => (
-                            <Card key={ticket.ticketId} className="p-4">
-                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-3">
-                                    <div className="p-2 bg-orange-400/20 rounded-xl">
-                                      <Ticket className="w-6 h-6 text-orange-400" />
+                  <div className="space-y-6 overflow-y-auto px-1" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                    {orderLoading ? (
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Loader2 className="w-8 h-8 text-orange-400 animate-spin mb-4" />
+                        <p className="text-neutral-400">Loading order details...</p>
+                      </div>
+                    ) : selectedOrder ? (
+                      <>
+                        {/* Order Summary */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-white mb-4">Order Information</h3>
+                          <div className="grid grid-cols-1 gap-3">
+                            <Card className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-neutral-400 text-sm mb-1">Status</p>
+                                  <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(selectedOrder.status || '')}`}>
+                                    {getStatusIcon(selectedOrder.status || '')}
+                                    {selectedOrder.status || 'Unknown'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-neutral-400 text-sm mb-1">Order Date</p>
+                                  <p className="text-white text-sm">{formatDateTime(selectedOrder.orderDate)}</p>
+                                </div>
+                              </div>
+                            </Card>
+                            <Card className="p-4">
+                              <p className="text-neutral-400 text-sm mb-1">Payment Method</p>
+                              <p className="text-white font-medium flex items-center gap-2">
+                                <CreditCard className="w-4 h-4 text-orange-400" />
+                                {selectedOrder.paymentMethod || 'N/A'}
+                              </p>
+                            </Card>
+                          </div>
+                        </div>
+
+                        {/* Tickets */}
+                        {selectedOrder.tickets && selectedOrder.tickets.length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-4">Your Tickets</h3>
+                            <div className="space-y-4">
+                              {selectedOrder.tickets.map((ticket) => (
+                                <Card key={ticket.ticketId} hover={true} className="p-4">
+                                  <div className="flex items-start gap-3 mb-3">
+                                    <div className="p-2 bg-orange-400/20 rounded-lg border border-orange-500/30">
+                                      <Ticket className="w-5 h-5 text-orange-400" />
                                     </div>
-                                    <div>
+                                    <div className="flex-1">
                                       <h4 className="text-white font-medium">Ticket #{ticket.ticketId}</h4>
                                       <p className="text-neutral-400 text-sm">{ticket.eventName}</p>
                                       <p className="text-neutral-400 text-xs">{ticket.ticketTypeName}</p>
                                     </div>
                                   </div>
                                   
-                                  <div className="space-y-2 text-sm">
+                                  <div className="space-y-2 text-sm mb-4">
                                     <div className="flex items-center gap-2">
                                       <Calendar className="w-4 h-4 text-orange-400" />
                                       <span className="text-neutral-300">{formatDateTime(ticket.eventStartDate)}</span>
@@ -301,79 +329,78 @@ const MyOrders = () => {
                                       {ticket.status || 'Unknown'}
                                     </div>
                                   </div>
-                                </div>
 
-                                <div className="flex flex-col items-center gap-3">
-                                  {/* QR Code Placeholder */}
-                                  <div className="w-32 h-32 bg-white rounded-xl flex items-center justify-center border-2 border-orange-400">
-                                    <div className="text-center">
-                                      <QrCode className="w-12 h-12 text-black mx-auto mb-2" />
-                                      <span className="text-black text-xs font-medium">QR CODE</span>
+                                  <div className="flex flex-col items-center gap-3">
+                                    {/* QR Code Placeholder */}
+                                    <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center border-2 border-orange-400">
+                                      <div className="text-center">
+                                        <QrCode className="w-8 h-8 text-black mx-auto mb-1" />
+                                        <span className="text-black text-xs font-medium">QR CODE</span>
+                                      </div>
                                     </div>
+                                    <button 
+                                      onClick={() => handleDownloadTicket(ticket.ticketId)}
+                                      className="text-orange-400 hover:text-orange-300 text-sm transition-colors flex items-center gap-1 font-medium"
+                                    >
+                                      <Download size={14} />
+                                      Download PDF
+                                    </button>
                                   </div>
-                                  <button 
-                                    onClick={() => handleDownloadTicket(ticket.ticketId)}
-                                    className="text-orange-400 hover:text-orange-300 text-sm transition-colors flex items-center gap-1"
-                                  >
-                                    <Download size={14} />
-                                    Download PDF
-                                  </button>
-                                </div>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Price Breakdown */}
+                        <div className="border-t border-neutral-800 pt-6">
+                          <h3 className="text-lg font-semibold text-white mb-4">Payment Summary</h3>
+                          <Card className="p-4">
+                            <div className="space-y-3">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-neutral-400">Subtotal</span>
+                                <span className="text-white">{formatCurrency(selectedOrder.subtotal || 0)}</span>
                               </div>
-                            </Card>
-                          ))}
+                              {(selectedOrder.discount || 0) > 0 && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-green-400">Discount</span>
+                                  <span className="text-green-400">-{formatCurrency(selectedOrder.discount || 0)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between text-sm">
+                                <span className="text-neutral-400">Service Fee</span>
+                                <span className="text-white">{formatCurrency(selectedOrder.serviceFee || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-lg font-semibold border-t border-neutral-700 pt-3">
+                                <span className="text-white">Total</span>
+                                <span className="text-orange-400">{formatCurrency(selectedOrder.totalAmount || 0)}</span>
+                              </div>
+                            </div>
+                          </Card>
                         </div>
+
+                        {/* Action Buttons */}
+                        {selectedOrder.status?.toLowerCase() === 'confirmed' && (
+                          <div className="flex gap-3 pt-4 border-t border-neutral-800">
+                            <button
+                              onClick={() => handleCancelOrder(selectedOrder.orderId)}
+                              className="flex-1 p-3 bg-red-500/10 border border-red-500/30 text-red-400 font-medium rounded-xl hover:bg-red-500/20 transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                              <XCircle size={16} />
+                              Cancel Order
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-neutral-400">
+                        <p>No order details available</p>
                       </div>
                     )}
-
-                    {/* Price Breakdown */}
-                    <div className="border-t border-neutral-800 pt-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">Payment Summary</h3>
-                      <Card className="p-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-neutral-400">Subtotal</span>
-                            <span className="text-white">{formatCurrency(selectedOrder.subtotal || 0)}</span>
-                          </div>
-                          {(selectedOrder.discount || 0) > 0 && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-green-400">Discount</span>
-                              <span className="text-green-400">-{formatCurrency(selectedOrder.discount || 0)}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between text-sm">
-                            <span className="text-neutral-400">Service Fee</span>
-                            <span className="text-white">{formatCurrency(selectedOrder.serviceFee || 0)}</span>
-                          </div>
-                          <div className="flex justify-between text-lg font-semibold border-t border-neutral-700 pt-2">
-                            <span className="text-white">Total</span>
-                            <span className="text-orange-400">{formatCurrency(selectedOrder.totalAmount || 0)}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 mt-6 pt-6 border-t border-neutral-800">
-                      <button
-                        onClick={() => setSelectedOrder(null)}
-                        className="flex-1 py-3 px-4 border border-neutral-700 text-white rounded-lg hover:bg-neutral-800 transition-colors"
-                      >
-                        Close
-                      </button>
-                      {selectedOrder.status?.toLowerCase() === 'confirmed' && (
-                        <button
-                          onClick={() => handleCancelOrder(selectedOrder.orderId)}
-                          className="flex-1 py-3 px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-medium rounded-lg hover:bg-red-500/20 transition-colors"
-                        >
-                          Cancel Order
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
+                  </div>
+                </Card>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

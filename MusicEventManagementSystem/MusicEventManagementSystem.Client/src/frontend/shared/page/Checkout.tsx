@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CreditCard, User, Lock, CheckCircle, ArrowLeft } from "lucide-react";
+import { CreditCard, User, Lock, CheckCircle, ArrowLeft, Loader2, Shield, MapPin } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { CartService } from "../../shared/services/client/cartService";
@@ -103,10 +103,21 @@ const Checkout = () => {
       case 'billing':
         return billingInfo.firstName && billingInfo.lastName && billingInfo.email && billingInfo.phone;
       case 'payment':
-        return paymentInfo.cardNumber && paymentInfo.expiryDate && paymentInfo.cvv && paymentInfo.cardholderName;
+        return paymentInfo.cardNumber.replace(/\s/g, '').length === 16 && 
+               paymentInfo.expiryDate && 
+               paymentInfo.cvv.length >= 3 && 
+               paymentInfo.cardholderName;
       default:
         return true;
     }
+  };
+
+  const formatCardNumber = (value: string) => {
+    return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+  };
+
+  const formatExpiryDate = (value: string) => {
+    return value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').substring(0, 5);
   };
 
   const formatCurrency = (amount: number) => {
@@ -128,33 +139,33 @@ const Checkout = () => {
         <div className="text-white h-full flex flex-col p-4 m-1">
           <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto">
             <Card className="p-12 text-center">
-              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/30">
                 <CheckCircle className="w-12 h-12 text-green-400" />
               </div>
               <h1 className="text-3xl font-bold text-white mb-4">Order Complete!</h1>
               <p className="text-neutral-400 mb-6 text-base">
                 Thank you for your purchase. Your tickets have been sent to your email.
               </p>
-              <div className="bg-neutral-800/30 rounded-xl p-6 mb-8">
-                <p className="text-white mb-2">
-                  Order #: <span className="text-orange-400 font-medium">
+              <div className="bg-neutral-800/30 rounded-xl p-6 mb-8 border border-neutral-700">
+                <p className="text-white mb-2 text-lg">
+                  Order #: <span className="text-orange-400 font-bold">
                     {orderId ? `ORD-${orderId}` : 'Processing...'}
                   </span>
                 </p>
-                <p className="text-neutral-400 text-sm">
-                  Total: <span className="text-white font-medium">{formatCurrency(total)}</span>
+                <p className="text-neutral-400">
+                  Total: <span className="text-white font-medium text-lg">{formatCurrency(total)}</span>
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={() => navigate("/client/orders")}
-                  className="flex-1 bg-orange-400 hover:bg-orange-500 text-black py-3 rounded-xl transition-all duration-200 font-medium"
+                  className="flex-1 bg-orange-400 hover:bg-orange-500 text-black py-3 rounded-xl transition-all duration-200 font-medium shadow-lg"
                 >
                   View My Tickets
                 </button>
                 <button 
                   onClick={() => navigate("/client/events")}
-                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-xl transition-all duration-200"
+                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-xl transition-all duration-200 border border-neutral-700"
                 >
                   Browse More Events
                 </button>
@@ -171,7 +182,10 @@ const Checkout = () => {
       <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
         <div className="text-white h-full flex flex-col p-4 m-1">
           <div className="flex items-center justify-center h-full">
-            <div className="text-neutral-400 text-base">Loading checkout...</div>
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+              <p className="text-neutral-400 text-base">Loading checkout...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -182,52 +196,72 @@ const Checkout = () => {
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
       <div className="text-white h-full flex flex-col p-4 m-1 overflow-y-auto">
         {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => navigate("/client/cart")}
-            className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-4"
-          >
-            <ArrowLeft size={16} />
-            Back to Cart
-          </button>
-          <h1 className="text-2xl font-bold text-white mb-1">Secure Checkout</h1>
-          <p className="text-neutral-400 text-sm">Complete your ticket purchase</p>
-        </div>
-
-        {/* Progress Steps */}
-        <Card className="p-6 mb-6">
-          <div className="flex items-center max-w-2xl mx-auto">
-            {[
-              { name: 'billing', label: 'Billing' },
-              { name: 'payment', label: 'Payment' },
-              { name: 'review', label: 'Review' }
-            ].map((stepItem, index) => (
-              <div key={stepItem.name} className="flex items-center flex-1">
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
-                    step === stepItem.name 
-                      ? 'bg-orange-400 text-black' 
-                      : isStepValid(stepItem.name) || ['payment', 'review'].includes(step)
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-neutral-800 text-neutral-400'
-                  }`}>
-                    {isStepValid(stepItem.name) && step !== stepItem.name ? '✓' : index + 1}
-                  </div>
-                  <span className="text-xs text-neutral-400 mt-1 hidden sm:block">{stepItem.label}</span>
-                </div>
-                {index < 2 && (
-                  <div className="flex-1 mx-2 sm:mx-4">
-                    <div className={`h-1 rounded-full transition-all duration-200 ${
-                      isStepValid(stepItem.name) || ['payment', 'review'].includes(step)
-                        ? 'bg-orange-400'
-                        : 'bg-neutral-800'
-                    }`} />
-                  </div>
-                )}
-              </div>
-            ))}
+        <div className="flex items-center justify-between gap-6 mb-6">
+          {/* Left side - Back button and title */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/client/cart")}
+              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors bg-neutral-800/50 hover:bg-neutral-700/50 px-4 py-2 rounded-xl"
+            >
+              <ArrowLeft size={16} />
+              Back to Cart
+            </button>
+            
+            {/* <div className="h-8 w-px bg-neutral-700" /> */}
+            
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">Secure Checkout</h1>
+              <p className="text-neutral-400 text-sm">Complete your ticket purchase</p>
+            </div>
           </div>
-        </Card>
+
+          {/* Right side - Progress steps */}
+          <div className="flex justify-end">
+            <div className="flex w-200">
+              {[
+                { name: 'billing', label: 'Billing', icon: User },
+                { name: 'payment', label: 'Payment', icon: CreditCard },
+                { name: 'review', label: 'Review', icon: Shield }
+              ].map((stepItem, index) => {
+                const Icon = stepItem.icon;
+                const isCompleted = isStepValid(stepItem.name) && step !== stepItem.name;
+                const isCurrent = step === stepItem.name;
+                
+                return (
+                  <div key={stepItem.name} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center" >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                        isCurrent 
+                          ? 'bg-orange-400 text-black shadow-lg' 
+                          : isCompleted
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      }`}>
+                        {isCompleted ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : (
+                          <Icon className="w-5 h-5" />
+                        )}
+                      </div>
+                      <span className={`text-xs mt-2 font-medium ${
+                        isCurrent ? 'text-orange-400' : isCompleted ? 'text-green-400' : 'text-neutral-400'
+                      }`}>
+                        {stepItem.label}
+                      </span>
+                    </div>
+                    {index < 2 && (
+                      <div className="flex-1 mx-3">
+                        <div className={`h-1 rounded-full transition-all duration-200 ${
+                          isCompleted ? 'bg-green-400' : isCurrent ? 'bg-orange-400' : 'bg-neutral-800'
+                        }`} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -237,13 +271,18 @@ const Checkout = () => {
               {step === 'billing' && (
                 <Card className="p-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <User className="w-6 h-6 text-orange-400" />
-                    <h2 className="text-xl font-semibold text-white">Billing Information</h2>
+                    <div className="p-2 bg-orange-400/20 rounded-lg border border-orange-500/30">
+                      <User className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">Billing Information</h2>
+                      <p className="text-neutral-400 text-sm">Enter your contact details</p>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">First Name *</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">First Name *</label>
                       <input
                         type="text"
                         value={billingInfo.firstName}
@@ -253,7 +292,7 @@ const Checkout = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">Last Name *</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Last Name *</label>
                       <input
                         type="text"
                         value={billingInfo.lastName}
@@ -263,7 +302,7 @@ const Checkout = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">Email *</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Email *</label>
                       <input
                         type="email"
                         value={billingInfo.email}
@@ -273,7 +312,7 @@ const Checkout = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">Phone *</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Phone *</label>
                       <input
                         type="tel"
                         value={billingInfo.phone}
@@ -283,16 +322,20 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm text-neutral-300 mb-2">Address</label>
-                      <input
-                        type="text"
-                        value={billingInfo.address}
-                        onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
-                        className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
-                      />
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Address</label>
+                      <div className="flex gap-2">
+                        <MapPin className="w-5 h-5 text-neutral-500 mt-3 flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={billingInfo.address}
+                          onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
+                          className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                          placeholder="Enter your address"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">City</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">City</label>
                       <input
                         type="text"
                         value={billingInfo.city}
@@ -301,7 +344,7 @@ const Checkout = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">Postal Code</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Postal Code</label>
                       <input
                         type="text"
                         value={billingInfo.postalCode}
@@ -317,53 +360,58 @@ const Checkout = () => {
               {step === 'payment' && (
                 <Card className="p-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <CreditCard className="w-6 h-6 text-orange-400" />
-                    <h2 className="text-xl font-semibold text-white">Payment Method</h2>
+                    <div className="p-2 bg-orange-400/20 rounded-lg border border-orange-500/30">
+                      <CreditCard className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">Payment Method</h2>
+                      <p className="text-neutral-400 text-sm">Enter your card details</p>
+                    </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">Card Number *</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Card Number *</label>
                       <input
                         type="text"
                         placeholder="1234 5678 9012 3456"
-                        maxLength={19}
                         value={paymentInfo.cardNumber}
-                        onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: e.target.value})}
+                        onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: formatCardNumber(e.target.value)})}
                         className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                        maxLength={19}
                         required
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-neutral-300 mb-2">Expiry Date *</label>
+                        <label className="block text-sm font-medium text-neutral-300 mb-2">Expiry Date *</label>
                         <input
                           type="text"
                           placeholder="MM/YY"
-                          maxLength={5}
                           value={paymentInfo.expiryDate}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, expiryDate: e.target.value})}
+                          onChange={(e) => setPaymentInfo({...paymentInfo, expiryDate: formatExpiryDate(e.target.value)})}
                           className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                          maxLength={5}
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-neutral-300 mb-2">CVV *</label>
+                        <label className="block text-sm font-medium text-neutral-300 mb-2">CVV *</label>
                         <input
                           type="text"
                           placeholder="123"
-                          maxLength={4}
                           value={paymentInfo.cvv}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})}
+                          onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value.replace(/\D/g, '')})}
                           className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                          maxLength={4}
                           required
                         />
                       </div>
                     </div>
                     
                     <div>
-                      <label className="block text-sm text-neutral-300 mb-2">Cardholder Name *</label>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">Cardholder Name *</label>
                       <input
                         type="text"
                         placeholder="John Doe"
@@ -380,37 +428,53 @@ const Checkout = () => {
               {/* Review Step */}
               {step === 'review' && (
                 <Card className="p-6">
-                  <h2 className="text-xl font-semibold text-white mb-6">Review Your Order</h2>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-orange-400/20 rounded-lg border border-orange-500/30">
+                      <Shield className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">Review Your Order</h2>
+                      <p className="text-neutral-400 text-sm">Confirm your details before payment</p>
+                    </div>
+                  </div>
                   
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-neutral-400 text-sm mb-2">Billing Information</h3>
-                      <div className="bg-neutral-800/30 rounded-xl p-4 text-sm">
-                        <p className="text-white">{billingInfo.firstName} {billingInfo.lastName}</p>
-                        <p className="text-neutral-400">{billingInfo.email}</p>
-                        <p className="text-neutral-400">{billingInfo.phone}</p>
-                      </div>
+                      <h3 className="text-neutral-300 text-lg font-medium mb-3">Billing Information</h3>
+                      <Card className="p-4 bg-neutral-800/30 border border-neutral-700">
+                        <div className="space-y-2 text-sm">
+                          <p className="text-white font-medium">{billingInfo.firstName} {billingInfo.lastName}</p>
+                          <p className="text-neutral-400">{billingInfo.email}</p>
+                          <p className="text-neutral-400">{billingInfo.phone}</p>
+                          {billingInfo.address && (
+                            <p className="text-neutral-400">{billingInfo.address}, {billingInfo.city} {billingInfo.postalCode}</p>
+                          )}
+                        </div>
+                      </Card>
                     </div>
 
                     <div>
-                      <h3 className="text-neutral-400 text-sm mb-2">Payment Method</h3>
-                      <div className="bg-neutral-800/30 rounded-xl p-4 text-sm">
-                        <p className="text-white">Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
-                        <p className="text-neutral-400">{paymentInfo.cardholderName}</p>
-                      </div>
+                      <h3 className="text-neutral-300 text-lg font-medium mb-3">Payment Method</h3>
+                      <Card className="p-4 bg-neutral-800/30 border border-neutral-700">
+                        <div className="space-y-2 text-sm">
+                          <p className="text-white font-medium">Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
+                          <p className="text-neutral-400">Expires {paymentInfo.expiryDate}</p>
+                          <p className="text-neutral-400">{paymentInfo.cardholderName}</p>
+                        </div>
+                      </Card>
                     </div>
                   </div>
                 </Card>
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between gap-4">
+              <div className="flex justify-between gap-4 pt-6 border-t border-neutral-800">
                 {step !== 'billing' && (
                   <button
                     type="button"
                     onClick={() => setStep(step === 'payment' ? 'billing' : 'payment')}
                     disabled={loading}
-                    className="px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-all duration-200 disabled:opacity-50"
+                    className="px-8 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-all duration-200 disabled:opacity-50 border border-neutral-700 font-medium"
                   >
                     Back
                   </button>
@@ -424,9 +488,18 @@ const Checkout = () => {
                     }
                   }}
                   disabled={!isStepValid(step) || loading}
-                  className="px-6 py-3 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:text-neutral-400 text-black font-medium rounded-xl transition-all duration-200 ml-auto disabled:cursor-not-allowed"
+                  className="px-8 py-3 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:text-neutral-400 text-black font-semibold rounded-xl transition-all duration-200 ml-auto disabled:cursor-not-allowed shadow-lg flex items-center gap-2"
                 >
-                  {loading ? 'Processing...' : step === 'review' ? 'Complete Purchase' : 'Continue'}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : step === 'review' ? (
+                    'Complete Purchase'
+                  ) : (
+                    'Continue'
+                  )}
                 </button>
               </div>
             </form>
@@ -440,20 +513,25 @@ const Checkout = () => {
               {/* Tickets */}
               <div className="space-y-4 mb-6">
                 {cart?.items.map((item) => (
-                  <div key={item.ticketTypeId} className="flex justify-between items-start">
+                  <div key={item.ticketTypeId} className="flex justify-between items-start pb-4 border-b border-neutral-800 last:border-b-0">
                     <div className="flex-1">
                       <p className="text-white text-sm font-medium">{item.eventName}</p>
                       <p className="text-neutral-400 text-xs">
                         {item.ticketTypeName} × {item.quantity}
                       </p>
+                      {item.discountAmount > 0 && (
+                        <p className="text-green-400 text-xs mt-1">
+                          Save {formatCurrency(item.discountAmount * item.quantity)}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-orange-400 font-medium">{formatCurrency(item.subtotal)}</p>
+                    <p className="text-orange-400 font-bold text-lg">{formatCurrency(item.subtotal)}</p>
                   </div>
                 ))}
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-2 border-t border-neutral-700 pt-4">
+              <div className="space-y-3 border-t border-neutral-700 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-400">Subtotal</span>
                   <span className="text-white">{formatCurrency(subtotal)}</span>
@@ -468,9 +546,9 @@ const Checkout = () => {
                   <span className="text-neutral-400">Service Fee</span>
                   <span className="text-white">{formatCurrency(serviceFee)}</span>
                 </div>
-                <div className="flex justify-between text-lg font-semibold border-t border-neutral-700 pt-3">
+                <div className="flex justify-between text-lg font-bold border-t border-neutral-700 pt-3">
                   <span className="text-white">Total</span>
-                  <span className="text-orange-400">{formatCurrency(total)}</span>
+                  <span className="text-orange-400 text-xl">{formatCurrency(total)}</span>
                 </div>
               </div>
 

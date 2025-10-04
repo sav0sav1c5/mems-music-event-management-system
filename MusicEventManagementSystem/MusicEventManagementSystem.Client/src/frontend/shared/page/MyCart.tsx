@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Trash2, Plus, Minus, ShoppingCart, Ticket, CreditCard, AlertCircle } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, Ticket, CreditCard, AlertCircle, Loader2 } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { CartService } from "../../shared/services/client/cartService";
@@ -13,6 +13,7 @@ const MyCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoDiscount, setPromoDiscount] = useState(0);
+  const [applyingPromo, setApplyingPromo] = useState(false);
 
   // Mock user ID - replace with actual user ID from auth context
   const userId = "user123";
@@ -88,21 +89,34 @@ const MyCart = () => {
     }
   };
 
-  const applyPromoCode = () => {
-    const validPromoCodes: Record<string, number> = {
-      "SAVE10": 10,
-      "STUDENT": 15,
-      "EARLY20": 20,
-      "VIP25": 25
-    };
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) return;
 
-    const upperCode = promoCode.toUpperCase();
-    if (validPromoCodes[upperCode]) {
-      setAppliedPromo(upperCode);
-      setPromoDiscount(validPromoCodes[upperCode]);
-      setPromoCode("");
-    } else {
-      alert("Invalid promo code");
+    try {
+      setApplyingPromo(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const validPromoCodes: Record<string, number> = {
+        "SAVE10": 10,
+        "STUDENT": 15,
+        "EARLY20": 20,
+        "VIP25": 25
+      };
+
+      const upperCode = promoCode.toUpperCase();
+      if (validPromoCodes[upperCode]) {
+        setAppliedPromo(upperCode);
+        setPromoDiscount(validPromoCodes[upperCode]);
+        setPromoCode("");
+      } else {
+        alert("Invalid promo code");
+      }
+    } catch (error) {
+      console.error("Error applying promo code:", error);
+      alert("Failed to apply promo code");
+    } finally {
+      setApplyingPromo(false);
     }
   };
 
@@ -145,7 +159,10 @@ const MyCart = () => {
             </div>
           </div>
           <div className="flex items-center justify-center flex-1">
-            <div className="text-neutral-400 text-base">Loading cart items...</div>
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+              <p className="text-neutral-400 text-base">Loading cart items...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -161,9 +178,9 @@ const MyCart = () => {
             <h1 className="text-2xl font-bold text-white mb-1">Shopping Cart</h1>
             <p className="text-neutral-400 text-sm">Review your selected tickets</p>
           </div>
-          <div className="flex items-center gap-2 text-neutral-400">
+          <div className="flex items-center gap-2 text-neutral-400 bg-neutral-800/50 px-4 py-2 rounded-xl">
             <ShoppingCart size={20} />
-            <span>{cart?.totalItems || 0} items</span>
+            <span className="font-medium">{cart?.totalItems || 0} items</span>
           </div>
         </div>
 
@@ -186,27 +203,47 @@ const MyCart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-white">Cart Items</h2>
+                <button
+                  onClick={clearCart}
+                  className="px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 flex items-center gap-2 text-sm"
+                >
+                  <Trash2 size={16} />
+                  Clear Entire Cart
+                </button>
+              </div>
+              
               {cart.items.map((item: CartItemDto) => (
-                <Card key={item.ticketTypeId} hover={true} className="p-6">
+                <Card key={item.ticketTypeId} hover={true} className="p-6 group">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                      <h3 className="text-white text-lg font-medium mb-1">{item.eventName}</h3>
-                      <div className="space-y-1 text-sm text-neutral-400">
-                        <div className="flex items-center gap-2">
-                          <Ticket className="w-4 h-4 text-orange-400" />
-                          <span>{item.ticketTypeName}</span>
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-orange-400/20 rounded-lg border border-orange-500/30">
+                          <Ticket className="w-5 h-5 text-orange-400" />
                         </div>
-                        {item.zoneName && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-neutral-500">Zone:</span>
-                            <span>{item.zoneName}</span>
+                        <div className="flex-1">
+                          <h3 className="text-white text-lg font-medium group-hover:text-orange-400 transition-colors">
+                            {item.eventName}
+                          </h3>
+                          <div className="space-y-1 text-sm text-neutral-400 mt-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-orange-400">Ticket:</span>
+                              <span>{item.ticketTypeName}</span>
+                            </div>
+                            {item.zoneName && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-neutral-500">Zone:</span>
+                                <span>{item.zoneName}</span>
+                              </div>
+                            )}
+                            {item.specialOfferName && (
+                              <div className="flex items-center gap-2 text-green-400">
+                                <span>✓ Special Offer: {item.specialOfferName}</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {item.specialOfferName && (
-                          <div className="flex items-center gap-2 text-green-400">
-                            <span>✓ Special Offer: {item.specialOfferName}</span>
-                          </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                     <button
@@ -221,28 +258,32 @@ const MyCart = () => {
                   <div className="flex justify-between items-center pt-4 border-t border-neutral-800">
                     <div className="flex items-center gap-3">
                       <span className="text-neutral-400 text-sm">Quantity:</span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 bg-neutral-800 rounded-lg p-1">
                         <button
                           onClick={() => updateQuantity(item.ticketTypeId, item.quantity - 1)}
                           disabled={updating === item.ticketTypeId || item.quantity <= 1}
-                          className="p-1 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 bg-neutral-700 hover:bg-neutral-600 rounded text-neutral-400 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="w-8 text-center text-white font-medium">
-                          {updating === item.ticketTypeId ? "..." : item.quantity}
+                        <span className="w-8 text-center text-white font-medium text-sm">
+                          {updating === item.ticketTypeId ? (
+                            <Loader2 className="w-3 h-3 animate-spin mx-auto" />
+                          ) : (
+                            item.quantity
+                          )}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.ticketTypeId, item.quantity + 1)}
                           disabled={updating === item.ticketTypeId}
-                          className="p-1 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 bg-neutral-700 hover:bg-neutral-600 rounded text-neutral-400 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Plus size={14} />
                         </button>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-orange-400 text-lg font-medium">
+                      <p className="text-orange-400 text-lg font-bold">
                         {formatCurrency(item.subtotal)}
                       </p>
                       <p className="text-neutral-400 text-xs">
@@ -257,17 +298,6 @@ const MyCart = () => {
                   </div>
                 </Card>
               ))}
-
-              {/* Clear Cart Button */}
-              <div className="flex justify-end">
-                <button
-                  onClick={clearCart}
-                  className="px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 flex items-center gap-2"
-                >
-                  <Trash2 size={16} />
-                  Clear Entire Cart
-                </button>
-              </div>
             </div>
 
             {/* Order Summary */}
@@ -277,7 +307,7 @@ const MyCart = () => {
                 
                 {/* Promo Code */}
                 <div className="mb-6">
-                  <label className="block text-sm text-neutral-300 mb-2">Promo Code</label>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Promo Code</label>
                   {appliedPromo ? (
                     <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/30 rounded-xl">
                       <div>
@@ -286,7 +316,7 @@ const MyCart = () => {
                       </div>
                       <button
                         onClick={removePromoCode}
-                        className="text-green-400 hover:text-green-300 transition-colors"
+                        className="text-green-400 hover:text-green-300 transition-colors p-1"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -298,15 +328,19 @@ const MyCart = () => {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && applyPromoCode()}
-                        placeholder="Enter code"
+                        placeholder="Enter promo code"
                         className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
                       />
                       <button
                         onClick={applyPromoCode}
-                        disabled={!promoCode.trim()}
-                        className="px-4 py-2 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:cursor-not-allowed text-black disabled:text-neutral-400 rounded-xl transition-all duration-200 font-medium text-sm"
+                        disabled={!promoCode.trim() || applyingPromo}
+                        className="px-4 py-2 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:cursor-not-allowed text-black disabled:text-neutral-400 rounded-xl transition-all duration-200 font-medium text-sm flex items-center gap-2"
                       >
-                        Apply
+                        {applyingPromo ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          "Apply"
+                        )}
                       </button>
                     </div>
                   )}
@@ -339,8 +373,8 @@ const MyCart = () => {
                   </div>
                   
                   <div className="border-t border-neutral-700 pt-3">
-                    <div className="flex justify-between">
-                      <span className="text-white font-medium">Total</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-semibold">Total</span>
                       <span className="text-orange-400 text-xl font-bold">{formatCurrency(total)}</span>
                     </div>
                   </div>
@@ -351,7 +385,7 @@ const MyCart = () => {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-orange-400 text-sm font-medium">Important</p>
+                      <p className="text-orange-400 text-sm font-medium">Important Notice</p>
                       <p className="text-orange-300 text-xs mt-1">
                         Tickets are held for 15 minutes. Complete your purchase to secure your tickets.
                       </p>
@@ -362,7 +396,7 @@ const MyCart = () => {
                 {/* Checkout Button */}
                 <button 
                   onClick={handleCheckout}
-                  className="w-full bg-orange-400 hover:bg-orange-500 text-black py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 font-semibold"
+                  className="w-full bg-orange-400 hover:bg-orange-500 text-black py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 font-semibold text-lg"
                 >
                   <CreditCard size={20} />
                   Proceed to Checkout
