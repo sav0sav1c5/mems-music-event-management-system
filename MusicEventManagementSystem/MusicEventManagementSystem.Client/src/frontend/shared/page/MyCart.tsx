@@ -1,62 +1,89 @@
-import { useState } from "react";
-import { Trash2, Plus, Minus, ShoppingCart, Calendar, MapPin, Ticket, CreditCard, AlertCircle, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Trash2, Plus, Minus, ShoppingCart, Calendar, MapPin, Ticket, CreditCard, AlertCircle } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
-
-interface CartItem {
-  id: number;
-  eventName: string;
-  eventDate: string;
-  venue: string;
-  ticketType: string;
-  price: number;
-  quantity: number;
-  maxQuantity: number;
-}
+import { CartService } from "../../shared/services/client/cartService";
+import type { CartDto, CartItemDto, UpdateCartItemDto } from "../../shared/types/api/cart";
 
 const MyCart = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      eventName: "Summer Rock Festival",
-      eventDate: "2024-07-15 20:00",
-      venue: "Belgrade Arena",
-      ticketType: "General Admission",
-      price: 65,
-      quantity: 2,
-      maxQuantity: 8
-    },
-    {
-      id: 2,
-      eventName: "Jazz Night Live",
-      eventDate: "2024-06-20 19:30",
-      venue: "Novi Sad Music Hall",
-      ticketType: "VIP Section",
-      price: 120,
-      quantity: 1,
-      maxQuantity: 4
-    }
-  ]);
-
+  const [cart, setCart] = useState<CartDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<number | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoDiscount, setPromoDiscount] = useState(0);
 
-  const updateQuantity = (itemId: number, newQuantity: number) => {
-    setCartItems(items =>
-      items.map(item => {
-        if (item.id === itemId) {
-          const quantity = Math.max(0, Math.min(newQuantity, item.maxQuantity));
-          return { ...item, quantity };
-        }
-        return item;
-      }).filter(item => item.quantity > 0)
-    );
+  // Mock user ID - replace with actual user ID from auth context
+  const userId = "user123";
+
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      const cartData = await CartService.getCart(userId);
+      setCart(cartData);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      // Fallback to empty cart if API fails
+      setCart({
+        items: [],
+        subtotal: 0,
+        totalDiscount: 0,
+        total: 0,
+        totalItems: 0
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeItem = (itemId: number) => {
-    setCartItems(items => items.filter(item => item.id !== itemId));
+  const updateQuantity = async (ticketTypeId: number, newQuantity: number) => {
+    if (newQuantity < 0) return;
+
+    try {
+      setUpdating(ticketTypeId);
+      const updateDto: UpdateCartItemDto = {
+        ticketTypeId,
+        quantity: newQuantity
+      };
+      
+      const updatedCart = await CartService.updateCartItem(userId, updateDto);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Error updating cart item:", error);
+      // Refresh cart to get current state
+      await fetchCart();
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const removeItem = async (ticketTypeId: number) => {
+    try {
+      setUpdating(ticketTypeId);
+      const updatedCart = await CartService.removeFromCart(userId, ticketTypeId);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+      await fetchCart();
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const clearCart = async () => {
+    try {
+      await CartService.clearCart(userId);
+      setCart({
+        items: [],
+        subtotal: 0,
+        totalDiscount: 0,
+        total: 0,
+        totalItems: 0
+      });
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    }
   };
 
   const applyPromoCode = () => {
@@ -81,25 +108,44 @@ const MyCart = () => {
     setPromoDiscount(0);
   };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('sr-RS', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
-
-  // Calculations
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discountAmount = (subtotal * promoDiscount) / 100;
-  const serviceFee = subtotal > 0 ? Math.max(subtotal * 0.08, 5) : 0;
-  const total = subtotal - discountAmount + serviceFee;
 
   const handleCheckout = () => {
     navigate("/client/checkout");
   };
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  // Calculations with promo discount
+  const subtotal = cart?.subtotal || 0;
+  const discountAmount = (subtotal * promoDiscount) / 100;
+  const serviceFee = subtotal > 0 ? Math.max(subtotal * 0.08, 5) : 0;
+  const total = subtotal - discountAmount + serviceFee;
+
+  if (loading) {
+    return (
+      <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+        <div className="text-white h-full flex flex-col p-4 m-1">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">Shopping Cart</h1>
+              <p className="text-neutral-400 text-sm">Loading your cart...</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center py-16">
+            <div className="text-neutral-400">Loading cart items...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
@@ -115,12 +161,12 @@ const MyCart = () => {
             </div>
             <div className="flex items-center gap-2 text-neutral-400">
               <ShoppingCart size={20} />
-              <span>{cartItems.length} items</span>
+              <span>{cart?.totalItems || 0} items</span>
             </div>
           </div>
         </div>
 
-        {cartItems.length === 0 ? (
+        {!cart?.items || cart.items.length === 0 ? (
           /* Empty Cart */
           <Card className="text-center py-16">
             <div className="p-4 bg-neutral-800/50 rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -128,7 +174,10 @@ const MyCart = () => {
             </div>
             <p className="text-neutral-400 text-base mb-2">Your cart is empty</p>
             <p className="text-neutral-500 text-sm mb-6">Browse events and add tickets to get started</p>
-            <button className="px-6 py-3 rounded-xl bg-orange-400 text-black font-medium hover:bg-orange-500 transition-all duration-200 shadow-lg">
+            <button 
+              onClick={() => navigate("/client/events")}
+              className="px-6 py-3 rounded-xl bg-orange-400 text-black font-medium hover:bg-orange-500 transition-all duration-200 shadow-lg"
+            >
               Browse Events
             </button>
           </Card>
@@ -136,29 +185,33 @@ const MyCart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => (
-                <Card key={item.id} hover={true} className="p-6">
+              {cart.items.map((item: CartItemDto) => (
+                <Card key={item.ticketTypeId} hover={true} className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <h3 className="text-white text-lg font-medium mb-1">{item.eventName}</h3>
                       <div className="space-y-1 text-sm text-neutral-400">
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-orange-400" />
-                          <span>{formatDateTime(item.eventDate)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-orange-400" />
-                          <span>{item.venue}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
                           <Ticket className="w-4 h-4 text-orange-400" />
-                          <span>{item.ticketType}</span>
+                          <span>{item.ticketTypeName}</span>
                         </div>
+                        {item.zoneName && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-orange-400" />
+                            <span>{item.zoneName}</span>
+                          </div>
+                        )}
+                        {item.specialOfferName && (
+                          <div className="flex items-center gap-2 text-green-400">
+                            <span>Special Offer: {item.specialOfferName}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <button
-                      onClick={() => removeItem(item.id)}
-                      className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200"
+                      onClick={() => removeItem(item.ticketTypeId)}
+                      disabled={updating === item.ticketTypeId}
+                      className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 disabled:opacity-50"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -169,30 +222,51 @@ const MyCart = () => {
                       <span className="text-neutral-400 text-sm">Quantity:</span>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-all duration-200"
-                          disabled={item.quantity <= 1}
+                          onClick={() => updateQuantity(item.ticketTypeId, item.quantity - 1)}
+                          disabled={updating === item.ticketTypeId || item.quantity <= 1}
+                          className="p-1 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="w-8 text-center text-white">{item.quantity}</span>
+                        <span className="w-8 text-center text-white">
+                          {updating === item.ticketTypeId ? "..." : item.quantity}
+                        </span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-all duration-200"
-                          disabled={item.quantity >= item.maxQuantity}
+                          onClick={() => updateQuantity(item.ticketTypeId, item.quantity + 1)}
+                          disabled={updating === item.ticketTypeId}
+                          className="p-1 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Plus size={14} />
                         </button>
                       </div>
-                      <span className="text-xs text-neutral-500">Max: {item.maxQuantity}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-orange-400 text-lg font-medium">${(item.price * item.quantity).toLocaleString()}</p>
-                      <p className="text-neutral-400 text-xs">${item.price} each</p>
+                      <p className="text-orange-400 text-lg font-medium">
+                        {formatCurrency(item.subtotal)}
+                      </p>
+                      <p className="text-neutral-400 text-xs">
+                        {formatCurrency(item.unitPrice)} each
+                        {item.discountAmount > 0 && (
+                          <span className="text-green-400 ml-1">
+                            (Save {formatCurrency(item.discountAmount)})
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </Card>
               ))}
+
+              {/* Clear Cart Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={clearCart}
+                  className="px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 flex items-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Clear Entire Cart
+                </button>
+              </div>
             </div>
 
             {/* Order Summary */}
@@ -240,25 +314,32 @@ const MyCart = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Subtotal</span>
-                    <span className="text-white">${subtotal.toLocaleString()}</span>
+                    <span className="text-white">{formatCurrency(subtotal)}</span>
                   </div>
+                  
+                  {cart.totalDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400">Cart Discounts</span>
+                      <span className="text-green-400">-{formatCurrency(cart.totalDiscount)}</span>
+                    </div>
+                  )}
                   
                   {promoDiscount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-green-400">Discount ({promoDiscount}%)</span>
-                      <span className="text-green-400">-${discountAmount.toLocaleString()}</span>
+                      <span className="text-green-400">Promo Discount ({promoDiscount}%)</span>
+                      <span className="text-green-400">-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-400">Service Fee</span>
-                    <span className="text-white">${serviceFee.toFixed(2)}</span>
+                    <span className="text-white">{formatCurrency(serviceFee)}</span>
                   </div>
                   
                   <div className="border-t border-neutral-700 pt-3">
                     <div className="flex justify-between">
                       <span className="text-white font-medium">Total</span>
-                      <span className="text-orange-400 text-xl font-bold">${total.toFixed(2)}</span>
+                      <span className="text-orange-400 text-xl font-bold">{formatCurrency(total)}</span>
                     </div>
                   </div>
                 </div>
@@ -295,7 +376,6 @@ const MyCart = () => {
         )}
       </div>
     </div>
-    
   );
 };
 

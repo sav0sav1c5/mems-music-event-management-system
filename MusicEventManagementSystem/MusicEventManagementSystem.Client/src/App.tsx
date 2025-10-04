@@ -23,7 +23,7 @@ import MediaCampaignDashboard from "./frontend/media-campaign/pages/Dashboard";
 import ArtistCommunicationDashboard from "./frontend/performer-communication/pages/Dashboard";
 
 // MEMS Client imports
-import ClientEvents from "../src/frontend/shared/page/Events";
+import ClientBrowseEvents from "../src/frontend/shared/page/Events";
 import ClientMyCart from "../src/frontend/shared/page/MyCart";
 import ClientCheckout from "../src/frontend/shared/page/Checkout";
 import ClientOrders from "../src/frontend/shared/page/MyOrders";
@@ -75,7 +75,7 @@ const DepartmentRedirect = () => {
     case 4: // MediaCampaign
       return <Navigate to="/media-campaign/dashboard" replace />;
     case 5: // MEMS Client
-      return <Navigate to="/client/dashboard" replace />;
+      return <Navigate to="/client/browse-events" replace />;
     default:
       return <Navigate to="/login" replace />;
   }
@@ -206,7 +206,7 @@ function App() {
           element={
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
-                <ClientEvents />
+                <ClientBrowseEvents />
               </Layout>
             </ProtectedRoute>
           } 
