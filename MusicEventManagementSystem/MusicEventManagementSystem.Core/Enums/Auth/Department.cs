@@ -6,6 +6,7 @@
         EventOrganization = 2,
         ArtistCommunication = 3,
         MediaCampaign = 4,
-        MEMSClient = 5
+        MEMSClient = 5,
+        Administrator = 6
     }
 }

@@ -3,7 +3,7 @@ using MusicEventManagementSystem.Core.Interfaces.Services.Auth;
 using MusicEventManagementSystem.Core.Models.DTOs.Auth;
 using MusicEventManagementSystem.Core.Models.Entities.Auth;
 
-namespace MusicEventManagementSystem.API.Services.Auth
+namespace MusicEventManagementSystem.PerformerCommunication.API.Services.Auth
 {
     public class AuthService : IAuthService
     {

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.API.Services.IServices.Auth;
+using MusicEventManagementSystem.Core.Interfaces.Services.Auth;
 using MusicEventManagementSystem.Core.Models.DTOs.Auth;
 
 namespace MusicEventManagementSystem.API.Controllers
@@ -17,6 +18,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
@@ -39,6 +41,7 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
         {
             if (!ModelState.IsValid)
@@ -58,6 +61,31 @@ namespace MusicEventManagementSystem.API.Controllers
             }
 
             return Unauthorized(result);
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await _authService.LogoutAsync();
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+        [HttpGet("test-auth")]
+        [Authorize]
+        public IActionResult TestAuth()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+
+            return Ok(new
+            {
+                message = "You are authenticated!",
+                userId,
+                email,
+                roles
+            });
         }
 
         [HttpGet("user/{id}")]
