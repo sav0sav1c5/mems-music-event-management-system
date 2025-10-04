@@ -7,6 +7,10 @@ export interface OrderDto {
   paymentMethod: string;
   totalTickets: number;
   items: OrderItemDto[];
+  subtotal?: number;
+  discount?: number;
+  serviceFee?: number;
+  totalItems?: number;
 }
 
 export interface OrderItemDto {
@@ -27,6 +31,9 @@ export interface OrderTicketDto {
   eventStartDate: string;
   price: number;
   status: string;
+  eventDate?: string;
+  venueName?: string;
+  seatNumber?: string;
 }
 
 export interface OrderDetailsDto {
@@ -38,10 +45,25 @@ export interface OrderDetailsDto {
   paymentMethod: string;
   tickets: OrderTicketDto[];
   appliedOffers: AppliedOfferDto[];
+  subtotal?: number;
+  discount?: number;
+  serviceFee?: number;
+  billingInfo?: BillingInfoDto;
 }
 
 export interface AppliedOfferDto {
   offerName?: string;
   description?: string;
   discountAmount: number;
+}
+
+export interface BillingInfoDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Trash2, Plus, Minus, ShoppingCart, Calendar, MapPin, Ticket, CreditCard, AlertCircle } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, Ticket, CreditCard, AlertCircle } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { CartService } from "../../shared/services/client/cartService";
@@ -38,7 +38,7 @@ const MyCart = () => {
   };
 
   const updateQuantity = async (ticketTypeId: number, newQuantity: number) => {
-    if (newQuantity < 0) return;
+    if (newQuantity < 1) return;
 
     try {
       setUpdating(ticketTypeId);
@@ -72,6 +72,8 @@ const MyCart = () => {
   };
 
   const clearCart = async () => {
+    if (!confirm("Are you sure you want to clear your entire cart?")) return;
+    
     try {
       await CartService.clearCart(userId);
       setCart({
@@ -94,9 +96,10 @@ const MyCart = () => {
       "VIP25": 25
     };
 
-    if (validPromoCodes[promoCode.toUpperCase()]) {
-      setAppliedPromo(promoCode.toUpperCase());
-      setPromoDiscount(validPromoCodes[promoCode.toUpperCase()]);
+    const upperCode = promoCode.toUpperCase();
+    if (validPromoCodes[upperCode]) {
+      setAppliedPromo(upperCode);
+      setPromoDiscount(validPromoCodes[upperCode]);
       setPromoCode("");
     } else {
       alert("Invalid promo code");
@@ -125,22 +128,24 @@ const MyCart = () => {
 
   // Calculations with promo discount
   const subtotal = cart?.subtotal || 0;
-  const discountAmount = (subtotal * promoDiscount) / 100;
-  const serviceFee = subtotal > 0 ? Math.max(subtotal * 0.08, 5) : 0;
-  const total = subtotal - discountAmount + serviceFee;
+  const cartDiscount = cart?.totalDiscount || 0;
+  const subtotalAfterCartDiscount = subtotal - cartDiscount;
+  const promoDiscountAmount = (subtotalAfterCartDiscount * promoDiscount) / 100;
+  const serviceFee = subtotalAfterCartDiscount > 0 ? Math.max(subtotalAfterCartDiscount * 0.08, 5) : 0;
+  const total = subtotalAfterCartDiscount - promoDiscountAmount + serviceFee;
 
   if (loading) {
     return (
       <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
         <div className="text-white h-full flex flex-col p-4 m-1">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">Shopping Cart</h1>
               <p className="text-neutral-400 text-sm">Loading your cart...</p>
             </div>
           </div>
-          <div className="flex items-center justify-center py-16">
-            <div className="text-neutral-400">Loading cart items...</div>
+          <div className="flex items-center justify-center flex-1">
+            <div className="text-neutral-400 text-base">Loading cart items...</div>
           </div>
         </div>
       </div>
@@ -151,18 +156,14 @@ const MyCart = () => {
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
       <div className="text-white h-full flex flex-col p-4 m-1">
         {/* Header */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">Shopping Cart</h1>
-                <p className="text-neutral-400 text-sm">Review your selected tickets</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-neutral-400">
-              <ShoppingCart size={20} />
-              <span>{cart?.totalItems || 0} items</span>
-            </div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1">Shopping Cart</h1>
+            <p className="text-neutral-400 text-sm">Review your selected tickets</p>
+          </div>
+          <div className="flex items-center gap-2 text-neutral-400">
+            <ShoppingCart size={20} />
+            <span>{cart?.totalItems || 0} items</span>
           </div>
         </div>
 
@@ -182,7 +183,7 @@ const MyCart = () => {
             </button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cart.items.map((item: CartItemDto) => (
@@ -197,13 +198,13 @@ const MyCart = () => {
                         </div>
                         {item.zoneName && (
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-orange-400" />
+                            <span className="text-neutral-500">Zone:</span>
                             <span>{item.zoneName}</span>
                           </div>
                         )}
                         {item.specialOfferName && (
                           <div className="flex items-center gap-2 text-green-400">
-                            <span>Special Offer: {item.specialOfferName}</span>
+                            <span>✓ Special Offer: {item.specialOfferName}</span>
                           </div>
                         )}
                       </div>
@@ -228,7 +229,7 @@ const MyCart = () => {
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="w-8 text-center text-white">
+                        <span className="w-8 text-center text-white font-medium">
                           {updating === item.ticketTypeId ? "..." : item.quantity}
                         </span>
                         <button
@@ -248,7 +249,7 @@ const MyCart = () => {
                         {formatCurrency(item.unitPrice)} each
                         {item.discountAmount > 0 && (
                           <span className="text-green-400 ml-1">
-                            (Save {formatCurrency(item.discountAmount)})
+                            (Save {formatCurrency(item.discountAmount * item.quantity)})
                           </span>
                         )}
                       </p>
@@ -296,13 +297,14 @@ const MyCart = () => {
                         type="text"
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && applyPromoCode()}
                         placeholder="Enter code"
-                        className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-xl text-white text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                        className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
                       />
                       <button
                         onClick={applyPromoCode}
                         disabled={!promoCode.trim()}
-                        className="px-4 py-2 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:cursor-not-allowed text-black disabled:text-neutral-400 rounded-xl transition-all duration-200 font-medium"
+                        className="px-4 py-2 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:cursor-not-allowed text-black disabled:text-neutral-400 rounded-xl transition-all duration-200 font-medium text-sm"
                       >
                         Apply
                       </button>
@@ -317,17 +319,17 @@ const MyCart = () => {
                     <span className="text-white">{formatCurrency(subtotal)}</span>
                   </div>
                   
-                  {cart.totalDiscount > 0 && (
+                  {cartDiscount > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-green-400">Cart Discounts</span>
-                      <span className="text-green-400">-{formatCurrency(cart.totalDiscount)}</span>
+                      <span className="text-green-400">-{formatCurrency(cartDiscount)}</span>
                     </div>
                   )}
                   
                   {promoDiscount > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-green-400">Promo Discount ({promoDiscount}%)</span>
-                      <span className="text-green-400">-{formatCurrency(discountAmount)}</span>
+                      <span className="text-green-400">-{formatCurrency(promoDiscountAmount)}</span>
                     </div>
                   )}
                   
@@ -347,7 +349,7 @@ const MyCart = () => {
                 {/* Important Notice */}
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-orange-400 text-sm font-medium">Important</p>
                       <p className="text-orange-300 text-xs mt-1">

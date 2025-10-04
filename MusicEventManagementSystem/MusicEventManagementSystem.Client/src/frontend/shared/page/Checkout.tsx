@@ -1,27 +1,24 @@
-// Checkout.tsx - Client verzija
-import { useState } from "react";
-import { CreditCard, User, Lock, Ticket, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CreditCard, User, Lock, CheckCircle, ArrowLeft } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
-
-interface OrderSummary {
-  subtotal: number;
-  discount: number;
-  serviceFee: number;
-  total: number;
-  items: Array<{
-    eventName: string;
-    ticketType: string;
-    quantity: number;
-    price: number;
-  }>;
-}
+import { CartService } from "../../shared/services/client/cartService";
+import { ordersService } from "../../shared/services/client/ordersService";
+import type { CartDto } from "../../shared/types/api/cart";
+import type { CheckoutRequestDto } from "../../shared/types/api/checkout";
+import { PaymentMethod } from "../../ticket-sales/types/enums/TicketSales";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<'billing' | 'payment' | 'review' | 'complete'>('billing');
   const [loading, setLoading] = useState(false);
+  const [cart, setCart] = useState<CartDto | null>(null);
+  const [cartLoading, setCartLoading] = useState(true);
+  const [orderId, setOrderId] = useState<number | null>(null);
   
+  // Mock user ID - replace with actual user ID from auth context
+  const userId = "user123";
+
   // Form data
   const [billingInfo, setBillingInfo] = useState({
     firstName: '',
@@ -42,28 +39,63 @@ const Checkout = () => {
     saveCard: false
   });
 
-  // Mock order data
-  const orderSummary: OrderSummary = {
-    subtotal: 270,
-    discount: 27,
-    serviceFee: 19.44,
-    total: 262.44,
-    items: [
-      { eventName: "Summer Rock Festival", ticketType: "General Admission", quantity: 2, price: 65 },
-      { eventName: "Jazz Night Live", ticketType: "VIP Section", quantity: 1, price: 120 },
-      { eventName: "Electronic Beats", ticketType: "Premium Access", quantity: 1, price: 85 }
-    ]
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  const fetchCart = async () => {
+    try {
+      setCartLoading(true);
+      const cartData = await CartService.getCart(userId);
+      setCart(cartData);
+      
+      // Redirect if cart is empty
+      if (!cartData.items || cartData.items.length === 0) {
+        navigate("/client/cart");
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      navigate("/client/cart");
+    } finally {
+      setCartLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setStep('complete');
-    setLoading(false);
+    try {
+      const checkoutRequest: CheckoutRequestDto = {
+        applicationUserId: userId,
+        paymentMethod: PaymentMethod.CreditCard,
+        billingInfo: {
+          firstName: billingInfo.firstName,
+          lastName: billingInfo.lastName,
+          email: billingInfo.email,
+          phone: billingInfo.phone,
+          address: billingInfo.address,
+          city: billingInfo.city,
+          postalCode: billingInfo.postalCode,
+          country: billingInfo.country
+        },
+        paymentInfo: {
+          cardNumber: paymentInfo.cardNumber,
+          expiryDate: paymentInfo.expiryDate,
+          cvv: paymentInfo.cvv,
+          cardholderName: paymentInfo.cardholderName
+        }
+      };
+
+      const response = await ordersService.checkout(userId, checkoutRequest);
+      setOrderId(response.orderId);
+      setStep('complete');
+    } catch (error) {
+      console.error("Error processing checkout:", error);
+      alert("Failed to process your order. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isStepValid = (stepName: string) => {
@@ -77,37 +109,70 @@ const Checkout = () => {
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  // Calculations
+  const subtotal = cart?.subtotal || 0;
+  const discount = cart?.totalDiscount || 0;
+  const serviceFee = subtotal > 0 ? Math.max((subtotal - discount) * 0.08, 5) : 0;
+  const total = subtotal - discount + serviceFee;
+
   if (step === 'complete') {
     return (
-      <div className="text-white h-full flex flex-col p-2">
-        <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto">
-          <Card className="p-12 text-center">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-12 h-12 text-green-400" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Order Complete!</h1>
-            <p className="text-neutral-400 mb-6 text-lg">
-              Thank you for your purchase. Your tickets have been sent to your email.
-            </p>
-            <div className="bg-neutral-800/30 rounded-xl p-6 mb-8">
-              <p className="text-white mb-2">Order #: <span className="text-orange-400 font-medium">MEV-2024-001234</span></p>
-              <p className="text-neutral-400 text-sm">Total: <span className="text-white font-medium">${orderSummary.total.toFixed(2)}</span></p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button 
-                onClick={() => navigate("/client/orders")}
-                className="flex-1 bg-orange-400 hover:bg-orange-500 text-black py-3 rounded-xl transition-all duration-200 font-medium"
-              >
-                View My Tickets
-              </button>
-              <button 
-                onClick={() => navigate("/client/events")}
-                className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-xl transition-all duration-200"
-              >
-                Browse More Events
-              </button>
-            </div>
-          </Card>
+      <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+        <div className="text-white h-full flex flex-col p-4 m-1">
+          <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto">
+            <Card className="p-12 text-center">
+              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-12 h-12 text-green-400" />
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-4">Order Complete!</h1>
+              <p className="text-neutral-400 mb-6 text-base">
+                Thank you for your purchase. Your tickets have been sent to your email.
+              </p>
+              <div className="bg-neutral-800/30 rounded-xl p-6 mb-8">
+                <p className="text-white mb-2">
+                  Order #: <span className="text-orange-400 font-medium">
+                    {orderId ? `ORD-${orderId}` : 'Processing...'}
+                  </span>
+                </p>
+                <p className="text-neutral-400 text-sm">
+                  Total: <span className="text-white font-medium">{formatCurrency(total)}</span>
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={() => navigate("/client/orders")}
+                  className="flex-1 bg-orange-400 hover:bg-orange-500 text-black py-3 rounded-xl transition-all duration-200 font-medium"
+                >
+                  View My Tickets
+                </button>
+                <button 
+                  onClick={() => navigate("/client/events")}
+                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white py-3 rounded-xl transition-all duration-200"
+                >
+                  Browse More Events
+                </button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (cartLoading) {
+    return (
+      <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+        <div className="text-white h-full flex flex-col p-4 m-1">
+          <div className="flex items-center justify-center h-full">
+            <div className="text-neutral-400 text-base">Loading checkout...</div>
+          </div>
         </div>
       </div>
     );
@@ -115,36 +180,50 @@ const Checkout = () => {
 
   return (
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
-      <div className="text-white h-full flex flex-col p-4 m-1">
+      <div className="text-white h-full flex flex-col p-4 m-1 overflow-y-auto">
         {/* Header */}
-        <div>
-          <div className="mb-4"> 
-            <h1 className="text-2xl font-bold text-white mb-1">Secure Checkout</h1>
-            <p className="text-neutral-400 text-sm">Complete your ticket purchase</p>
-          </div>
+        <div className="mb-6">
+          <button
+            onClick={() => navigate("/client/cart")}
+            className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-4"
+          >
+            <ArrowLeft size={16} />
+            Back to Cart
+          </button>
+          <h1 className="text-2xl font-bold text-white mb-1">Secure Checkout</h1>
+          <p className="text-neutral-400 text-sm">Complete your ticket purchase</p>
         </div>
 
         {/* Progress Steps */}
         <Card className="p-6 mb-6">
           <div className="flex items-center max-w-2xl mx-auto">
-            {['billing', 'payment', 'review'].map((stepName, index) => (
-              <div key={stepName} className="flex items-center flex-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
-                  step === stepName 
-                    ? 'bg-orange-400 text-black' 
-                    : isStepValid(stepName) || ['payment', 'review'].includes(step)
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-neutral-800 text-neutral-400'
-                }`}>
-                  {isStepValid(stepName) && step !== stepName ? '✓' : index + 1}
+            {[
+              { name: 'billing', label: 'Billing' },
+              { name: 'payment', label: 'Payment' },
+              { name: 'review', label: 'Review' }
+            ].map((stepItem, index) => (
+              <div key={stepItem.name} className="flex items-center flex-1">
+                <div className="flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
+                    step === stepItem.name 
+                      ? 'bg-orange-400 text-black' 
+                      : isStepValid(stepItem.name) || ['payment', 'review'].includes(step)
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-neutral-800 text-neutral-400'
+                  }`}>
+                    {isStepValid(stepItem.name) && step !== stepItem.name ? '✓' : index + 1}
+                  </div>
+                  <span className="text-xs text-neutral-400 mt-1 hidden sm:block">{stepItem.label}</span>
                 </div>
-                <div className="flex-1 mx-4">
-                  <div className={`h-1 rounded-full transition-all duration-200 ${
-                    isStepValid(stepName) || ['payment', 'review'].includes(step)
-                      ? 'bg-orange-400'
-                      : 'bg-neutral-800'
-                  }`} />
-                </div>
+                {index < 2 && (
+                  <div className="flex-1 mx-2 sm:mx-4">
+                    <div className={`h-1 rounded-full transition-all duration-200 ${
+                      isStepValid(stepItem.name) || ['payment', 'review'].includes(step)
+                        ? 'bg-orange-400'
+                        : 'bg-neutral-800'
+                    }`} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -203,6 +282,33 @@ const Checkout = () => {
                         required
                       />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm text-neutral-300 mb-2">Address</label>
+                      <input
+                        type="text"
+                        value={billingInfo.address}
+                        onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-neutral-300 mb-2">City</label>
+                      <input
+                        type="text"
+                        value={billingInfo.city}
+                        onChange={(e) => setBillingInfo({...billingInfo, city: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-neutral-300 mb-2">Postal Code</label>
+                      <input
+                        type="text"
+                        value={billingInfo.postalCode}
+                        onChange={(e) => setBillingInfo({...billingInfo, postalCode: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
+                      />
+                    </div>
                   </div>
                 </Card>
               )}
@@ -221,6 +327,7 @@ const Checkout = () => {
                       <input
                         type="text"
                         placeholder="1234 5678 9012 3456"
+                        maxLength={19}
                         value={paymentInfo.cardNumber}
                         onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: e.target.value})}
                         className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
@@ -234,6 +341,7 @@ const Checkout = () => {
                         <input
                           type="text"
                           placeholder="MM/YY"
+                          maxLength={5}
                           value={paymentInfo.expiryDate}
                           onChange={(e) => setPaymentInfo({...paymentInfo, expiryDate: e.target.value})}
                           className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
@@ -245,6 +353,7 @@ const Checkout = () => {
                         <input
                           type="text"
                           placeholder="123"
+                          maxLength={4}
                           value={paymentInfo.cvv}
                           onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})}
                           className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-base"
@@ -268,13 +377,40 @@ const Checkout = () => {
                 </Card>
               )}
 
+              {/* Review Step */}
+              {step === 'review' && (
+                <Card className="p-6">
+                  <h2 className="text-xl font-semibold text-white mb-6">Review Your Order</h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-neutral-400 text-sm mb-2">Billing Information</h3>
+                      <div className="bg-neutral-800/30 rounded-xl p-4 text-sm">
+                        <p className="text-white">{billingInfo.firstName} {billingInfo.lastName}</p>
+                        <p className="text-neutral-400">{billingInfo.email}</p>
+                        <p className="text-neutral-400">{billingInfo.phone}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-neutral-400 text-sm mb-2">Payment Method</h3>
+                      <div className="bg-neutral-800/30 rounded-xl p-4 text-sm">
+                        <p className="text-white">Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
+                        <p className="text-neutral-400">{paymentInfo.cardholderName}</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
               {/* Navigation Buttons */}
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 {step !== 'billing' && (
                   <button
                     type="button"
                     onClick={() => setStep(step === 'payment' ? 'billing' : 'payment')}
-                    className="px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-all duration-200"
+                    disabled={loading}
+                    className="px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-all duration-200 disabled:opacity-50"
                   >
                     Back
                   </button>
@@ -282,9 +418,13 @@ const Checkout = () => {
                 
                 <button
                   type={step === 'review' ? 'submit' : 'button'}
-                  onClick={() => step !== 'review' && setStep(step === 'billing' ? 'payment' : 'review')}
-                  disabled={!isStepValid(step)}
-                  className="px-6 py-3 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:text-neutral-400 text-black font-medium rounded-xl transition-all duration-200 ml-auto"
+                  onClick={() => {
+                    if (step !== 'review') {
+                      setStep(step === 'billing' ? 'payment' : 'review');
+                    }
+                  }}
+                  disabled={!isStepValid(step) || loading}
+                  className="px-6 py-3 bg-orange-400 hover:bg-orange-500 disabled:bg-neutral-700 disabled:text-neutral-400 text-black font-medium rounded-xl transition-all duration-200 ml-auto disabled:cursor-not-allowed"
                 >
                   {loading ? 'Processing...' : step === 'review' ? 'Complete Purchase' : 'Continue'}
                 </button>
@@ -299,13 +439,15 @@ const Checkout = () => {
               
               {/* Tickets */}
               <div className="space-y-4 mb-6">
-                {orderSummary.items.map((item, index) => (
-                  <div key={index} className="flex justify-between items-start">
+                {cart?.items.map((item) => (
+                  <div key={item.ticketTypeId} className="flex justify-between items-start">
                     <div className="flex-1">
                       <p className="text-white text-sm font-medium">{item.eventName}</p>
-                      <p className="text-neutral-400 text-xs">{item.ticketType} × {item.quantity}</p>
+                      <p className="text-neutral-400 text-xs">
+                        {item.ticketTypeName} × {item.quantity}
+                      </p>
                     </div>
-                    <p className="text-orange-400 font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-orange-400 font-medium">{formatCurrency(item.subtotal)}</p>
                   </div>
                 ))}
               </div>
@@ -314,19 +456,21 @@ const Checkout = () => {
               <div className="space-y-2 border-t border-neutral-700 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-400">Subtotal</span>
-                  <span className="text-white">${orderSummary.subtotal.toFixed(2)}</span>
+                  <span className="text-white">{formatCurrency(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-400">Discount (10%)</span>
-                  <span className="text-green-400">-${orderSummary.discount.toFixed(2)}</span>
-                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-400">Discount</span>
+                    <span className="text-green-400">-{formatCurrency(discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-400">Service Fee</span>
-                  <span className="text-white">${orderSummary.serviceFee.toFixed(2)}</span>
+                  <span className="text-white">{formatCurrency(serviceFee)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-semibold border-t border-neutral-700 pt-3">
                   <span className="text-white">Total</span>
-                  <span className="text-orange-400">${orderSummary.total.toFixed(2)}</span>
+                  <span className="text-orange-400">{formatCurrency(total)}</span>
                 </div>
               </div>
 
