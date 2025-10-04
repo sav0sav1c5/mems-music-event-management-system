@@ -1,3 +1,4 @@
+import apiService from '../../shared/services/apiService';
 import type { PerformerResponse } from '../types/api/performer';
 import type { PerformerCreateForm, PerformerUpdateForm } from '../types/form/performer';
 
@@ -8,135 +9,31 @@ export class PerformerService {
 
   // GET: api/performer
   static async getAllPerformers(): Promise<PerformerResponse[]> {
-    try {
-      const response = await fetch(this.BASE_URL, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized - Please login again');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching performers:', error);
-      throw error;
-    }
+    const response = await apiService.get(this.BASE_URL);
+    return response.data;
   }
 
   // GET: api/performer/{id}
   static async getPerformerById(id: number): Promise<PerformerResponse> {
-    try {
-      const response = await fetch(`${this.BASE_URL}/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Performer with ID ${id} not found`);
-        }
-        if (response.status === 401) {
-          throw new Error('Unauthorized - Please login again');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error(`Error fetching performer ${id}:`, error);
-      throw error;
-    }
+    const response = await apiService.get(`${this.BASE_URL}/${id}`);
+    return response.data;
   }
 
   // POST: api/performer
   static async createPerformer(createForm: PerformerCreateForm): Promise<PerformerResponse> {
-    try {
-      const response = await fetch(this.BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(createForm),
-      });
-
-      if (!response.ok) {
-        if (response.status === 400) {
-          const errorData = await response.json();
-          throw new Error(`Validation error: ${JSON.stringify(errorData)}`);
-        }
-        if (response.status === 401) {
-          throw new Error('Unauthorized - Please login again');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating performer:', error);
-      throw error;
-    }
+    const response = await apiService.post(this.BASE_URL, createForm);
+    return response.data;
   }
 
   // PUT: api/performer/{id}
   static async updatePerformer(id: number, updateForm: PerformerUpdateForm): Promise<PerformerResponse> {
-    try {
-      const response = await fetch(`${this.BASE_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updateForm),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Performer with ID ${id} not found`);
-        }
-        if (response.status === 400) {
-          const errorData = await response.json();
-          throw new Error(`Validation error: ${JSON.stringify(errorData)}`);
-        }
-        if (response.status === 401) {
-          throw new Error('Unauthorized - Please login again');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`Error updating performer ${id}:`, error);
-      throw error;
-    }
+    const response = await apiService.put(`${this.BASE_URL}/${id}`, updateForm);
+    return response.data;
   }
 
   // DELETE: api/performer/{id}
   static async deletePerformer(id: number): Promise<void> {
-    try {
-      const response = await fetch(`${this.BASE_URL}/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Performer with ID ${id} not found`);
-        }
-        if (response.status === 401) {
-          throw new Error('Unauthorized - Please login again');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting performer ${id}:`, error);
-      throw error;
-    }
+    await apiService.delete(`${this.BASE_URL}/${id}`);
   }
 }
 

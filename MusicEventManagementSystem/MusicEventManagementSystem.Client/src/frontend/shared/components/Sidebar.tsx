@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/apiService";
 import { 
   LogOut, BarChart3, BarChart2, Music, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, 
   PlaySquare, ListChecks, FileText, CalendarDays, Briefcase, Building2, ShoppingCart, CreditCard,
@@ -77,8 +78,7 @@ const SideBar = () => {
   const menuItems = getMenuItems(userDepartment);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    authAPI.logout();
     navigate("/login");
   };
 
@@ -223,7 +223,7 @@ const SideBar = () => {
         </nav>
       </div>
       
-      {/* Footer */}
+      {/* Footer with Logout */}
       <div className="p-3 border-t border-neutral-800 flex justify-center">
         <button
           onClick={handleLogout}

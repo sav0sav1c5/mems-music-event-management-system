@@ -18,7 +18,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             _eventService = eventService;
         }
 
-        [Authorize(Roles = "MEMSClient,EventOrganization")]
+        [Authorize(Roles = "MEMSClient,EventOrganization,TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetAllEvents()
         {
@@ -33,7 +33,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
-        [Authorize(Roles = "MEMSClient,EventOrganization")]
+        [Authorize(Roles = "MEMSClient,EventOrganization,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<EventResponseDto>> GetEventById(int id)
         {
@@ -52,7 +52,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
-        [Authorize(Roles = "MEMSClient,EventOrganization")]
+        [Authorize(Roles = "MEMSClient,EventOrganization,TicketSales")]
         [HttpGet("date-range")]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
@@ -130,7 +130,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
-        [Authorize(Roles = "MEMSClient,EventOrganization")]
+        [Authorize(Roles = "MEMSClient,EventOrganization,TicketSales")]
         [HttpGet("by-name/{name}")]
         public async Task<ActionResult<EventResponseDto>> GetByName(string name)
         {
@@ -149,7 +149,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
-        [Authorize(Roles = "MEMSClient,EventOrganization")]
+        [Authorize(Roles = "MEMSClient,EventOrganization,TicketSales")]
         [HttpGet("by-status/{status}")]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByStatus(EventStatus status)
         {

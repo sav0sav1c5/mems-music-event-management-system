@@ -1,3 +1,4 @@
+import apiService from '../../shared/services/apiService';
 import type { PerformanceResponse } from '../types/api/performance';
 import type { PerformanceCreateForm, PerformanceUpdateForm } from '../types/form/performance';
 
@@ -8,124 +9,50 @@ export class PerformanceService {
 
   // GET: api/performance
   static async getAllPerformances(): Promise<PerformanceResponse[]> {
-    try {
-      const response = await fetch(this.BASE_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching performances:', error);
-      throw new Error('Failed to fetch performances');
-    }
+    const response = await apiService.get(this.BASE_URL);
+    return response.data;
   }
 
   // GET: api/performance/{id}
   static async getPerformanceById(id: number): Promise<PerformanceResponse> {
-    try {
-      const response = await fetch(`${this.BASE_URL}/${id}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Performance with ID ${id} not found`);
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error(`Error fetching performance ${id}:`, error);
-      throw error;
-    }
+    const response = await apiService.get(`${this.BASE_URL}/${id}`);
+    return response.data;
   }
 
   // POST: api/performance
   static async createPerformance(createForm: PerformanceCreateForm): Promise<PerformanceResponse> {
-    try {
-      const response = await fetch(this.BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          performerId: createForm.performerId,
-          venueId: createForm.venueId,
-          startTime: createForm.startTime.toISOString(),
-          endTime: createForm.endTime.toISOString(),
-          setupTime: createForm.setupTime,
-          soundcheckTime: createForm.soundcheckTime,
-          status: createForm.status
-        }),
-      });
+    const requestBody = {
+      performerId: createForm.performerId,
+      venueId: createForm.venueId,
+      startTime: createForm.startTime.toISOString(),
+      endTime: createForm.endTime.toISOString(),
+      setupTime: createForm.setupTime,
+      soundcheckTime: createForm.soundcheckTime,
+      status: createForm.status
+    };
 
-      if (!response.ok) {
-        if (response.status === 400) {
-          const errorData = await response.json();
-          throw new Error(`Validation error: ${JSON.stringify(errorData)}`);
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating performance:', error);
-      throw error;
-    }
+    const response = await apiService.post(this.BASE_URL, requestBody);
+    return response.data;
   }
 
   // PUT: api/performance/{id}
   static async updatePerformance(id: number, updateForm: PerformanceUpdateForm): Promise<PerformanceResponse> {
-    try {
-      const requestBody: any = { ...updateForm };
-      
-      if (updateForm.startTime) {
-        requestBody.startTime = updateForm.startTime.toISOString();
-      }
-      if (updateForm.endTime) {
-        requestBody.endTime = updateForm.endTime.toISOString();
-      }
-
-      const response = await fetch(`${this.BASE_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Performance with ID ${id} not found`);
-        }
-        if (response.status === 400) {
-          const errorData = await response.json();
-          throw new Error(`Validation error: ${JSON.stringify(errorData)}`);
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`Error updating performance ${id}:`, error);
-      throw error;
+    const requestBody: any = { ...updateForm };
+    
+    if (updateForm.startTime) {
+      requestBody.startTime = updateForm.startTime.toISOString();
     }
+    if (updateForm.endTime) {
+      requestBody.endTime = updateForm.endTime.toISOString();
+    }
+
+    const response = await apiService.put(`${this.BASE_URL}/${id}`, requestBody);
+    return response.data;
   }
 
   // DELETE: api/performance/{id}
   static async deletePerformance(id: number): Promise<void> {
-    try {
-      const response = await fetch(`${this.BASE_URL}/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Performance with ID ${id} not found`);
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting performance ${id}:`, error);
-      throw error;
-    }
+    await apiService.delete(`${this.BASE_URL}/${id}`);
   }
 }
 

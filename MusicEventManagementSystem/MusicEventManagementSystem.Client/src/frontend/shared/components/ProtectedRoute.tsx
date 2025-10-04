@@ -6,17 +6,48 @@ interface ProtectedRouteProps {
   allowedDepartments?: number[];
 }
 
+// HELPER FUNCTION: Check if token is expired
+const isTokenExpired = (token: string): boolean => {
+  try {
+    // JWT token structure: header.payload.signature
+    const payload = token.split('.')[1];
+    
+    // Decode payload (Base64)
+    const decodedPayload = JSON.parse(atob(payload));
+    
+    // 'exp' is the expiration timestamp in seconds
+    const expirationTime = decodedPayload.exp * 1000; // convert to milliseconds
+    const currentTime = Date.now();
+    
+    return currentTime > expirationTime;
+  } catch (error) {
+    // If it can't parse the token, treat it as expired
+    console.error('Error parsing token:', error);
+    return true;
+  }
+};
+
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedDepartments = [] }) => {
-  const user = localStorage.getItem('user');
+  const userStr = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
   
-  if (!user) {
+  // CHECH 1: Does user and token exist, if not redirect to login
+  if (!userStr || !token) {
     return <Navigate to="/login" replace />;
   }
 
-  try {
-    const parsedUser = JSON.parse(user);
+  // CHECK 2: Is token expired
+  if (isTokenExpired(token)) {
+    // Clear storage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    return <Navigate to="/login" replace state={{ message: 'Your session has expired. Please login again.' }} />;
+  }
 
-    // If allowedDepartments is specified, check if user's department is allowed
+  try {
+    const parsedUser = JSON.parse(userStr);
+
+    // CHECK 3: Does user have permission to access this route
     if (allowedDepartments.length > 0 && !allowedDepartments.includes(parsedUser.department)) {
       switch (parsedUser.department) {
         case 1: // TicketSales
@@ -33,8 +64,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedDepart
           return <Navigate to="/login" replace />;
       }
     }
-  return <>{children}</>;
+
+    // If all checks pass, render the component
+    return <>{children}</>;
   } catch {
+    // If it can't parse the user, redirect to login
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     return <Navigate to="/login" replace />;
   }
 };

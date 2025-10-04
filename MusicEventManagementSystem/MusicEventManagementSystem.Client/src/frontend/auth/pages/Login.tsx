@@ -4,6 +4,7 @@ import { authAPI } from '../../shared/services/apiService';
 import type { LoginDto } from '../../shared/services/apiService';
 import { LogIn, Mail, Lock, Music, Sparkles } from 'lucide-react';
 import Logo from '../../shared/components/Logo';
+import { toast } from 'react-toastify'; 
 
 const Login = () => {
   const [formData, setFormData] = useState<LoginDto>({
@@ -38,7 +39,7 @@ const Login = () => {
   // Check for success message from registration
   useEffect(() => {
     if (location.state?.message) {
-      // You could show a success toast here
+      toast.info(location.state.message);
     }
   }, [location.state]);
 
@@ -52,18 +53,12 @@ const Login = () => {
 
   const getDashboardRoute = (department: number): string => {
     switch (department) {
-      case 1: // TicketSales
-        return '/ticket-sales/dashboard';
-      case 2: // EventOrganization
-        return '/event-organization/dashboard';
-      case 3: // PerformerCommunication
-        return '/performer-communication/dashboard';
-      case 4: // MediaCampaign
-        return '/media-campaign/dashboard';
-      case 5: // MEMS Client
-        return '/client/browse-events';
-      default:
-        return '/dashboard';
+      case 1: return '/ticket-sales/dashboard';
+      case 2: return '/event-organization/dashboard';
+      case 3: return '/performer-communication/dashboard';
+      case 4: return '/media-campaign/dashboard';
+      case 5: return '/client/browse-events';
+      default: return '/dashboard';
     }
   };
 
@@ -75,24 +70,32 @@ const Login = () => {
     try {
       const response = await authAPI.login(formData);
       
-      if (response.success) {
-        if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-          
-          // Redirect to appropriate dashboard based on user's department
-          const dashboardRoute = getDashboardRoute(response.user.department);
-          
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-          }
-          
-          navigate(dashboardRoute);
+      if (response.success && response.user) {
+        // Sačuvaj user i token
+        localStorage.setItem('user', JSON.stringify(response.user));
+        if (response.token) {
+          localStorage.setItem('token', response.token);
         }
+        
+        // Toast success
+        toast.success(`Welcome back, ${response.user.firstName}!`);
+        
+        // Redirect na dashboard
+        const dashboardRoute = getDashboardRoute(response.user.department);
+        navigate(dashboardRoute);
       } else {
-        setError(response.message);
+        setError(response.message || 'Login failed');
+        toast.error(response.message || 'Login failed');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.Message || 
+                          'Login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      
+      // Log za debugging
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

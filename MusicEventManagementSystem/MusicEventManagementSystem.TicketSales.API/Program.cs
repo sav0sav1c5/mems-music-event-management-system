@@ -159,6 +159,8 @@ using (var scope = app.Services.CreateScope())
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
+
+        await MusicEventManagementSystem.Infrastructure.Database.Seeders.DatabaseSeeder.SeedAsync(context);
     }
     catch (Exception ex)
     {

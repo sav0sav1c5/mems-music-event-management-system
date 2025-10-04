@@ -28,28 +28,11 @@ import ClientMyCart from "../src/frontend/shared/page/MyCart";
 import ClientCheckout from "../src/frontend/shared/page/Checkout";
 import ClientOrders from "../src/frontend/shared/page/MyOrders";
 
-// Add these imports for react-toastify
+// React-toastify imports
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-<ToastContainer 
-  position="top-right"
-  autoClose={3000}
-  hideProgressBar={false}
-  newestOnTop={true}
-  closeOnClick
-  rtl={false}
-  pauseOnFocusLoss
-  draggable
-  pauseOnHover
-  theme="dark"
-  style={{
-    top: '1rem',
-    right: '1rem',
-  }}
-/>
-
-// Helper function to get user's department
+// HELPER FUNCTION: Get user's department
 const getUserDepartment = (): number | null => {
   const userStr = localStorage.getItem('user');
   if (!userStr) return null;
@@ -61,7 +44,7 @@ const getUserDepartment = (): number | null => {
   }
 };
 
-// Component to redirect to appropriate dashboard based on department
+// COMPONENT: Department-based redirection
 const DepartmentRedirect = () => {
   const department = getUserDepartment();
   
@@ -88,12 +71,10 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        {/* Department redirect route */}
-        {/* <Route path="/dashboard" element={<DepartmentRedirect />} /> */}
 
         {/* Protected routes - Ticket Sales*/}
-        <Route path="/ticket-sales/dashboard" 
+        <Route 
+          path="/ticket-sales/dashboard" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
@@ -103,7 +84,8 @@ function App() {
           } 
         />
 
-        <Route path="/ticket-sales/infrastructure" 
+        <Route 
+          path="/ticket-sales/infrastructure" 
           element={
             <ProtectedRoute allowedDepartments={[1]}>
               <Layout>
@@ -168,8 +150,9 @@ function App() {
           } 
         />
 
-        {/* Protected routes - Event Organization*/}
-        <Route path="/event-organization/dashboard" 
+        {/* Protected routes - Event Organization */}
+        <Route 
+          path="/event-organization/dashboard" 
           element={
             <ProtectedRoute allowedDepartments={[2]}>
               <Layout>
@@ -179,8 +162,9 @@ function App() {
           } 
         />
 
-        {/* Protected routes - Performer Communication*/}
-        <Route path="/performer-communication/dashboard" 
+        {/* Protected routes - Performer Communication */}
+        <Route 
+          path="/performer-communication/dashboard" 
           element={
             <ProtectedRoute allowedDepartments={[3]}>
               <Layout>
@@ -190,8 +174,9 @@ function App() {
           } 
         />
 
-        {/* Protected routes - Media Campaign*/}
-        <Route path="/media-campaign/dashboard" 
+        {/* Protected routes - Media Campaign */}
+        <Route 
+          path="/media-campaign/dashboard" 
           element={
             <ProtectedRoute allowedDepartments={[4]}>
               <Layout>
@@ -201,8 +186,9 @@ function App() {
           } 
         />
 
-        {/* Protected routes - MEMS Client*/}
-        <Route path="/client/browse-events" 
+        {/* Protected routes - MEMS Client */}
+        <Route 
+          path="/client/browse-events" 
           element={
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
@@ -212,7 +198,8 @@ function App() {
           } 
         />
 
-        <Route path="/client/my-cart" 
+        <Route 
+          path="/client/my-cart" 
           element={
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
@@ -222,7 +209,8 @@ function App() {
           } 
         />
 
-        <Route path="/client/checkout" 
+        <Route 
+          path="/client/checkout" 
           element={
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
@@ -232,7 +220,8 @@ function App() {
           } 
         />
 
-         <Route path="/client/orders" 
+        <Route 
+          path="/client/orders" 
           element={
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
@@ -249,8 +238,23 @@ function App() {
         <Route path="*" element={<DepartmentRedirect />} />
       </Routes>
 
-      {/* Add ToastContainer here for global notifications */}
-      <ToastContainer />
+      {/* Global ToastContainer for notifications */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        style={{
+          top: '1rem',
+          right: '1rem',
+        }}
+      />
     </Router>
   );
 }

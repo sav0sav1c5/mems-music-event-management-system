@@ -16,7 +16,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             _performerService = performerService;
         }
 
-        [Authorize(Roles = "MEMSClient,ArtistCommunication")]
+        [Authorize(Roles = "MEMSClient,ArtistCommunication,TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PerformerResponseDto>>> GetAllPerformers()
         {
@@ -31,7 +31,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
-        [Authorize(Roles = "MEMSClient,ArtistCommunication")]
+        [Authorize(Roles = "MEMSClient,ArtistCommunication,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<PerformerResponseDto>> GetPerformerById(int id)
         {
