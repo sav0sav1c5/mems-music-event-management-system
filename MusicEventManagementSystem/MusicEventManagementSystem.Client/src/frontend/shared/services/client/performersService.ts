@@ -1,9 +1,9 @@
 import type { PerformerInfoDto } from '../../types/api/performer';
 
-const API_BASE_URL = 'http://localhost:7001/api';
+const API_BASE_URL = 'https://localhost:7001/api';
 
 export class performersService {
-  public static readonly BASE_URL = `${API_BASE_URL}/performers`;
+  public static readonly BASE_URL = `${API_BASE_URL}/performer`;
   
   static async getFeaturedPerformers(): Promise<PerformerInfoDto[]> {
     const response = await fetch(`${this.BASE_URL}/featured`);

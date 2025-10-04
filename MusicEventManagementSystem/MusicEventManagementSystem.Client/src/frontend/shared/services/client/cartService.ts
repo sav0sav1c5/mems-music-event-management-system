@@ -1,6 +1,6 @@
 import type { CartDto, AddToCartDto, UpdateCartItemDto } from '../../types/api/cart';
 
-const API_BASE_URL = 'http://localhost:7001/api';
+const API_BASE_URL = 'https://localhost:7001/api';
 
 export class CartService {
   private static readonly BASE_URL = `${API_BASE_URL}/cart`;

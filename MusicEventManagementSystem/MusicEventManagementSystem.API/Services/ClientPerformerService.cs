@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.API.Services.IServices;
+using MusicEventManagementSystem.API.Services.Proxies.IProxies;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
 
@@ -6,10 +7,10 @@ namespace MusicEventManagementSystem.API.Services
 {
     public class ClientPerformerService : IClientPerformerService
     {
-        private readonly IPerformerService _performerService;
-        private readonly IPerformanceService _performanceService;
+        private readonly IPerformerProxyService _performerService;
+        private readonly IPerformanceProxyService _performanceService;
 
-        public ClientPerformerService(IPerformerService performerService, IPerformanceService performanceService)
+        public ClientPerformerService(IPerformerProxyService performerService, IPerformanceProxyService performanceService)
         {
             _performerService = performerService;
             _performanceService = performanceService;

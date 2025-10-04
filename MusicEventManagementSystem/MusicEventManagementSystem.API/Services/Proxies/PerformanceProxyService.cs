@@ -22,7 +22,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.PostAsJsonAsync("/api/performances", performanceDto);
+                var response = await client.PostAsJsonAsync("/api/performance", performanceDto);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<PerformanceResponseDto>(_jsonOptions)
                     ?? throw new InvalidOperationException("Failed to deserialize performance response");
@@ -39,7 +39,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/performances/{id}");
+                var response = await client.GetAsync($"/api/performance/{id}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<PerformanceResponseDto>(_jsonOptions);
@@ -56,7 +56,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync("/api/performances");
+                var response = await client.GetAsync("/api/performance");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<PerformanceResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<PerformanceResponseDto>();
@@ -73,7 +73,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/performances/by-performer/{performerId}");
+                var response = await client.GetAsync($"/api/performance/by-performer/{performerId}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<PerformanceResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<PerformanceResponseDto>();
@@ -90,7 +90,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/performances/by-venue/{venueId}");
+                var response = await client.GetAsync($"/api/performance/by-venue/{venueId}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<PerformanceResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<PerformanceResponseDto>();
@@ -107,7 +107,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/performances/date-range?start={start:o}&end={end:o}");
+                var response = await client.GetAsync($"/api/performance/date-range?start={start:o}&end={end:o}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<PerformanceResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<PerformanceResponseDto>();
@@ -124,7 +124,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.PutAsJsonAsync($"/api/performances/{id}", performanceDto);
+                var response = await client.PutAsJsonAsync($"/api/performance/{id}", performanceDto);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<PerformanceResponseDto>(_jsonOptions);
@@ -141,7 +141,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.DeleteAsync($"/api/performances/{id}");
+                var response = await client.DeleteAsync($"/api/performance/{id}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
                 response.EnsureSuccessStatusCode();
                 return true;

@@ -1,7 +1,7 @@
 import type { ClientEventDto } from '../../types/api/event';
 import type { EventDetailsDto } from '../../types/api/event';
 
-const API_BASE_URL = 'http://localhost:7001/api';
+const API_BASE_URL = 'https://localhost:7001/api';
 
 export class EventsService {
   public static readonly BASE_URL = `${API_BASE_URL}/events`;

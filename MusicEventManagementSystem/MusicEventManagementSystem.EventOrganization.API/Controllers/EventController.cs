@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MusicEventManagementSystem.Core.Enums.EventOrganization;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
@@ -47,6 +48,20 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpGet("date-range")]
+        public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+            {
+                try
+                {
+                    var events = await _eventService.GetByDateRangeAsync(startDate, endDate);
+                    return Ok(events);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, $"Internal server error: {ex.Message}");
+                }
+            }
 
         [HttpPost]
         public async Task<ActionResult<EventResponseDto>> CreateEvent([FromBody] EventCreateDto eventDto)
@@ -101,6 +116,52 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                     return NotFound($"Event with ID {id} not found.");
                 }
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("by-name/{name}")]
+        public async Task<ActionResult<EventResponseDto>> GetByName(string name)
+        {
+            try
+            {
+                var existingEvent = await _eventService.GetByNameAsync(name);
+                if (existingEvent == null)
+                {
+                    return NotFound($"Event with name '{name}' not found.");
+                }
+                return Ok(existingEvent);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("by-status/{status}")]
+        public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByStatus(EventStatus status)
+        {
+            try
+            {
+                var events = await _eventService.GetByStatusAsync(status);
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("by-creator/{createdById}")]
+        public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByCreatedById(Guid createdById)
+        {
+            try
+            {
+                var events = await _eventService.GetByCreatedByIdAsync(createdById);
+                return Ok(events);
             }
             catch (Exception ex)
             {

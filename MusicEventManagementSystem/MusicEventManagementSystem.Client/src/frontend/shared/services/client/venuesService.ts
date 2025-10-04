@@ -1,10 +1,10 @@
 import type { VenueInfoDto } from '../../types/api/venue';
 import type { ClientEventDto } from '../../types/api/event';
 
-const API_BASE_URL = 'http://localhost:7001/api';
+const API_BASE_URL = 'https://localhost:7001/api';
 
 export class venuesService {
-  public static readonly BASE_URL = `${API_BASE_URL}/venues`;
+  public static readonly BASE_URL = `${API_BASE_URL}/venue`;
 
   static async getVenuesByCity(city: string): Promise<VenueInfoDto[]> {
     const response = await fetch(`${this.BASE_URL}/city/${encodeURIComponent(city)}`);

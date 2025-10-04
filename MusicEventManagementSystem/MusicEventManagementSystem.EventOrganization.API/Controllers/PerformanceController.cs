@@ -106,5 +106,47 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpGet("by-performer/{performerId}")]
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetByPerformerId(int performerId)
+        {
+            try
+            {
+                var performances = await _performanceService.GetByPerformerIdAsync(performerId);
+                return Ok(performances);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("by-venue/{venueId}")]
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetByVenueId(int venueId)
+        {
+            try
+            {
+                var performances = await _performanceService.GetByVenueIdAsync(venueId);
+                return Ok(performances);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("date-range")]
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetByDateRange([FromQuery] DateTime start, [FromQuery] DateTime end)
+        {
+            try
+            {
+                var performances = await _performanceService.GetByDateRangeAsync(start, end);
+                return Ok(performances);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

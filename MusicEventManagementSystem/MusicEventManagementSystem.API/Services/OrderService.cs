@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.API.Services.IServices;
+using MusicEventManagementSystem.API.Services.Proxies.IProxies;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
@@ -9,19 +10,19 @@ namespace MusicEventManagementSystem.API.Services
     public class OrderService : IOrderService
     {
         private readonly ICartService _cartService;
-        private readonly IRecordedSaleService _recordedSaleService;
-        private readonly ITicketService _ticketService;
-        private readonly ITicketTypeService _ticketTypeService;
-        private readonly IZoneService _zoneService;
-        private readonly IEventService _eventService;
+        private readonly IRecordedSaleProxyService _recordedSaleService;
+        private readonly ITicketProxyService _ticketService;
+        private readonly ITicketTypeProxyService _ticketTypeService;
+        private readonly IZoneProxyService _zoneService;
+        private readonly IEventProxyService _eventService;
 
         public OrderService(
             ICartService cartService,
-            IRecordedSaleService recordedSaleService,
-            ITicketService ticketService,
-            ITicketTypeService ticketTypeService,
-            IZoneService zoneService,
-            IEventService eventService)
+            IRecordedSaleProxyService recordedSaleService,
+            ITicketProxyService ticketService,
+            ITicketTypeProxyService ticketTypeService,
+            IZoneProxyService zoneService,
+            IEventProxyService eventService)
         {
             _cartService = cartService;
             _recordedSaleService = recordedSaleService;

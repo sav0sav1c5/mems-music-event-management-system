@@ -23,7 +23,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.PostAsJsonAsync("/api/tickettypes", createDto);
+                var response = await client.PostAsJsonAsync("/api/tickettype", createDto);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<TicketTypeResponseDto>(_jsonOptions)
                     ?? throw new InvalidOperationException("Failed to deserialize ticket type response");
@@ -40,7 +40,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync($"/api/tickettypes/{id}");
+                var response = await client.GetAsync($"/api/tickettype/{id}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<TicketTypeResponseDto>(_jsonOptions);
@@ -57,7 +57,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync("/api/tickettypes");
+                var response = await client.GetAsync("/api/tickettype");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<TicketTypeResponseDto>();
@@ -74,7 +74,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync($"/api/tickettypes/by-zone/{zoneId}");
+                var response = await client.GetAsync($"/api/tickettype/zone/{zoneId}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<TicketTypeResponseDto>();
@@ -91,7 +91,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync($"/api/tickettypes/by-event/{eventId}");
+                var response = await client.GetAsync($"/api/tickettype/event/{eventId}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<TicketTypeResponseDto>();
@@ -108,7 +108,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync($"/api/tickettypes/by-status/{status}");
+                var response = await client.GetAsync($"/api/tickettype/status/{status}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<TicketTypeResponseDto>();
@@ -125,7 +125,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync("/api/tickettypes/available");
+                var response = await client.GetAsync("/api/tickettype/available");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<TicketTypeResponseDto>();
@@ -142,7 +142,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync($"/api/tickettypes/by-zone-and-event?zoneId={zoneId}&eventId={eventId}");
+                var response = await client.GetAsync($"/api/tickettype/zone/{zoneId}/event/{eventId}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<TicketTypeResponseDto>();
@@ -159,7 +159,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.PutAsJsonAsync($"/api/tickettypes/{id}", updateDto);
+                var response = await client.PutAsJsonAsync($"/api/tickettype/{id}", updateDto);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<TicketTypeResponseDto>(_jsonOptions);
@@ -176,7 +176,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.DeleteAsync($"/api/tickettypes/{id}");
+                var response = await client.DeleteAsync($"/api/tickettype/{id}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
                 response.EnsureSuccessStatusCode();
                 return true;
@@ -193,7 +193,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.PutAsJsonAsync($"/api/tickettypes/{id}/quantity", quantity);
+                var response = await client.PutAsJsonAsync($"/api/tickettype/{id}/quantity", quantity);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
                 response.EnsureSuccessStatusCode();
                 return true;
@@ -210,7 +210,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.GetAsync($"/api/tickettypes/total-available/{eventId}");
+                var response = await client.GetAsync($"/api/tickettype/event/{eventId}/totalquantity");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<int>(_jsonOptions);
             }
@@ -221,12 +221,12 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             }
         }
 
-        public async Task<bool> ReserveTicketsAsync(int ticketTypeId, int quantity)
+        public async Task<bool> ReserveTicketsAsync(int id, int quantity)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.PostAsJsonAsync($"/api/tickettypes/{ticketTypeId}/reserve", quantity);
+                var response = await client.PostAsJsonAsync($"/api/tickettype/{id}/reserve", quantity);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound ||
                     response.StatusCode == System.Net.HttpStatusCode.BadRequest) return false;
                 response.EnsureSuccessStatusCode();
@@ -239,12 +239,12 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             }
         }
 
-        public async Task<bool> ReleaseTicketsAsync(int ticketTypeId, int quantity)
+        public async Task<bool> ReleaseTicketsAsync(int id, int quantity)
         {
             var client = _httpClientFactory.CreateClient("TicketSalesAPI");
             try
             {
-                var response = await client.PostAsJsonAsync($"/api/tickettypes/{ticketTypeId}/release", quantity);
+                var response = await client.PostAsJsonAsync($"/api/tickettype/{id}/release", quantity);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
                 response.EnsureSuccessStatusCode();
                 return true;

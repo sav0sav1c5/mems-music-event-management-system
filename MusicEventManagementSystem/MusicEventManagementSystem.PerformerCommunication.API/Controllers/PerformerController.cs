@@ -114,5 +114,37 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpGet("by-name/{name}")]
+        public async Task<ActionResult<PerformerResponseDto>> GetByName(string name)
+        {
+            try
+            {
+                var performer = await _performerService.GetByNameAsync(name);
+                if (performer == null)
+                {
+                    return NotFound($"Performer with name '{name}' not found.");
+                }
+                return Ok(performer);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("by-genre/{genre}")]
+        public async Task<ActionResult<IEnumerable<PerformerResponseDto>>> GetByGenre(string genre)
+        {
+            try
+            {
+                var performers = await _performerService.GetByGenreAsync(genre);
+                return Ok(performers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

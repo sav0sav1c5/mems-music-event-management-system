@@ -72,19 +72,19 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 // 6. Register HTTP proxy services for EventOrganization microservice
-builder.Services.AddScoped<IEventService, EventProxyService>();
-builder.Services.AddScoped<IPerformanceService, PerformanceProxyService>();
+builder.Services.AddScoped<IEventProxyService, EventProxyService>();
+builder.Services.AddScoped<IPerformanceProxyService, PerformanceProxyService>();
 
 // 7. Register HTTP proxy services for TicketSales microservice
-builder.Services.AddScoped<IVenueService, VenueProxyService>();
-builder.Services.AddScoped<IZoneService, ZoneProxyService>();
-builder.Services.AddScoped<ITicketTypeService, TicketTypeProxyService>();
-builder.Services.AddScoped<ITicketService, TicketProxyService>();
-builder.Services.AddScoped<ISpecialOfferService, SpecialOfferProxyService>();
-builder.Services.AddScoped<IRecordedSaleService, RecordedSaleProxyService>();
+builder.Services.AddScoped<IVenueProxyService, VenueProxyService>();
+builder.Services.AddScoped<IZoneProxyService, ZoneProxyService>();
+builder.Services.AddScoped<ITicketTypeProxyService, TicketTypeProxyService>();
+builder.Services.AddScoped<ITicketProxyService, TicketProxyService>();
+builder.Services.AddScoped<ISpecialOfferProxyService, SpecialOfferProxyService>();
+builder.Services.AddScoped<IRecordedSaleProxyService, RecordedSaleProxyService>();
 
 // 8. Register HTTP proxy services for PerformerCommunication microservice
-builder.Services.AddScoped<IPerformerService, PerformerProxyService>();
+builder.Services.AddScoped<IPerformerProxyService, PerformerProxyService>();
 
 // 9. Configure Controllers with JSON options
 builder.Services.AddControllers()

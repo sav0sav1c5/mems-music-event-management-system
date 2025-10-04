@@ -1,7 +1,7 @@
 import type { CheckoutRequestDto, CheckoutResponseDto } from '../../types/api/checkout';
 import type { OrderDto, OrderDetailsDto, OrderTicketDto} from '../../types/api/order';
 
-const API_BASE_URL = 'http://localhost:7001/api';
+const API_BASE_URL = 'https://localhost:7001/api';
 
 export class ordersService {
   public static readonly BASE_URL = `${API_BASE_URL}/orders`;

@@ -24,7 +24,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.PostAsJsonAsync("/api/events", eventDto);
+                var response = await client.PostAsJsonAsync("/api/event", eventDto);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<EventResponseDto>(_jsonOptions)
                     ?? throw new InvalidOperationException("Failed to deserialize event response");
@@ -41,7 +41,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/events/{eventId}");
+                var response = await client.GetAsync($"/api/event/{eventId}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<EventResponseDto>(_jsonOptions);
@@ -58,7 +58,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync("/api/events");
+                var response = await client.GetAsync("/api/event");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<EventResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<EventResponseDto>();
@@ -75,7 +75,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/events/date-range?startDate={startDate:o}&endDate={endDate:o}");
+                var response = await client.GetAsync($"/api/event/date-range?startDate={startDate:o}&endDate={endDate:o}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<EventResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<EventResponseDto>();
@@ -87,12 +87,12 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             }
         }
 
-        public async Task<EventResponseDto> UpdateEventAsync(int eventId, EventUpdateDto eventDto)
+        public async Task<EventResponseDto?> UpdateEventAsync(int eventId, EventUpdateDto eventDto)
         {
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.PutAsJsonAsync($"/api/events/{eventId}", eventDto);
+                var response = await client.PutAsJsonAsync($"/api/event/{eventId}", eventDto);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<EventResponseDto>(_jsonOptions)
                     ?? throw new InvalidOperationException("Failed to deserialize updated event response");
@@ -109,7 +109,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.DeleteAsync($"/api/events/{eventId}");
+                var response = await client.DeleteAsync($"/api/event/{eventId}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
                 response.EnsureSuccessStatusCode();
                 return true;
@@ -126,7 +126,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/events/by-name/{Uri.EscapeDataString(name)}");
+                var response = await client.GetAsync($"/api/event/by-name/{Uri.EscapeDataString(name)}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<EventResponseDto>(_jsonOptions);
@@ -143,7 +143,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/events/by-status/{status}");
+                var response = await client.GetAsync($"/api/event/by-status/{status}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<EventResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<EventResponseDto>();
@@ -160,7 +160,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             var client = _httpClientFactory.CreateClient("EventOrganizationAPI");
             try
             {
-                var response = await client.GetAsync($"/api/events/by-creator/{createdById}");
+                var response = await client.GetAsync($"/api/event/by-creator/{createdById}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<IEnumerable<EventResponseDto>>(_jsonOptions)
                     ?? Enumerable.Empty<EventResponseDto>();

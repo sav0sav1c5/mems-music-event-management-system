@@ -75,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
 
         // PUT: api/specialoffer/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<SpecialOfferResponseDto>> UpdateSpecialOffer(int id, [FromBody] SpecialOfferUpdateDto updateSpecialOfferDtodto)
+        public async Task<ActionResult<SpecialOfferResponseDto>> UpdateSpecialOffer(int id, [FromBody] SpecialOfferUpdateDto updateSpecialOfferDto)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var updatedSpecialOffer = await _specialOfferService.UpdateSpecialOfferAsync(id, updateSpecialOfferDtodto);
+                var updatedSpecialOffer = await _specialOfferService.UpdateSpecialOfferAsync(id, updateSpecialOfferDto);
 
                 if (updatedSpecialOffer == null)
                 {

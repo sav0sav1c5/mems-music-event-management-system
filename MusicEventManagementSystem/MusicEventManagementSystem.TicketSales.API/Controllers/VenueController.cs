@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Interfaces.Services;
+using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.TicketSales.API.Controllers
@@ -172,6 +173,36 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             {
                 var totalCapacity = await _venueService.CalculateTotalCapacityAsync(id);
                 return Ok(totalCapacity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // GET /api/venue/by-event/{eventId}
+        [HttpGet("by-event/{eventId}")]
+        public async Task<ActionResult<IEnumerable<VenueResponseDto>>> GetByEventId(int eventId)
+        {
+            try
+            {
+                var venues = await _venueService.GetByEventIdAsync(eventId);
+                return Ok(venues);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // GET /api/venue/{id}/performances
+        [HttpGet("{id}/performances")]
+        public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetPerformances(int id)
+        {
+            try
+            {
+                var performances = await _venueService.GetPerformancesAsync(id);
+                return Ok(performances);
             }
             catch (Exception ex)
             {

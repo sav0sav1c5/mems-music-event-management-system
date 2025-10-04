@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.API.Services.IServices;
+using MusicEventManagementSystem.API.Services.Proxies.IProxies;
 using MusicEventManagementSystem.Core.Enums.EventOrganization;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
@@ -8,22 +9,22 @@ namespace MusicEventManagementSystem.API.Services
 {
     public class ClientEventService : IClientEventService
     {
-        private readonly IEventService _eventService;
-        private readonly IVenueService _venueService;
-        private readonly IPerformanceService _performanceService;
-        private readonly IPerformerService _performerService;
-        private readonly ITicketTypeService _ticketTypeService;
-        private readonly IZoneService _zoneService;
-        private readonly ISpecialOfferService _specialOfferService;
+        private readonly IEventProxyService _eventService;
+        private readonly IVenueProxyService _venueService;
+        private readonly IPerformanceProxyService _performanceService;
+        private readonly IPerformerProxyService _performerService;
+        private readonly ITicketTypeProxyService _ticketTypeService;
+        private readonly IZoneProxyService _zoneService;
+        private readonly ISpecialOfferProxyService _specialOfferService;
 
         public ClientEventService(
-            IEventService eventService,
-            IVenueService venueService,
-            IPerformanceService performanceService,
-            IPerformerService performerService,
-            ITicketTypeService ticketTypeService,
-            IZoneService zoneService,
-            ISpecialOfferService specialOfferService)
+            IEventProxyService eventService,
+            IVenueProxyService venueService,
+            IPerformanceProxyService performanceService,
+            IPerformerProxyService performerService,
+            ITicketTypeProxyService ticketTypeService,
+            IZoneProxyService zoneService,
+            ISpecialOfferProxyService specialOfferService)
         {
             _eventService = eventService;
             _venueService = venueService;

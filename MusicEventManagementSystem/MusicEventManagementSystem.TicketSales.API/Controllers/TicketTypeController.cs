@@ -84,14 +84,14 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var updatedVenue = await _ticketTypeService.UpdateTicketTypeAsync(id, updateTicketTypeDto);
+                var updatedTicketType = await _ticketTypeService.UpdateTicketTypeAsync(id, updateTicketTypeDto);
 
-                if (updatedVenue == null)
+                if (updatedTicketType == null)
                 {
                     return NotFound($"Ticket Type with ID {id} not found.");
                 }
 
-                return Ok(updatedVenue);
+                return Ok(updatedTicketType);
             }
             catch (Exception ex)
             {

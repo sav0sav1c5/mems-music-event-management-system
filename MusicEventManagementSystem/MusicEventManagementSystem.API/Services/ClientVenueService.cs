@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.API.Services.IServices;
+using MusicEventManagementSystem.API.Services.Proxies.IProxies;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
 
@@ -6,20 +7,20 @@ namespace MusicEventManagementSystem.API.Services
 {
     public class ClientVenueService : IClientVenueService
     {
-        private readonly IVenueService _venueService;
-        private readonly IEventService _eventService;
-        private readonly IPerformanceService _performanceService;
-        private readonly ITicketTypeService _ticketTypeService;
-        private readonly IZoneService _zoneService;
-        private readonly IPerformerService _performerService;
+        private readonly IVenueProxyService _venueService;
+        private readonly IEventProxyService _eventService;
+        private readonly IPerformanceProxyService _performanceService;
+        private readonly ITicketTypeProxyService _ticketTypeService;
+        private readonly IZoneProxyService _zoneService;
+        private readonly IPerformerProxyService _performerService;
 
         public ClientVenueService(
-            IVenueService venueService,
-            IEventService eventService,
-            IPerformanceService performanceService,
-            ITicketTypeService ticketTypeService,
-            IZoneService zoneService,
-            IPerformerService performerService)
+            IVenueProxyService venueService,
+            IEventProxyService eventService,
+            IPerformanceProxyService performanceService,
+            ITicketTypeProxyService ticketTypeService,
+            IZoneProxyService zoneService,
+            IPerformerProxyService performerService)
         {
             _venueService = venueService;
             _eventService = eventService;
