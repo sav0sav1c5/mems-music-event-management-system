@@ -7,14 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\Repositories\ITicketSales\" />
     <Folder Include="Interfaces\Repositories\IEventOrganization\" />
     <Folder Include="Interfaces\Repositories\IMediaCampaign\" />
     <Folder Include="Interfaces\Repositories\IPerformerCommunication\" />
     <Folder Include="Interfaces\Services\IEventOrganization\" />
     <Folder Include="Interfaces\Services\IMediaCampaign\" />
     <Folder Include="Interfaces\Services\IPerformerCommunication\" />
-    <Folder Include="Interfaces\Services\ITicketSales\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
 ﻿using MusicEventManagementSystem.Core.Models.Entities.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
-namespace MusicEventManagementSystem.Core.Interfaces.Repositories
+namespace MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales
 {
     public interface IVenueRepository : IRepository<Venue>
     {

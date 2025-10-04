@@ -1,5 +1,5 @@
 ﻿using MusicEventManagementSystem.Core.Enums.TicketSales;
-using MusicEventManagementSystem.Core.Interfaces.Repositories;
+using MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 

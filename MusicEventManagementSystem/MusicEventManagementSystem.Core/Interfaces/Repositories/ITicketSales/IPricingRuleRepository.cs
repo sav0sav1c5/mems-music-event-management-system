@@ -1,6 +1,6 @@
 ﻿using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
-namespace MusicEventManagementSystem.Core.Interfaces.Repositories
+namespace MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales
 {
     public interface IPricingRuleRepository : IRepository<PricingRule>
     {

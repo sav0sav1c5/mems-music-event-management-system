@@ -1,7 +1,7 @@
 ﻿using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
-namespace MusicEventManagementSystem.Core.Interfaces.Services
+namespace MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales
 {
     public interface ISpecialOfferService
     {

@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
-using MusicEventManagementSystem.Core.Interfaces.Services;
+using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.TicketSales.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RecordedSaleController : ControllerBase
     {
         private readonly IRecordedSaleService _recordedSaleService;
@@ -16,7 +18,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             _recordedSaleService = recordedSaleService;
         }
 
-        // GET: api/recordedsale
+        [Authorize(Roles = "TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetAllRecordedSales()
         {
@@ -31,7 +33,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/{id}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<RecordedSaleResponseDto>> GetRecordedSaleById(int id)
         {
@@ -52,7 +54,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/recordedsale
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpPost]
         public async Task<ActionResult<RecordedSaleResponseDto>> CreateRecordedSale([FromBody] RecordedSaleCreateDto createRecordedSaleDto)
         {
@@ -73,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // PUT: api/recordedsale/{id}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpPut("{id}")]
         public async Task<ActionResult<RecordedSaleResponseDto>> UpdateRecordedSale(int id, [FromBody] RecordedSaleUpdateDto updateRecordedSaleDto)
         {
@@ -99,7 +101,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // DELETE: api/recordedsale/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteRecordedSale(int id)
         {
@@ -120,7 +122,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/user/{userId}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetSalesByUser(string userId)
         {
@@ -135,7 +137,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/date-range?fromDate=&toDate=
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("date-range")]
         public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetSalesByDateRange([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
         {
@@ -150,7 +152,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/status/{status}
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("status/{status}")]
         public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetSalesByStatus(TransactionStatus status)
         {
@@ -165,7 +167,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/payment-method/{paymentMethod}
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("payment-method/{paymentMethod}")]
         public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetSalesByPaymentMethod(PaymentMethod paymentMethod)
         {
@@ -180,7 +182,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/revenue/total
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("revenue/total")]
         public async Task<ActionResult<decimal>> GetTotalRevenue()
         {
@@ -195,7 +197,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/revenue/date-range?fromDate=&toDate=
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("revenue/date-range")]
         public async Task<ActionResult<decimal>> GetRevenueByDateRange([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
         {
@@ -210,7 +212,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/recordedsale/count/status/{status}
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("count/status/{status}")]
         public async Task<ActionResult<int>> GetSalesCountByStatus(TransactionStatus status)
         {

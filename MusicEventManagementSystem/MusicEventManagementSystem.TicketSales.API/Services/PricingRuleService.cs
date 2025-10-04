@@ -1,5 +1,6 @@
 ﻿using MusicEventManagementSystem.Core.Interfaces.Repositories;
-using MusicEventManagementSystem.Core.Interfaces.Services;
+using MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales;
+using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 using MusicEventManagementSystem.Infrastructure.Repositories;
 

@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
-using MusicEventManagementSystem.Core.Interfaces.Services;
+using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.TicketSales.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SpecialOfferController : ControllerBase
     {
         private readonly ISpecialOfferService _specialOfferService;
@@ -16,7 +18,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             _specialOfferService = specialOfferService;
         }
 
-        // GET: api/specialoffer
+        [Authorize(Roles = "TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SpecialOfferResponseDto>>> GetAllSpecialOffers()
         {
@@ -31,7 +33,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/{id}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<SpecialOfferResponseDto>> GetSpecialOfferById(int id)
         {
@@ -52,7 +54,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/specialoffer
+        [Authorize(Roles = "TicketSales")]
         [HttpPost]
         public async Task<ActionResult<SpecialOfferResponseDto>> CreateSpecialOffer([FromBody] SpecialOfferCreateDto createSpecialOfferDto)
         {
@@ -73,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // PUT: api/specialoffer/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpPut("{id}")]
         public async Task<ActionResult<SpecialOfferResponseDto>> UpdateSpecialOffer(int id, [FromBody] SpecialOfferUpdateDto updateSpecialOfferDto)
         {
@@ -99,7 +101,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // DELETE: api/specialoffer/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteSpecialOffer(int id)
         {
@@ -120,7 +122,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/active?date=
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<SpecialOfferResponseDto>>> GetActiveOffers([FromQuery] DateTime? date = null)
         {
@@ -136,7 +138,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/by-type/{offerType}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("by-type/{offerType}")]
         public async Task<ActionResult<IEnumerable<SpecialOfferResponseDto>>> GetByOfferType(OfferType offerType)
         {
@@ -155,7 +157,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/by-date-range?start=&end=
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("by-date-range")]
         public async Task<ActionResult<IEnumerable<SpecialOfferResponseDto>>> GetByDateRange([FromQuery] DateTime start, [FromQuery] DateTime end)
         {
@@ -174,7 +176,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/by-ticket-type/{ticketTypeId}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("by-ticket-type/{ticketTypeId}")]
         public async Task<ActionResult<IEnumerable<SpecialOfferResponseDto>>> GetByTicketType(int ticketTypeId)
         {
@@ -193,7 +195,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/{id}/is-valid
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}/is-valid")]
         public async Task<ActionResult<object>> IsOfferValid(int id, [FromQuery] DateTime? checkDate = null)
         {
@@ -215,7 +217,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/specialoffer/ticket-type/{ticketTypeId}/has-active-offer
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("ticket-type/{ticketTypeId}/has-active-offer")]
         public async Task<ActionResult<object>> HasActiveOfferForTicketType(int ticketTypeId, [FromQuery] DateTime? checkDate = null)
         {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
@@ -15,6 +16,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             _performanceService = performanceService;
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetAllPerformances()
         {
@@ -29,6 +31,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("{id}")]
         public async Task<ActionResult<PerformanceResponseDto>> GetPerformanceById(int id)
         {
@@ -47,6 +50,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "EventOrganization")]
         [HttpPost]
         public async Task<ActionResult<PerformanceResponseDto>> CreatePerformance([FromBody] PerformanceCreateDto performanceDto)
         {
@@ -66,6 +70,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "EventOrganization")]
         [HttpPut("{id}")]
         public async Task<ActionResult<PerformanceResponseDto>> UpdatePerformance(int id, [FromBody] PerformanceUpdateDto performanceDto)
         {
@@ -89,6 +94,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "EventOrganization")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeletePerformance(int id)
         {
@@ -107,6 +113,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("by-performer/{performerId}")]
         public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetByPerformerId(int performerId)
         {
@@ -121,6 +128,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("by-venue/{venueId}")]
         public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetByVenueId(int venueId)
         {
@@ -135,6 +143,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("date-range")]
         public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetByDateRange([FromQuery] DateTime start, [FromQuery] DateTime end)
         {
@@ -147,6 +156,6 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-        }
+        } 
     }
 }

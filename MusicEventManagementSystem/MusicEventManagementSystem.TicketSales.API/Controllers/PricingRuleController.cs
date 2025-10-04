@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MusicEventManagementSystem.Core.Interfaces.Services;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.TicketSales.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PricingRuleController : ControllerBase
     {
         private readonly IPricingRuleService _pricingRuleService;

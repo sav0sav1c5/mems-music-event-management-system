@@ -1,4 +1,4 @@
-﻿using MusicEventManagementSystem.Core.Interfaces.Services;
+﻿using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 
 namespace MusicEventManagementSystem.API.Services.Proxies.IProxies
 {

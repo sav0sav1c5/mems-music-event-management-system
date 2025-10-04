@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.EventOrganization;
 using MusicEventManagementSystem.Core.Interfaces.Services;
@@ -17,6 +18,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             _eventService = eventService;
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetAllEvents()
         {
@@ -31,6 +33,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("{id}")]
         public async Task<ActionResult<EventResponseDto>> GetEventById(int id)
         {
@@ -49,20 +52,22 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("date-range")]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-            {
-                try
-                {
-                    var events = await _eventService.GetByDateRangeAsync(startDate, endDate);
-                    return Ok(events);
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, $"Internal server error: {ex.Message}");
-                }
-            }
+        {
+           try
+           {
+               var events = await _eventService.GetByDateRangeAsync(startDate, endDate);
+               return Ok(events);
+           }
+           catch (Exception ex)
+           {
+               return StatusCode(500, $"Internal server error: {ex.Message}");
+           }
+        }
 
+        [Authorize(Roles = "EventOrganization")]
         [HttpPost]
         public async Task<ActionResult<EventResponseDto>> CreateEvent([FromBody] EventCreateDto eventDto)
         {
@@ -82,6 +87,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "EventOrganization")]
         [HttpPut("{id}")]
         public async Task<ActionResult<EventResponseDto>> UpdateEvent(int id, [FromBody] EventUpdateDto eventDto)
         {
@@ -105,6 +111,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "EventOrganization")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteEvent(int id)
         {
@@ -123,6 +130,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("by-name/{name}")]
         public async Task<ActionResult<EventResponseDto>> GetByName(string name)
         {
@@ -141,6 +149,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("by-status/{status}")]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByStatus(EventStatus status)
         {
@@ -155,6 +164,7 @@ namespace MusicEventManagementSystem.EventOrganization.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,EventOrganization")]
         [HttpGet("by-creator/{createdById}")]
         public async Task<ActionResult<IEnumerable<EventResponseDto>>> GetByCreatedById(Guid createdById)
         {

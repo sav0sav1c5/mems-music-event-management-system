@@ -16,6 +16,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             _performerService = performerService;
         }
 
+        [Authorize(Roles = "MEMSClient,ArtistCommunication")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PerformerResponseDto>>> GetAllPerformers()
         {
@@ -30,6 +31,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,ArtistCommunication")]
         [HttpGet("{id}")]
         public async Task<ActionResult<PerformerResponseDto>> GetPerformerById(int id)
         {
@@ -50,6 +52,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ArtistCommunication")]
         [HttpPost]
         public async Task<ActionResult<PerformerResponseDto>> CreatePerformer([FromBody] CreatePerformerDto performer)
         {
@@ -70,6 +73,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ArtistCommunication")]
         [HttpPut("{id}")]
         public async Task<ActionResult<PerformerResponseDto>> UpdatePerformer(int id, [FromBody] UpdatePerformerDto performer)
         {
@@ -95,6 +99,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ArtistCommunication")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeletePerformer(int id)
         {
@@ -115,6 +120,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,ArtistCommunication")]
         [HttpGet("by-name/{name}")]
         public async Task<ActionResult<PerformerResponseDto>> GetByName(string name)
         {
@@ -133,6 +139,7 @@ namespace MusicEventManagementSystem.PerformerCommunication.API.Controllers
             }
         }
 
+        [Authorize(Roles = "MEMSClient,ArtistCommunication")]
         [HttpGet("by-genre/{genre}")]
         public async Task<ActionResult<IEnumerable<PerformerResponseDto>>> GetByGenre(string genre)
         {

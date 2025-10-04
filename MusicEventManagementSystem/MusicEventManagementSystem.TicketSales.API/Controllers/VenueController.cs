@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.EventOrganization;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
@@ -7,6 +8,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class VenueController : ControllerBase
     {
         private readonly IVenueService _venueService;
@@ -16,7 +18,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             _venueService = venueService;
         }
 
-        // GET: api/venue
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<VenueResponseDto>>> GetAllVenues()
         {
@@ -31,7 +33,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/venue/{id}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<VenueResponseDto>> GetVenueById(int id)
         {
@@ -52,7 +54,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/venue
+        [Authorize(Roles = "TicketSales")]
         [HttpPost]
         public async Task<ActionResult<VenueResponseDto>> CreateVenue([FromBody] VenueCreateDto venueCreateDto)
         {
@@ -73,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // PUT: api/venue/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpPut("{id}")]
         public async Task<ActionResult<VenueResponseDto>> UpdateVenue(int id, [FromBody] VenueUpdateDto venueUpdateDto)
         {
@@ -99,7 +101,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // DELETE: api/venue/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteVenue(int id)
         {
@@ -120,7 +122,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/venue/city/{city}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("city/{city}")]
         public async Task<ActionResult<IEnumerable<VenueResponseDto>>> GetVenuesByCity(string city)
         {
@@ -135,7 +137,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET /api/venue/capacity?min=500&max=2000
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("capacity")]
         public async Task<ActionResult<IEnumerable<VenueResponseDto>>> GetByCapacityRange([FromQuery] int min, [FromQuery] int max)
         {
@@ -150,7 +152,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET /api/venue/{id}/segments
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}/segments")]
         public async Task<ActionResult<IEnumerable<SegmentResponseDto>>> GetSegments(int id)
         {
@@ -165,7 +167,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET /api/venue/{id}/capacity
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}/capacity")]
         public async Task<ActionResult<int>> CalculateTotalCapacity(int id)
         {
@@ -180,7 +182,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET /api/venue/by-event/{eventId}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("by-event/{eventId}")]
         public async Task<ActionResult<IEnumerable<VenueResponseDto>>> GetByEventId(int eventId)
         {
@@ -195,7 +197,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET /api/venue/{id}/performances
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}/performances")]
         public async Task<ActionResult<IEnumerable<PerformanceResponseDto>>> GetPerformances(int id)
         {

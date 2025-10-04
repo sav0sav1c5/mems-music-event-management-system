@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
@@ -7,6 +8,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TicketController : ControllerBase
     {
         private readonly ITicketService _ticketService;
@@ -16,7 +18,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             _ticketService = ticketService;
         }
 
-        // GET: api/ticket
+        [Authorize(Roles = "TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TicketResponseDto>>> GetAllTickets()
         {
@@ -31,7 +33,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/{id}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<TicketResponseDto>> GetTicketById(int id)
         {
@@ -52,7 +54,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/ticket
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpPost]
         public async Task<ActionResult<TicketResponseDto>> CreateTicket([FromBody] TicketCreateDto createTicketDto)
         {
@@ -73,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // PUT: api/ticket/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpPut("{id}")]
         public async Task<ActionResult<TicketResponseDto>> UpdateTicket(int id, [FromBody] TicketUpdateDto updateTicketDto)
         {
@@ -99,7 +101,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // DELETE: api/ticket/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteTicket(int id)
         {
@@ -120,7 +122,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/status/{status}
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("status/{status}")]
         public async Task<ActionResult<IEnumerable<TicketResponseDto>>> GetTicketsByStatus(TicketStatus status)
         {
@@ -135,7 +137,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/unique-code/{uniqueCode}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("unique-code/{uniqueCode}")]
         public async Task<ActionResult<TicketResponseDto>> GetTicketByUniqueCode(string uniqueCode)
         {
@@ -156,7 +158,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/qr-code/{qrCode}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("qr-code/{qrCode}")]
         public async Task<ActionResult<TicketResponseDto>> GetTicketByQrCode(string qrCode)
         {
@@ -177,7 +179,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/statistics/count/{status}
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("statistics/count/{status}")]
         public async Task<ActionResult<int>> GetTicketsCountByStatus(TicketStatus status)
         {
@@ -192,7 +194,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/statistics/revenue
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("statistics/revenue/total")]
         public async Task<ActionResult<decimal>> GetTotalRevenue()
         {
@@ -207,7 +209,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/statistics/revenue/date-range?from=1&to=
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("statistics/revenue/date-range")]
         public async Task<ActionResult<decimal>> GetRevenueByDateRange([FromQuery] DateTime from,[FromQuery] DateTime to)
         {
@@ -227,7 +229,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/statistics/revenue/status/{status}
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("statistics/revenue/status/{status}")]
         public async Task<ActionResult<decimal>> GetRevenueByStatus(TicketStatus status)
         {
@@ -243,7 +245,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
         }
 
 
-        // GET: api/ticket/sold
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("sold")]
         public async Task<ActionResult<IEnumerable<TicketResponseDto>>> GetSoldTickets()
         {
@@ -258,7 +260,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/today
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("today")]
         public async Task<ActionResult<IEnumerable<TicketResponseDto>>> GetTodaysTickets()
         {
@@ -273,7 +275,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/ticket/{id}/sell
+        [Authorize(Roles = "TicketSales")]
         [HttpPost("{id}/sell")]
         public async Task<ActionResult<TicketResponseDto>> SellTicket(int id)
         {
@@ -294,7 +296,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/ticket/use/{uniqueCode}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpPost("use/{uniqueCode}")]
         public async Task<ActionResult<TicketResponseDto>> UseTicket(string uniqueCode)
         {
@@ -315,7 +317,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/ticket/{id}/cancel
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpPost("{id}/cancel")]
         public async Task<ActionResult<TicketResponseDto>> CancelTicket(int id)
         {
@@ -336,7 +338,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/validate/unique-code/{uniqueCode}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("validate/unique-code/{uniqueCode}")]
         public async Task<ActionResult<bool>> ValidateUniqueCode(string uniqueCode)
         {
@@ -351,7 +353,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/validate/qr-code/{qrCode}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("validate/qr-code/{qrCode}")]
         public async Task<ActionResult<bool>> ValidateQrCode(string qrCode)
         {
@@ -366,7 +368,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/ticket/can-use/{uniqueCode}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("can-use/{uniqueCode}")]
         public async Task<ActionResult<bool>> CanTicketBeUsed(string uniqueCode)
         {

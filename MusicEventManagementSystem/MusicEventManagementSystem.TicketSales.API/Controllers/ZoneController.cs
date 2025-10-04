@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
@@ -7,6 +8,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ZoneController : ControllerBase
     {
         private readonly IZoneService _zoneService;
@@ -16,7 +18,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             _zoneService = zoneService;
         }
 
-        // GET: api/zone
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ZoneResponseDto>>> GetAllZones()
         {
@@ -31,7 +33,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/zone/{id}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}")]
         public async Task<ActionResult<ZoneResponseDto>> GetZoneById(int id)
         {
@@ -52,7 +54,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // POST: api/zone
+        [Authorize(Roles = "TicketSales")]
         [HttpPost]
         public async Task<ActionResult<ZoneResponseDto>> CreateZone([FromBody] ZoneCreateDto createZoneDto)
         {
@@ -73,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // PUT: api/zone/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpPut("{id}")]
         public async Task<ActionResult<ZoneResponseDto>> UpdateZone(int id, [FromBody] ZoneUpdateDto updateZoneDto)
         {
@@ -99,7 +101,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // DELETE: api/zone/{id}
+        [Authorize(Roles = "TicketSales")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteZone(int id)
         {
@@ -120,7 +122,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/zone/segment/{segmentId}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("segment/{segmentId}")]
         public async Task<ActionResult<IEnumerable<ZoneResponseDto>>> GetZonesBySegmentId(int segmentId)
         {
@@ -135,7 +137,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/zone/price?min=&max=
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("price")]
         public async Task<ActionResult<IEnumerable<ZoneResponseDto>>> GetZonesByPriceRange([FromQuery] decimal min, [FromQuery] decimal max)
         {
@@ -150,7 +152,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/zone/position/{position}
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("position/{position}")]
         public async Task<ActionResult<IEnumerable<ZoneResponseDto>>> GetZonesByPosition(ZonePosition position)
         {
@@ -165,7 +167,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        // GET: api/zone/{id}/tickettypes
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpGet("{id}/tickettypes")]
         public async Task<ActionResult<IEnumerable<TicketTypeResponseDto>>> GetTicketTypesByZoneId(int id)
         {
