@@ -5,6 +5,7 @@ using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 using Npgsql;
+using System.Text.Json;
 
 namespace MusicEventManagementSystem.TicketSales.API.Services
 {
@@ -12,11 +13,13 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
     {
         private readonly IRecordedSaleRepository _recordedSaleRepository;
         private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
 
         public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository, IConfiguration configuration)
         {
             _recordedSaleRepository = recordedSaleRepository;
             _configuration = configuration;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         public async Task<IEnumerable<RecordedSaleResponseDto>> GetAllRecordedSalesAsync()
@@ -165,6 +168,148 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
                 PeriodStart = startDate,
                 PeriodEnd = endDate
             };
+        }
+
+        public async Task<AnalysisReport> GenerateComprehensiveAnalysisAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var results = new List<SalesAnalysisResult>();
+
+            await using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            // Call the stored procedure - PLSQL function
+            await using var cmd = new NpgsqlCommand(
+                "SELECT * FROM sp_comprehensive_sales_analysis(@eventId, @startDate, @endDate)",
+                connection);
+
+            cmd.Parameters.AddWithValue("eventId", eventId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("startDate", startDate ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("endDate", endDate ?? (object)DBNull.Value);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var result = new SalesAnalysisResult
+                {
+                    AnalysisSection = reader.GetString(0),
+                    MetricName = reader.GetString(1),
+                    MetricValue = reader.GetDecimal(2),
+                    MetricUnit = reader.GetString(3),
+                    AdditionalInfo = reader.IsDBNull(4)
+                        ? null
+                        : JsonDocument.Parse(reader.GetString(4))
+                };
+                results.Add(result);
+            }
+
+            // Group results by section
+            var groupedResults = results
+                .GroupBy(r => r.AnalysisSection)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Create summary
+            var summary = CreateSummary(results);
+
+            return new AnalysisReport
+            {
+                GeneratedAt = DateTime.UtcNow,
+                EventId = eventId,
+                StartDate = startDate ?? DateTime.UtcNow.AddDays(-30),
+                EndDate = endDate ?? DateTime.UtcNow,
+                Sections = groupedResults,
+                Summary = summary
+            };
+        }
+
+        public async Task<string> ExportAnalysisToCsvAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            await using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            await using var cmd = new NpgsqlCommand(
+                "SELECT sp_export_sales_analysis_csv(@eventId, @startDate, @endDate)",
+                connection);
+
+            cmd.Parameters.AddWithValue("eventId", eventId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("startDate", startDate ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("endDate", endDate ?? (object)DBNull.Value);
+
+            var csvContent = await cmd.ExecuteScalarAsync() as string;
+            return csvContent ?? string.Empty;
+        }
+
+        public async Task<byte[]> ExportAnalysisToExcelAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var report = await GenerateComprehensiveAnalysisAsync(eventId, startDate, endDate);
+
+            // Ovde bi koristio EPPlus ili ClosedXML library
+            // Primer sa EPPlus:
+            using var package = new OfficeOpenXml.ExcelPackage();
+
+            foreach (var section in report.Sections)
+            {
+                var worksheet = package.Workbook.Worksheets.Add(section.Key);
+
+                // Headers
+                worksheet.Cells[1, 1].Value = "Metrika";
+                worksheet.Cells[1, 2].Value = "Vrednost";
+                worksheet.Cells[1, 3].Value = "Jedinica";
+                worksheet.Cells[1, 4].Value = "Dodatne Informacije";
+
+                // Data
+                int row = 2;
+                foreach (var metric in section.Value)
+                {
+                    worksheet.Cells[row, 1].Value = metric.MetricName;
+                    worksheet.Cells[row, 2].Value = metric.MetricValue;
+                    worksheet.Cells[row, 3].Value = metric.MetricUnit;
+                    worksheet.Cells[row, 4].Value = metric.AdditionalInfo?.RootElement.ToString();
+                    row++;
+                }
+
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+            }
+
+            return package.GetAsByteArray();
+        }
+
+        // Private helper methods for analysis report generation
+
+        private AnalysisSummary CreateSummary(List<SalesAnalysisResult> results)
+        {
+            var basicMetrics = results.Where(r => r.AnalysisSection == "OSNOVNE_METRIKE").ToList();
+            var zoneAnalysis = results.Where(r => r.AnalysisSection == "ANALIZA_PO_ZONAMA").ToList();
+            var offerAnalysis = results.Where(r => r.AnalysisSection == "SPECIAL_OFFERS_PERFORMANCE").ToList();
+            var optimization = results.Where(r => r.AnalysisSection == "REVENUE_OPTIMIZATION").ToList();
+
+            var summary = new AnalysisSummary
+            {
+                TotalRevenue = basicMetrics.FirstOrDefault(m => m.MetricName == "Ukupan Revenue")?.MetricValue ?? 0,
+                TotalTicketsSold = (int)(basicMetrics.FirstOrDefault(m => m.MetricName == "Ukupno Prodatih Karata")?.MetricValue ?? 0),
+                AverageTicketPrice = basicMetrics.FirstOrDefault(m => m.MetricName == "Prosečna Cena Karte")?.MetricValue ?? 0,
+                TopPerformingZone = zoneAnalysis.OrderByDescending(z => z.MetricValue).FirstOrDefault()?.MetricName,
+                TopPerformingOffer = offerAnalysis.OrderByDescending(o => o.MetricValue).FirstOrDefault()?.MetricName,
+                Recommendations = ExtractRecommendations(optimization)
+            };
+
+            return summary;
+        }
+
+        private List<string> ExtractRecommendations(List<SalesAnalysisResult> optimizationResults)
+        {
+            var recommendations = new List<string>();
+
+            foreach (var result in optimizationResults)
+            {
+                if (result.AdditionalInfo != null &&
+                    result.AdditionalInfo.RootElement.TryGetProperty("recommendation", out var recElement))
+                {
+                    recommendations.Add(recElement.GetString());
+                }
+            }
+
+            return recommendations;
         }
 
         // Helper methods for mapping

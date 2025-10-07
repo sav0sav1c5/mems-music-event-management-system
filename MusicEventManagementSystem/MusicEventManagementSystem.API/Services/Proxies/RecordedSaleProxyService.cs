@@ -355,5 +355,20 @@ namespace MusicEventManagementSystem.API.Services.Proxies
                 throw new InvalidOperationException("Failed to get revenue analysis via microservice", ex);
             }
         }
+
+        public Task<AnalysisReport> GenerateComprehensiveAnalysisAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> ExportAnalysisToCsvAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<byte[]> ExportAnalysisToExcelAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

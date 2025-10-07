@@ -13,6 +13,7 @@ using MusicEventManagementSystem.Infrastructure.Database;
 using MusicEventManagementSystem.Infrastructure.Repositories;
 using MusicEventManagementSystem.TicketSales.API.Services;
 using MusicEventManagementSystem.TicketSales.API.Services.Auth;
+using OfficeOpenXml;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -99,6 +100,8 @@ builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IRecordedSaleService, RecordedSaleService>();
 builder.Services.AddScoped<IPricingRuleService, PricingRuleService>();
+
+builder.Services.AddSingleton<ExcelPackage>();
 
 // 10. Configure Controllers with JSON options
 builder.Services.AddControllers()

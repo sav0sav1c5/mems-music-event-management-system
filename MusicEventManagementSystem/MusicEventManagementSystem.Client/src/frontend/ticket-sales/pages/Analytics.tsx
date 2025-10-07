@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { Users, Calendar, Download, Filter, TrendingUp, DollarSign, Ticket, MapPin, Gift, RefreshCw, Search, XCircle, AlertCircle } from 'lucide-react';
+import { Users, Download, TrendingUp, DollarSign, Ticket, MapPin, Gift, AlertCircle } from 'lucide-react';
 
 // Import services
 import { TicketService } from '../services/ticketService';
@@ -13,7 +13,6 @@ import type { RecordedSaleResponse } from '../types/api/recordedSale';
 import type { SpecialOfferResponse } from '../types/api/specialOffer';
 import type { VenueResponse } from '../types/api/venue';
 import { Card, KpiCard } from '../components/ui/card';
-import { CustomSelect } from '../components/ui/customSelect';
 import { CustomDatePicker } from '../components/ui/customDatePicker';
 
 // Type definitions for analytics data
@@ -136,9 +135,9 @@ const Analytics = () => {
     capacityUtilization: 0
   });
 
-  // Filter states
-  const [chartTypeFilter, setChartTypeFilter] = useState('revenue');
-  const [venueFilter, setVenueFilter] = useState('all');
+  // // Filter states
+  // const [chartTypeFilter, setChartTypeFilter] = useState('revenue');
+  // const [venueFilter, setVenueFilter] = useState('all');
 
   // Load data on component mount and when date range changes
   useEffect(() => {
@@ -393,29 +392,170 @@ const Analytics = () => {
     return `${value.toFixed(1)}%`;
   };
 
-  const exportData = () => {
-    const data = {
-      kpis,
-      revenueData,
-      paymentData,
-      ticketStatusData,
-      venuePerformance,
-      offerPerformance,
-      exportDate: new Date().toISOString()
-    };
+  // const exportData = () => {
+  //   const data = {
+  //     kpis,
+  //     revenueData,
+  //     paymentData,
+  //     ticketStatusData,
+  //     venuePerformance,
+  //     offerPerformance,
+  //     exportDate: new Date().toISOString()
+  //   };
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  //   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.json`;
+  //   a.click();
+  //   URL.revokeObjectURL(url);
+  // };
+
+  const exportToCSV = () => {
+    try {
+      // CSV header
+      let csvContent = "Data Type,Metric,Value,Additional Info\n";
+      
+      // Revenue data
+      revenueData.forEach(item => {
+        csvContent += `Revenue,${item.date},${item.revenue},Tickets: ${item.tickets}\n`;
+      });
+      
+      // Payment data
+      paymentData.forEach(item => {
+        csvContent += `Payment,${item.method},${item.revenue},Percentage: ${item.value.toFixed(1)}%\n`;
+      });
+      
+      // Ticket status data
+      ticketStatusData.forEach(item => {
+        csvContent += `Ticket Status,${item.status},${item.count},Revenue: ${item.revenue}, Percentage: ${item.percentage.toFixed(1)}%\n`;
+      });
+      
+      // Venue performance
+      venuePerformance.forEach(item => {
+        csvContent += `Venue,${item.venueName},${item.revenue},Occupancy: ${item.occupancyRate.toFixed(1)}%, Sold: ${item.soldTickets}\n`;
+      });
+      
+      // Offer performance
+      offerPerformance.forEach(item => {
+        csvContent += `Offer,${item.name},${item.revenueImpact},Usage: ${item.usageCount}, Conversion: ${item.conversionRate.toFixed(1)}%\n`;
+      });
+      
+      // KPIs
+      csvContent += `KPI,Total Revenue,${kpis.totalRevenue},\n`;
+      csvContent += `KPI,Total Tickets Sold,${kpis.totalTicketsSold},\n`;
+      csvContent += `KPI,Average Ticket Price,${kpis.averageTicketPrice},\n`;
+      csvContent += `KPI,Conversion Rate,${kpis.conversionRate},\n`;
+      csvContent += `KPI,Capacity Utilization,${kpis.capacityUtilization},\n`;
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      setError('Failed to export CSV');
+    }
+  };
+
+  const exportToPDF = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { jsPDF } = await import('jspdf');
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let yPosition = 20;
+      const lineHeight = 7;
+      const margin = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      
+      // Header
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('Analytics Report', margin, yPosition);
+      yPosition += lineHeight * 2;
+      
+      pdf.setFontSize(12);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition);
+      yPosition += lineHeight * 2;
+      
+      // KPIs Section
+      pdf.setFontSize(16);
+      pdf.text('Key Performance Indicators', margin, yPosition);
+      yPosition += lineHeight;
+      
+      pdf.setFontSize(10);
+      pdf.text(`Total Revenue: ${formatCurrency(kpis.totalRevenue)}`, margin, yPosition);
+      yPosition += lineHeight;
+      pdf.text(`Total Tickets Sold: ${kpis.totalTicketsSold.toLocaleString()}`, margin, yPosition);
+      yPosition += lineHeight;
+      pdf.text(`Average Ticket Price: ${formatCurrency(kpis.averageTicketPrice)}`, margin, yPosition);
+      yPosition += lineHeight;
+      pdf.text(`Conversion Rate: ${formatPercentage(kpis.conversionRate)}`, margin, yPosition);
+      yPosition += lineHeight;
+      pdf.text(`Capacity Utilization: ${formatPercentage(kpis.capacityUtilization)}`, margin, yPosition);
+      yPosition += lineHeight * 2;
+      
+      // Check page break
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      // Revenue Data
+      pdf.setFontSize(16);
+      pdf.text('Revenue Trend', margin, yPosition);
+      yPosition += lineHeight;
+      
+      pdf.setFontSize(10);
+      revenueData.slice(-10).forEach(item => { // Last 10 days
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.text(`${item.date}: ${formatCurrency(item.revenue)} (${item.tickets} tickets)`, margin, yPosition);
+        yPosition += lineHeight;
+      });
+      yPosition += lineHeight;
+      
+      // Venue Performance
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      pdf.setFontSize(16);
+      pdf.text('Top Venues Performance', margin, yPosition);
+      yPosition += lineHeight;
+      
+      pdf.setFontSize(10);
+      venuePerformance.slice(0, 5).forEach(venue => {
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.text(`${venue.venueName}: ${formatCurrency(venue.revenue)} (${formatPercentage(venue.occupancyRate)} occupancy)`, margin, yPosition);
+        yPosition += lineHeight;
+      });
+      
+      pdf.save(`analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      setError('Failed to export PDF. Please try the CSV export instead.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl shadow-xl h-full">
-      <div className="text-white h-full flex flex-col p-4 m-1">
+      <div className="text-white h-full flex flex-col p-4 m-1" id="analytics-content">
         {/* Main Content Area */}
         <div className="flex-1 flex gap-4 min-h-0">
           {/* Left Side - Header, Statistics, and Analytics Content */}
@@ -448,36 +588,24 @@ const Analytics = () => {
                     />
                   </div>
 
-                  <div className="min-w-0 flex-1 max-w-40">
-                    <CustomSelect
-                      value={chartTypeFilter}
-                      onChange={setChartTypeFilter}
-                      options={[
-                        { value: 'revenue', label: 'Revenue' },
-                        { value: 'tickets', label: 'Tickets' },
-                        { value: 'conversion', label: 'Conversion' }
-                      ]}
-                      placeholder="Chart Type"
-                      icon={<Filter className="w-5 h-5 text-neutral-400" />}
-                    />
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={exportToCSV}
+                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-green-600 text-white hover:bg-green-500 border border-green-500"
+                    >
+                      <Download size={20} />
+                      Export CSV
+                    </button>
+                    
+                    <button 
+                      onClick={exportToPDF}
+                      disabled={isLoading}
+                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-red-600 text-white hover:bg-red-500 border border-red-500"
+                    >
+                      <Download size={20} />
+                      {isLoading ? 'Generating PDF...' : 'Export PDF'}
+                    </button>
                   </div>
-
-                  <button 
-                    onClick={loadAnalyticsData}
-                    disabled={isLoading}
-                    className="px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-lime-500 text-black hover:bg-lime-400 disabled:bg-neutral-700 disabled:text-neutral-500"
-                  >
-                    <RefreshCw size={20} className={isLoading ? 'animate-spin' : ''} />
-                    {isLoading ? 'Refreshing...' : 'Refresh'}
-                  </button>
-
-                  <button 
-                    onClick={exportData}
-                    className="px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700"
-                  >
-                    <Download size={20} />
-                    Export
-                  </button>
                 </div>
               </div>
             </div>

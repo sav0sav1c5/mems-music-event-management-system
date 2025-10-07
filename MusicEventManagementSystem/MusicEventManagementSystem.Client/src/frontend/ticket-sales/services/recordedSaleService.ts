@@ -3,6 +3,14 @@ import type { RecordedSaleResponse } from '../types/api/recordedSale';
 import type { RecordedSaleCreateForm, RecordedSaleUpdateForm } from '../types/forms/recordedSale';
 import { PaymentMethod, TransactionStatus } from '../types/enums/TicketSales';
 
+export interface RevenueAnalysisResponse {
+  totalRevenue: number;
+  totalSales: number;
+  averageSaleAmount: number;
+  periodStart: string;
+  periodEnd: string;
+}
+
 const API_BASE_URL = 'https://localhost:7011/api';
 
 export class RecordedSaleService {
@@ -82,6 +90,13 @@ export class RecordedSaleService {
 
   static async getSalesCountByStatus(status: TransactionStatus): Promise<number> {
     const response = await apiService.get(`${this.BASE_URL}/count/status/${status}`);
+    return response.data;
+  }
+
+  static async getRevenueAnalysis(fromDate: Date, toDate: Date): Promise<RevenueAnalysisResponse> {
+    const response = await apiService.get(
+    `${this.BASE_URL}/analytics/revenue?startDate=${fromDate.toISOString()}&endDate=${toDate.toISOString()}`
+    );
     return response.data;
   }
 }
