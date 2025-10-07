@@ -1,4 +1,5 @@
 ﻿using MusicEventManagementSystem.Core.Enums.TicketSales;
+using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales
@@ -18,5 +19,7 @@ namespace MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales
         Task<decimal> GetTotalRevenueAsync();
         Task<decimal> GetRevenueByDateRangeAsync(DateTime from, DateTime to);
         Task<int> GetSalesCountByStatusAsync(TransactionStatus status);
+
+        Task<RevenueAnalysisDto> GetRevenueAnalysisAsync(DateTime startDate, DateTime endDate);
     }
 }

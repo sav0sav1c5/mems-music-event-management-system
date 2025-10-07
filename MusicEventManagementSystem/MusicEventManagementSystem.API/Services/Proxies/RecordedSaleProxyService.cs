@@ -1,5 +1,6 @@
 ﻿using MusicEventManagementSystem.API.Services.Proxies.IProxies;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
+using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 using System.Text.Json;
 
@@ -326,6 +327,32 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             {
                 _logger.LogError(ex, "Error getting sales count via TicketSales API");
                 throw new InvalidOperationException("Failed to get sales count via microservice", ex);
+            }
+        }
+
+        public Task<RevenueAnalysisDto> GetRevenueAnalysisAsync(DateTime startDate, DateTime endDate)
+        {
+            var client = _httpClientFactory.CreateClient("TicketSalesAPI");
+
+            // Pass JWT token from incoming request to the outgoing request
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", token);
+            }
+
+            try
+            {
+                var response = client.GetAsync($"/api/recordedsale/analytics/revenue?startDate={startDate:o}&endDate={endDate:o}").Result;
+                response.EnsureSuccessStatusCode();
+                var analysis = response.Content.ReadFromJsonAsync<RevenueAnalysisDto>(_jsonOptions).Result;
+                return Task.FromResult(analysis ?? new RevenueAnalysisDto());
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Error getting revenue analysis via TicketSales API");
+                throw new InvalidOperationException("Failed to get revenue analysis via microservice", ex);
             }
         }
     }

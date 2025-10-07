@@ -1,17 +1,22 @@
-﻿using MusicEventManagementSystem.Core.Enums.TicketSales;
+﻿using Microsoft.Extensions.Configuration;
+using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
+using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using Npgsql;
 
 namespace MusicEventManagementSystem.TicketSales.API.Services
 {
     public class RecordedSaleService : IRecordedSaleService
     {
         private readonly IRecordedSaleRepository _recordedSaleRepository;
+        private readonly IConfiguration _configuration;
 
-        public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository)
+        public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository, IConfiguration configuration)
         {
             _recordedSaleRepository = recordedSaleRepository;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<RecordedSaleResponseDto>> GetAllRecordedSalesAsync()
@@ -122,8 +127,48 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
             return await _recordedSaleRepository.GetSalesCountByStatusAsync(status);
         }
 
+        public async Task<RevenueAnalysisDto> GetRevenueAnalysisAsync(DateTime startDate, DateTime endDate)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            await using var connection = new NpgsqlConnection(connectionString);
+            await connection.OpenAsync();
+
+            // Call the stored procedure - PLSQL function
+            await using var cmd = new NpgsqlCommand(
+                "SELECT * FROM calculate_total_revenue(@startDate, @endDate)",
+                connection);
+
+            cmd.Parameters.AddWithValue("startDate", startDate);
+            cmd.Parameters.AddWithValue("endDate", endDate);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return new RevenueAnalysisDto
+                {
+                    TotalRevenue = reader.GetDecimal(0),      // total_revenue
+                    TotalSales = reader.GetInt32(1),          // total_sales
+                    AverageSaleAmount = reader.GetDecimal(2), // average_sale_amount
+                    PeriodStart = reader.GetDateTime(3),      // period_start
+                    PeriodEnd = reader.GetDateTime(4)         // period_end
+                };
+            }
+
+            // If no data is returned, return zeros
+            return new RevenueAnalysisDto
+            {
+                TotalRevenue = 0,
+                TotalSales = 0,
+                AverageSaleAmount = 0,
+                PeriodStart = startDate,
+                PeriodEnd = endDate
+            };
+        }
+
         // Helper methods for mapping
-        
+
         private static RecordedSaleResponseDto MapToResponseDto(RecordedSale recordedSale)
         {
             return new RecordedSaleResponseDto

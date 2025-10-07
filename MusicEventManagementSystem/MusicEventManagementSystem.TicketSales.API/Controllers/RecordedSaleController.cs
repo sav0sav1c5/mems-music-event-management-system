@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
+using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 
 namespace MusicEventManagementSystem.TicketSales.API.Controllers
@@ -220,6 +221,34 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             {
                 var count = await _recordedSaleService.GetSalesCountByStatusAsync(status);
                 return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Vraća kompleksnu analizu revenue-a za određeni period
+        /// Koristi PL/pgSQL funkciju za kalkulaciju
+        /// </summary>
+        /// <param name="startDate">Početni datum perioda</param>
+        /// <param name="endDate">Krajnji datum perioda</param>
+        /// <returns>Revenue analiza sa ukupnim prihodima, brojem prodaja i prosekom</returns>
+        [Authorize(Roles = "TicketSales")]
+        [HttpGet("analytics/revenue")]
+        public async Task<ActionResult<RevenueAnalysisDto>> GetRevenueAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                // Validacija datuma
+                if (startDate > endDate)
+                {
+                    return BadRequest("Start date must be before end date.");
+                }
+
+                var analysis = await _recordedSaleService.GetRevenueAnalysisAsync(startDate, endDate);
+                return Ok(analysis);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,166 @@
 @import "tailwindcss";
 
+/* CSS Variables for Theme */
+:root {
+  /* Dark theme (default) */
+  --bg-primary: 10 10 10;           /* neutral-950 */
+  --bg-secondary: 23 23 23;         /* neutral-900 */
+  --bg-tertiary: 38 38 38;          /* neutral-800 */
+  --bg-quaternary: 64 64 64;        /* neutral-700 */
+  
+  --text-primary: 255 255 255;      /* white */
+  --text-secondary: 163 163 163;    /* neutral-400 */
+  --text-tertiary: 115 115 115;     /* neutral-500 */
+  --text-muted: 212 212 212;        /* neutral-300 */
+  
+  --border-primary: 64 64 64;       /* neutral-700 */
+  --border-secondary: 38 38 38;     /* neutral-800 */
+  
+  --lime-primary: 132 204 22;       /* lime-400 */
+  --lime-bg: 132 204 22 / 0.2;      /* lime-400/20 */
+  --lime-border: 132 204 22 / 0.3;  /* lime-400/30 */
+}
+
+.light {
+  /* Light theme */
+  --bg-primary: 235 235 235;        /* #fafafa */
+  --bg-secondary: 245 245 245;      /* white for cards */
+  --bg-tertiary: 225 225 225;       /* #f5f5f5 */
+  --bg-quaternary: 229 229 229;     /* #e5e5e5 */
+  
+  --text-primary: 10 10 10;         /* darker for better readability */
+  --text-secondary: 82 82 82;       /* #525252 - darker */
+  --text-tertiary: 115 115 115;     /* #737373 */
+  --text-muted: 38 38 38;           /* #262626 - darker */
+  
+  --border-primary: 180 180 180;    /* #d4d4d4 - darker borders */
+  --border-secondary: 180 180 180;  /* #d4d4d4 - darker borders */
+  
+  --lime-primary: 101 163 13;       /* lime-600 for better contrast in light */
+  --lime-bg: 101 163 13 / 0.15;     /* lime-600/15 */
+  --lime-border: 101 163 13 / 0.3;  /* lime-600/30 - stronger borders */
+}
+
+/* Apply theme colors */
+body {
+  background-color: rgb(var(--bg-primary));
+  color: rgb(var(--text-primary));
+}
+
+/* Override Tailwind classes with CSS variables */
+.bg-neutral-950 {
+  background-color: rgb(var(--bg-primary)) !important;
+}
+
+.bg-neutral-900,
+.bg-neutral-900\/60,
+.bg-neutral-900\/80,
+.bg-neutral-900\/90,
+.bg-neutral-900\/95 {
+  background-color: rgb(var(--bg-secondary) / 0.95) !important;
+}
+
+.bg-neutral-800,
+.bg-neutral-800\/30,
+.bg-neutral-800\/60 {
+  background-color: rgb(var(--bg-tertiary) / 0.8) !important;
+}
+
+.bg-neutral-700 {
+  background-color: rgb(var(--bg-quaternary)) !important;
+}
+
+.text-white {
+  color: rgb(var(--text-primary)) !important;
+}
+
+.text-neutral-300 {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.text-neutral-400 {
+  color: rgb(var(--text-secondary)) !important;
+}
+
+.text-neutral-500 {
+  color: rgb(var(--text-tertiary)) !important;
+}
+
+.border-neutral-700 {
+  border-color: rgb(var(--border-primary)) !important;
+}
+
+.border-neutral-800 {
+  border-color: rgb(var(--border-secondary)) !important;
+}
+
+/* Lime accent colors */
+.text-lime-400 {
+  color: rgb(var(--lime-primary)) !important;
+}
+
+.bg-lime-400\/20,
+.bg-lime-500\/20 {
+  background-color: rgb(var(--lime-bg)) !important;
+}
+
+.border-lime-400,
+.border-lime-400\/30,
+.border-lime-500,
+.border-lime-500\/30,
+.border-lime-500\/50 {
+  border-color: rgb(var(--lime-border)) !important;
+}
+
+/* Hover states for lime */
+.hover\:text-lime-400:hover {
+  color: rgb(var(--lime-primary)) !important;
+}
+
+.hover\:border-lime-400\/50:hover,
+.hover\:border-lime-500\/50:hover {
+  border-color: rgb(var(--lime-border)) !important;
+}
+
+.hover\:bg-lime-500\/20:hover {
+  background-color: rgb(var(--lime-bg)) !important;
+}
+
+.group-hover\:text-lime-400:hover {
+  color: rgb(var(--lime-primary)) !important;
+}
+
+/* Hover states for backgrounds */
+.hover\:bg-neutral-800:hover {
+  background-color: rgb(var(--bg-tertiary) / 0.9) !important;
+}
+
+.hover\:bg-neutral-700:hover {
+  background-color: rgb(var(--bg-quaternary) / 0.9) !important;
+}
+
+/* Focus states */
+.focus\:border-lime-500:focus {
+  border-color: rgb(var(--lime-primary)) !important;
+}
+
+.focus\:ring-lime-500:focus,
+.focus\:ring-lime-400:focus {
+  --tw-ring-color: rgb(var(--lime-primary) / 0.5) !important;
+}
+
+/* Cards and panels - special handling for backdrop blur */
+.backdrop-blur-sm {
+  backdrop-filter: blur(12px);
+}
+
+/* CartesianGrid color for charts */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgb(var(--border-primary)) !important;
+}
+
+/* Scrollbar hiding */
 ::-webkit-scrollbar {
   width: 0px;
   background: transparent;
@@ -21,29 +182,29 @@
 
 /* Custom Toastify styles */
 .Toastify__toast {
-  background: rgba(23, 23, 23, 0.95);
+  background: rgba(var(--bg-secondary) / 0.95) !important;
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(64, 64, 64, 1);
+  border: 1px solid rgb(var(--border-secondary)) !important;
   border-radius: 12px;
-  color: white;
+  color: rgb(var(--text-primary)) !important;
   font-family: system-ui, -apple-system, sans-serif;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .Toastify__toast--success {
-  border-left: 4px solid #84cc16;
+  border-left: 4px solid #84cc16 !important;
 }
 
 .Toastify__toast--error {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid #ef4444 !important;
 }
 
 .Toastify__toast--warning {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid #f59e0b !important;
 }
 
 .Toastify__toast--info {
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid #3b82f6 !important;
 }
 
 .Toastify__progress-bar {
@@ -60,7 +221,7 @@
 }
 
 .Toastify__close-button {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--text-secondary)) !important;
   opacity: 0.6;
 }
 
@@ -68,73 +229,16 @@
   opacity: 1;
 }
 
-/*
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Special handling for input placeholders */
+.placeholder-neutral-500::placeholder {
+  color: rgb(var(--text-tertiary)) !important;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Special handling for disabled states */
+.disabled\:bg-neutral-700:disabled {
+  background-color: rgb(var(--bg-quaternary)) !important;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.disabled\:text-neutral-500:disabled {
+  color: rgb(var(--text-tertiary)) !important;
 }
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-*/

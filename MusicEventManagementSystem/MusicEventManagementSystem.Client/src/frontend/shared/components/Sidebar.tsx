@@ -63,7 +63,7 @@ const SideBar = () => {
       case 5: // Client
         return [
           { icon: <Ticket size={20} />, label: "Events", path: "/client/browse-events" },
-          { icon: <ShoppingCart size={20} />, label: "My Cart", path: "/client/my-cart" },
+          { icon: <ShoppingCart size={20} />, label: "My Cart", path: "/client/cart" },
           { icon: <CreditCard size={20} />, label: "Checkout", path: "/client/checkout" },
           { icon: <FileText size={20} />, label: "My Orders", path: "/client/orders" },
         ];
@@ -227,8 +227,8 @@ const SideBar = () => {
       <div className="p-3 border-t border-neutral-800 flex justify-center">
         <button
           onClick={handleLogout}
-          className={`flex items-center p-3 hover:bg-red-950/50 rounded-xl transition-all duration-200 
-                    text-red-400 hover:text-red-300 border border-transparent 
+          className={`flex items-center justify-center p-3 bg-red-400/30 hover:bg-red-950/50 rounded-xl transition-all duration-200 
+                    text-neutral-300 hover:text-red-300 border border-red-500 
                     hover:border-red-900/50 ${isOpen ? 'gap-3 w-full max-w-[200px]' : 'justify-center'}`}
         >
           <LogOut size={18} />

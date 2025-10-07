@@ -1,9 +1,39 @@
-import { Bell, Search } from "lucide-react";
+import { Sun, Moon, Search } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const TopBar = () => {
   // Get user from localStorage
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
+  
+  // State for theme
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    // Check if user has theme preference in localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setIsDark(savedTheme === 'dark');
+      applyTheme(savedTheme === 'dark');
+    }
+  }, []);
+
+  const applyTheme = (dark: boolean) => {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const toggleTheme = () => {
+    const newDarkMode = !isDark;
+    setIsDark(newDarkMode);
+    localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
+    applyTheme(newDarkMode);
+  };
 
   const getDepartmentName = (dept: number) => {
     switch(dept) {
@@ -28,19 +58,65 @@ const TopBar = () => {
   };
 
   const getColorClasses = (dept: number) => {
-    const color = getDepartmentColor(dept);
-    
-    return {
-      text: `text-${color}-400`,
-      border: `border-${color}-400`,
-      hoverBorder: `hover:border-${color}-400/50`,
-      hoverText: `hover:text-${color}-400`,
-      bg: `bg-${color}-400`,
-      ring: `focus:ring-${color}-400`,
-      badge: `bg-${color}-400`,
-      groupHoverText: `group-hover:text-${color}-400`,
-      groupHoverBorder: `group-hover:border-${color}-400/30`
+    const colorMap = {
+      1: { 
+        text: "text-lime-400", 
+        border: "border-lime-400", 
+        hoverBorder: "hover:border-lime-400/50",
+        hoverText: "hover:text-lime-400", 
+        bg: "bg-lime-400",
+        ring: "focus:ring-lime-400",
+        badge: "bg-lime-400",
+        groupHoverText: "group-hover:text-lime-400",
+        groupHoverBorder: "group-hover:border-lime-400/30"
+      },
+      2: { 
+        text: "text-pink-400", 
+        border: "border-pink-400", 
+        hoverBorder: "hover:border-pink-400/50",
+        hoverText: "hover:text-pink-400", 
+        bg: "bg-pink-400",
+        ring: "focus:ring-pink-400",
+        badge: "bg-pink-400",
+        groupHoverText: "group-hover:text-pink-400",
+        groupHoverBorder: "group-hover:border-pink-400/30"
+      },
+      3: { 
+        text: "text-sky-400", 
+        border: "border-sky-400", 
+        hoverBorder: "hover:border-sky-400/50",
+        hoverText: "hover:text-sky-400", 
+        bg: "bg-sky-400",
+        ring: "focus:ring-sky-400",
+        badge: "bg-sky-400",
+        groupHoverText: "group-hover:text-sky-400",
+        groupHoverBorder: "group-hover:border-sky-400/30"
+      },
+      4: { 
+        text: "text-purple-400", 
+        border: "border-purple-400", 
+        hoverBorder: "hover:border-purple-400/50",
+        hoverText: "hover:text-purple-400", 
+        bg: "bg-purple-400",
+        ring: "focus:ring-purple-400",
+        badge: "bg-purple-400",
+        groupHoverText: "group-hover:text-purple-400",
+        groupHoverBorder: "group-hover:border-purple-400/30"
+      },
+      5: { 
+        text: "text-orange-400", 
+        border: "border-orange-400", 
+        hoverBorder: "hover:border-orange-400/50",
+        hoverText: "hover:text-orange-400", 
+        bg: "bg-orange-400",
+        ring: "focus:ring-orange-400",
+        badge: "bg-orange-400",
+        groupHoverText: "group-hover:text-orange-400",
+        groupHoverBorder: "group-hover:border-orange-400/30"
+      }
     };
+    
+    return colorMap[dept as keyof typeof colorMap] || colorMap[1];
   };
 
   const getDepartmentInitials = (dept: number) => {
@@ -66,8 +142,8 @@ const TopBar = () => {
 
   return (
     <div className="flex items-center justify-between bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 text-white px-4 py-4 mx-3 mt-3 rounded-xl shadow-lg">
-      {/* Search */}
-      <div className="relative w-1/2 mx-1">
+      {/* Desktop: Search on left */}
+      <div className="relative w-1/2 mx-1 hidden lg:block">
         <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-5 h-5`} />
         <input
           type="text"
@@ -76,14 +152,34 @@ const TopBar = () => {
         />
       </div>
 
+      {/* Mobile: Theme button on left */}
+      <div className="lg:hidden">
+        <button 
+          onClick={toggleTheme}
+          className={`p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl cursor-pointer transition-all duration-200 border border-neutral-700 ${colorClasses.hoverBorder} group`}
+        >
+          {isDark ? (
+            <Sun className={`w-5 h-5 text-neutral-400 ${colorClasses.hoverText} transition-colors`} />
+          ) : (
+            <Moon className={`w-5 h-5 text-neutral-400 ${colorClasses.hoverText} transition-colors`} />
+          )}
+        </button>
+      </div>
+
       {/* Right Side */}
       <div className="flex items-center gap-3">
-        {/* Notifications */}
-        <div className="relative">
-          <button className={`p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl cursor-pointer transition-all duration-200 border border-neutral-700 ${colorClasses.hoverBorder} group`}>
-            <Bell className={`w-5 h-5 text-neutral-400 ${colorClasses.hoverText} transition-colors`} />
+        {/* Desktop: Theme Toggle */}
+        <div className="relative hidden lg:block">
+          <button 
+            onClick={toggleTheme}
+            className={`p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl cursor-pointer transition-all duration-200 border border-neutral-700 ${colorClasses.hoverBorder} group`}
+          >
+            {isDark ? (
+              <Sun className={`w-5 h-5 text-neutral-400 ${colorClasses.hoverText} transition-colors`} />
+            ) : (
+              <Moon className={`w-5 h-5 text-neutral-400 ${colorClasses.hoverText} transition-colors`} />
+            )}
           </button>
-          <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 ${colorClasses.badge} rounded-full border border-neutral-900`}></div>
         </div>
 
         {/* User Profile */}
