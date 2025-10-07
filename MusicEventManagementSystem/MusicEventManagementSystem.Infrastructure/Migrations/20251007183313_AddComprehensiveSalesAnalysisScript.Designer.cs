@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MusicEventManagementSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251003133651_MEMSInitialMigration")]
-    partial class MEMSInitialMigration
+    [Migration("20251007183313_AddComprehensiveSalesAnalysisScript")]
+    partial class AddComprehensiveSalesAnalysisScript
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

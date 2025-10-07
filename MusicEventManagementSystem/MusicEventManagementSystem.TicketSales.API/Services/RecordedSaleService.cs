@@ -14,12 +14,14 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         private readonly IRecordedSaleRepository _recordedSaleRepository;
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
+        private readonly IPdfGeneratorService _pdfGenerator;
 
-        public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository, IConfiguration configuration)
+        public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository, IConfiguration configuration, IPdfGeneratorService pdfGenerator)
         {
             _recordedSaleRepository = recordedSaleRepository;
             _configuration = configuration;
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _pdfGenerator = pdfGenerator;
         }
 
         public async Task<IEnumerable<RecordedSaleResponseDto>> GetAllRecordedSalesAsync()
@@ -196,9 +198,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
                     MetricName = reader.GetString(1),
                     MetricValue = reader.GetDecimal(2),
                     MetricUnit = reader.GetString(3),
-                    AdditionalInfo = reader.IsDBNull(4)
-                        ? null
-                        : JsonDocument.Parse(reader.GetString(4))
+                    AdditionalInfo = reader.IsDBNull(4) ? null : JsonDocument.Parse(reader.GetString(4))
                 };
                 results.Add(result);
             }
@@ -222,29 +222,19 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
             };
         }
 
-        public async Task<string> ExportAnalysisToCsvAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        public async Task<byte[]> ExportAnalysisToPdfAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
         {
-            await using var connection = new NpgsqlConnection(_connectionString);
-            await connection.OpenAsync();
+            // Generate comperhensive analysis report
+            var report = await GenerateComprehensiveAnalysisAsync(eventId, startDate, endDate);
 
-            await using var cmd = new NpgsqlCommand(
-                "SELECT sp_export_sales_analysis_csv(@eventId, @startDate, @endDate)",
-                connection);
-
-            cmd.Parameters.AddWithValue("eventId", eventId ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("startDate", startDate ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("endDate", endDate ?? (object)DBNull.Value);
-
-            var csvContent = await cmd.ExecuteScalarAsync() as string;
-            return csvContent ?? string.Empty;
+            // Convert report to PDF
+            return _pdfGenerator.GenerateSalesAnalysisPdf(report);
         }
 
         public async Task<byte[]> ExportAnalysisToExcelAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             var report = await GenerateComprehensiveAnalysisAsync(eventId, startDate, endDate);
 
-            // Ovde bi koristio EPPlus ili ClosedXML library
-            // Primer sa EPPlus:
             using var package = new OfficeOpenXml.ExcelPackage();
 
             foreach (var section in report.Sections)

@@ -22,7 +22,7 @@ namespace MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales
 
         Task<RevenueAnalysisDto> GetRevenueAnalysisAsync(DateTime startDate, DateTime endDate);
         Task<AnalysisReport> GenerateComprehensiveAnalysisAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
-        Task<string> ExportAnalysisToCsvAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
+        Task<byte[]> ExportAnalysisToPdfAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportAnalysisToExcelAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
     }
 }

@@ -100,8 +100,9 @@ builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IRecordedSaleService, RecordedSaleService>();
 builder.Services.AddScoped<IPricingRuleService, PricingRuleService>();
+builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 
-builder.Services.AddSingleton<ExcelPackage>();
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 // 10. Configure Controllers with JSON options
 builder.Services.AddControllers()

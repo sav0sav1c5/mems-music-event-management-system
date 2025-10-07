@@ -5,12 +5,13 @@
 namespace MusicEventManagementSystem.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddRevenueAnalysisFunction : Migration
+    public partial class AddSimpleSalesAnalysisScript : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             // Učitaj SQL skriptu iz fajla
+
             var sqlScript = @"
             CREATE OR REPLACE FUNCTION calculate_total_revenue(
                 p_start_date TIMESTAMP,

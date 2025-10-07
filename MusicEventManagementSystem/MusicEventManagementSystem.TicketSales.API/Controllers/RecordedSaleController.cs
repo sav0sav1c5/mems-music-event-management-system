@@ -230,13 +230,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Returns a complex revenue analysis for a specific period
-        /// Use PL/pgSQL function for calculation
-        /// </summary>
-        /// <param name="startDate">Period start date</param>
-        /// <param name="endDate">The end date of the period</param>
-        /// <returns>Revenue analysis with total revenue, number of sales and average</returns>
+        // Returns a complex revenue analysis for a specific period with total revenue, number of sales and average
         [Authorize(Roles = "TicketSales")]
         [HttpGet("analytics/revenue")]
         public async Task<ActionResult<RevenueAnalysisDto>> GetRevenueAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
@@ -258,18 +252,10 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Generates a complex analysis of ticket sales
-        /// </summary>
-        /// <param name="eventId">Event ID (optional - if not passed, parse all)</param>
-        /// <param name="startDate">Start date (optional - default 30 days ago)</param>
-        /// <param name="endDate">End date (optional - default today)</param>
+        // Generates a complex analysis of ticket sales
         [Authorize(Roles = "TicketSales")]
         [HttpGet("comprehensive")]
-        public async Task<IActionResult> GetComprehensiveAnalysis(
-            [FromQuery] int? eventId = null,
-            [FromQuery] DateTime? startDate = null,
-            [FromQuery] DateTime? endDate = null)
+        public async Task<IActionResult> GetComprehensiveAnalysis([FromQuery] int? eventId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
         {
             try
             {
@@ -280,30 +266,28 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom generisanja analize prodaje");
-                return StatusCode(500, "Došlo je do greške prilikom generisanja analize");
+                _logger.LogError(ex, "Error generating sales analysis");
+                return StatusCode(500, "An error occurred while generating the analysis");
             }
         }
 
-        // Exports the analysis in CSV format
+        // Exports the analysis in PDF format
         [Authorize(Roles = "TicketSales")]
-        [HttpGet("export/csv")]
-        public async Task<IActionResult> ExportToCsv([FromQuery] int? eventId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+        [HttpGet("export/pdf")]
+        public async Task<IActionResult> ExportToPdf([FromQuery] int? eventId = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
         {
             try
             {
-                var csvContent = await _recordedSaleService.ExportAnalysisToCsvAsync(
-                    eventId, startDate, endDate);
+                var pdfBytes = await _recordedSaleService.ExportAnalysisToPdfAsync(eventId, startDate, endDate);
 
-                var bytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
-                var fileName = $"sales_analysis_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
+                var fileName = $"sales_analysis_{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf";
 
-                return File(bytes, "text/csv", fileName);
+                return File(pdfBytes, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom exporta u CSV");
-                return StatusCode(500, "Došlo je do greške prilikom exporta");
+                _logger.LogError(ex, "Error when exporting to PDF");
+                return StatusCode(500, "An error occurred during export");
             }
         }
 
@@ -325,8 +309,8 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom exporta u Excel");
-                return StatusCode(500, "Došlo je do greške prilikom exporta");
+                _logger.LogError(ex, "Error when exporting to Excel");
+                return StatusCode(500, "An error occurred during export");
             }
         }
 
@@ -345,12 +329,12 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
                     return Ok(section);
                 }
 
-                return NotFound($"Sekcija '{sectionName}' nije pronađena");
+                return NotFound($"Section '{sectionName}' not found");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom generisanja sekcije analize");
-                return StatusCode(500, "Došlo je do greške");
+                _logger.LogError(ex, "Error while generating section of analysis");
+                return StatusCode(500, "An error occurred");
             }
         }
     }

@@ -11,6 +11,20 @@ export interface RevenueAnalysisResponse {
   periodEnd: string;
 }
 
+export interface AnalysisSection {
+  [key: string]: any;
+}
+
+export interface ComprehensiveAnalysisResponse {
+  Sections: {
+    [key: string]: AnalysisSection;
+  };
+  GeneratedAt: string;
+  EventId?: number;
+  StartDate: string;
+  EndDate: string;
+}
+
 const API_BASE_URL = 'https://localhost:7011/api';
 
 export class RecordedSaleService {
@@ -97,6 +111,100 @@ export class RecordedSaleService {
     const response = await apiService.get(
     `${this.BASE_URL}/analytics/revenue?startDate=${fromDate.toISOString()}&endDate=${toDate.toISOString()}`
     );
+    return response.data;
+  }
+
+  static async getComprehensiveAnalysis(eventId?: number, startDate?: Date, endDate?: Date): Promise<ComprehensiveAnalysisResponse> {
+    const params = new URLSearchParams();
+    
+    if (eventId !== undefined) {
+      params.append('eventId', eventId.toString());
+    }
+    if (startDate) {
+      params.append('startDate', startDate.toISOString());
+    }
+    if (endDate) {
+      params.append('endDate', endDate.toISOString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString 
+      ? `${this.BASE_URL}/comprehensive?${queryString}`
+      : `${this.BASE_URL}/comprehensive`;
+
+    const response = await apiService.get(url);
+    return response.data;
+  }
+
+  static async exportAnalysisToPdf(eventId?: number, startDate?: Date, endDate?: Date): Promise<Blob> {
+    const params = new URLSearchParams();
+    
+    if (eventId !== undefined) {
+      params.append('eventId', eventId.toString());
+    }
+    if (startDate) {
+      params.append('startDate', startDate.toISOString().split('T')[0]);
+    }
+    if (endDate) {
+      params.append('endDate', endDate.toISOString().split('T')[0]);
+    }
+
+    const queryString = params.toString();
+    const url = queryString 
+      ? `${this.BASE_URL}/export/pdf?${queryString}`
+      : `${this.BASE_URL}/export/pdf`;
+
+    const response = await apiService.get(url, {
+      responseType: 'blob'
+    });
+    
+    return response.data;
+  }
+
+  static async exportAnalysisToExcel(eventId?: number, startDate?: Date, endDate?: Date): Promise<Blob> {
+    const params = new URLSearchParams();
+    
+    if (eventId !== undefined) {
+      params.append('eventId', eventId.toString());
+    }
+    if (startDate) {
+      params.append('startDate', startDate.toISOString());
+    }
+    if (endDate) {
+      params.append('endDate', endDate.toISOString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString 
+      ? `${this.BASE_URL}/export/excel?${queryString}`
+      : `${this.BASE_URL}/export/excel`;
+
+    const response = await apiService.get(url, {
+      responseType: 'blob'
+    });
+    
+    return response.data;
+  }
+
+  static async getAnalysisSection(sectionName: string, eventId?: number, startDate?: Date, endDate?: Date): Promise<AnalysisSection> {
+    const params = new URLSearchParams();
+    
+    if (eventId !== undefined) {
+      params.append('eventId', eventId.toString());
+    }
+    if (startDate) {
+      params.append('startDate', startDate.toISOString().split('T')[0]);
+    }
+    if (endDate) {
+      params.append('endDate', endDate.toISOString().split('T')[0]);
+    }
+
+    const queryString = params.toString();
+    const url = queryString 
+      ? `${this.BASE_URL}/section/${encodeURIComponent(sectionName)}?${queryString}`
+      : `${this.BASE_URL}/section/${encodeURIComponent(sectionName)}`;
+
+    const response = await apiService.get(url);
     return response.data;
   }
 }

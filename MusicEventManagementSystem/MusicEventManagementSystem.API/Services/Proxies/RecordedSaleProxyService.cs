@@ -361,7 +361,7 @@ namespace MusicEventManagementSystem.API.Services.Proxies
             throw new NotImplementedException();
         }
 
-        public Task<string> ExportAnalysisToCsvAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
+        public Task<byte[]> ExportAnalysisToPdfAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             throw new NotImplementedException();
         }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { Users, Download, TrendingUp, DollarSign, Ticket, MapPin, Gift, AlertCircle } from 'lucide-react';
+import { Users, Download, TrendingUp, DollarSign, Ticket, MapPin, Gift, AlertCircle, FileSpreadsheet, FileText } from 'lucide-react';
 
 // Import services
 import { TicketService } from '../services/ticketService';
@@ -118,6 +118,10 @@ const Analytics = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [error, setError] = useState<string | null>(null);
 
+  // Backend analysis state
+  const [selectedEventId, setSelectedEventId] = useState<number | undefined>(undefined);
+  const [backendAnalysis, setBackendAnalysis] = useState<any>(null);
+
   // Data states
   const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
   const [paymentData, setPaymentData] = useState<PaymentMethodAnalytics[]>([]);
@@ -134,10 +138,6 @@ const Analytics = () => {
     revenueGrowth: 0,
     capacityUtilization: 0
   });
-
-  // // Filter states
-  // const [chartTypeFilter, setChartTypeFilter] = useState('revenue');
-  // const [venueFilter, setVenueFilter] = useState('all');
 
   // Load data on component mount and when date range changes
   useEffect(() => {
@@ -392,162 +392,85 @@ const Analytics = () => {
     return `${value.toFixed(1)}%`;
   };
 
-  // const exportData = () => {
-  //   const data = {
-  //     kpis,
-  //     revenueData,
-  //     paymentData,
-  //     ticketStatusData,
-  //     venuePerformance,
-  //     offerPerformance,
-  //     exportDate: new Date().toISOString()
-  //   };
-    
-  //   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement('a');
-  //   a.href = url;
-  //   a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.json`;
-  //   a.click();
-  //   URL.revokeObjectURL(url);
-  // };
-
-  const exportToCSV = () => {
+  /**
+   * Backend PDF Export
+   */
+  const exportToPdf = async () => {
     try {
-      // CSV header
-      let csvContent = "Data Type,Metric,Value,Additional Info\n";
-      
-      // Revenue data
-      revenueData.forEach(item => {
-        csvContent += `Revenue,${item.date},${item.revenue},Tickets: ${item.tickets}\n`;
-      });
-      
-      // Payment data
-      paymentData.forEach(item => {
-        csvContent += `Payment,${item.method},${item.revenue},Percentage: ${item.value.toFixed(1)}%\n`;
-      });
-      
-      // Ticket status data
-      ticketStatusData.forEach(item => {
-        csvContent += `Ticket Status,${item.status},${item.count},Revenue: ${item.revenue}, Percentage: ${item.percentage.toFixed(1)}%\n`;
-      });
-      
-      // Venue performance
-      venuePerformance.forEach(item => {
-        csvContent += `Venue,${item.venueName},${item.revenue},Occupancy: ${item.occupancyRate.toFixed(1)}%, Sold: ${item.soldTickets}\n`;
-      });
-      
-      // Offer performance
-      offerPerformance.forEach(item => {
-        csvContent += `Offer,${item.name},${item.revenueImpact},Usage: ${item.usageCount}, Conversion: ${item.conversionRate.toFixed(1)}%\n`;
-      });
-      
-      // KPIs
-      csvContent += `KPI,Total Revenue,${kpis.totalRevenue},\n`;
-      csvContent += `KPI,Total Tickets Sold,${kpis.totalTicketsSold},\n`;
-      csvContent += `KPI,Average Ticket Price,${kpis.averageTicketPrice},\n`;
-      csvContent += `KPI,Conversion Rate,${kpis.conversionRate},\n`;
-      csvContent += `KPI,Capacity Utilization,${kpis.capacityUtilization},\n`;
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      setIsLoading(true);
+      setError(null);
+
+      const blob = await RecordedSaleService.exportAnalysisToPdf(
+        selectedEventId,
+        dateRange.from,
+        dateRange.to
+      );
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `sales_analysis_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting CSV:', error);
-      setError('Failed to export CSV');
+    } catch (error: any) {
+      console.error('Error exporting PDF:', error);
+      setError(error.message || 'Failed to export PDF from backend');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const exportToPDF = async () => {
+  /**
+   * Backend Excel Export
+   */
+  const exportToExcel = async () => {
     try {
       setIsLoading(true);
-      
-      const { jsPDF } = await import('jspdf');
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      let yPosition = 20;
-      const lineHeight = 7;
-      const margin = 20;
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      
-      // Header
-      pdf.setFontSize(20);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Analytics Report', margin, yPosition);
-      yPosition += lineHeight * 2;
-      
-      pdf.setFontSize(12);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition);
-      yPosition += lineHeight * 2;
-      
-      // KPIs Section
-      pdf.setFontSize(16);
-      pdf.text('Key Performance Indicators', margin, yPosition);
-      yPosition += lineHeight;
-      
-      pdf.setFontSize(10);
-      pdf.text(`Total Revenue: ${formatCurrency(kpis.totalRevenue)}`, margin, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Total Tickets Sold: ${kpis.totalTicketsSold.toLocaleString()}`, margin, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Average Ticket Price: ${formatCurrency(kpis.averageTicketPrice)}`, margin, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Conversion Rate: ${formatPercentage(kpis.conversionRate)}`, margin, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Capacity Utilization: ${formatPercentage(kpis.capacityUtilization)}`, margin, yPosition);
-      yPosition += lineHeight * 2;
-      
-      // Check page break
-      if (yPosition > 250) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      // Revenue Data
-      pdf.setFontSize(16);
-      pdf.text('Revenue Trend', margin, yPosition);
-      yPosition += lineHeight;
-      
-      pdf.setFontSize(10);
-      revenueData.slice(-10).forEach(item => { // Last 10 days
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        pdf.text(`${item.date}: ${formatCurrency(item.revenue)} (${item.tickets} tickets)`, margin, yPosition);
-        yPosition += lineHeight;
-      });
-      yPosition += lineHeight;
-      
-      // Venue Performance
-      if (yPosition > 250) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      pdf.setFontSize(16);
-      pdf.text('Top Venues Performance', margin, yPosition);
-      yPosition += lineHeight;
-      
-      pdf.setFontSize(10);
-      venuePerformance.slice(0, 5).forEach(venue => {
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        pdf.text(`${venue.venueName}: ${formatCurrency(venue.revenue)} (${formatPercentage(venue.occupancyRate)} occupancy)`, margin, yPosition);
-        yPosition += lineHeight;
-      });
-      
-      pdf.save(`analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
-      
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      setError('Failed to export PDF. Please try the CSV export instead.');
+      setError(null);
+
+      const blob = await RecordedSaleService.exportAnalysisToExcel(
+        selectedEventId,
+        dateRange.from,
+        dateRange.to
+      );
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sales_analysis_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Error exporting Excel:', error);
+      setError(error.message || 'Failed to export Excel from backend');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Load Backend Comprehensive Analysis
+   */
+  const loadBackendAnalysis = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const analysis = await RecordedSaleService.getComprehensiveAnalysis(
+        selectedEventId,
+        dateRange.from,
+        dateRange.to
+      );
+
+      setBackendAnalysis(analysis);
+      console.log('Backend Analysis loaded:', analysis);
+    } catch (error: any) {
+      console.error('Error loading backend analysis:', error);
+      setError(error.message || 'Failed to load backend analysis');
     } finally {
       setIsLoading(false);
     }
@@ -560,7 +483,7 @@ const Analytics = () => {
         <div className="flex-1 flex gap-4 min-h-0">
           {/* Left Side - Header, Statistics, and Analytics Content */}
           <div className="flex-1 flex flex-col transition-all duration-300 w-full">
-            {/* Header - MOVES WITH THE CONTENT */}
+            {/* Header */}
             <div className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -568,7 +491,7 @@ const Analytics = () => {
                   <p className="text-neutral-400 text-sm">Comprehensive ticket sales analytics and insights</p>
                 </div>
                 
-                {/* Search and Filter - INTEGRATED IN HEADER LIKE OTHER PAGES */}
+                {/* Search and Filter */}
                 <div className="flex items-center gap-3 flex-1 justify-end">
                   <div className="min-w-0 flex-1 max-w-60">
                     <CustomDatePicker
@@ -590,34 +513,93 @@ const Analytics = () => {
 
                   <div className="flex items-center gap-2">
                     <button 
-                      onClick={exportToCSV}
-                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-green-600 text-white hover:bg-green-500 border border-green-500"
+                      onClick={loadBackendAnalysis}
+                      disabled={isLoading}
+                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-blue-600 text-white hover:bg-blue-500 border border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Download size={20} />
-                      Export CSV
+                      <TrendingUp size={20} />
+                      {isLoading ? 'Loading...' : 'Analysis'}
+                    </button>
+
+                    <button 
+                      onClick={exportToPdf}
+                      disabled={isLoading}
+                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-red-600 text-white hover:bg-red-500 border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <FileText size={20} />
+                      PDF
                     </button>
                     
                     <button 
-                      onClick={exportToPDF}
+                      onClick={exportToExcel}
                       disabled={isLoading}
-                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-red-600 text-white hover:bg-red-500 border border-red-500"
+                      className="px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Download size={20} />
-                      {isLoading ? 'Generating PDF...' : 'Export PDF'}
+                      <FileSpreadsheet size={20} />
+                      Excel
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Error Message - MOVES WITH THE CONTENT */}
+            {/* Error Message */}
             {error && (
               <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-xl flex items-center gap-3 backdrop-blur-sm mb-6">
                 <div className="p-2 bg-red-500/20 rounded-xl">
                   <AlertCircle size={20} className="text-red-400" />
                 </div>
-                <span className="text-sm">{error}</span>
+                <div className="flex-1">
+                  <span className="text-sm">{error}</span>
+                </div>
+                <button 
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  ✕
+                </button>
               </div>
+            )}
+
+            {/* Backend Analysis Display */}
+            {backendAnalysis && (
+              <Card className="overflow-hidden mb-4">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+                  <h3 className="text-xl font-semibold text-white">Backend Analysis Report</h3>
+                  <div className="flex items-center gap-4">
+                    <span className="text-neutral-400 text-sm">
+                      Generated: {new Date(backendAnalysis.GeneratedAt).toLocaleString()}
+                    </span>
+                    <button
+                      onClick={() => setBackendAnalysis(null)}
+                      className="text-neutral-400 hover:text-white transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
+                  {Object.entries(backendAnalysis.Sections || {}).map(([sectionName, sectionData]: [string, any]) => (
+                    <div key={sectionName} className="p-4 bg-neutral-800/30 border border-neutral-700 rounded-xl">
+                      <h4 className="text-lg font-semibold text-lime-400 mb-3">{sectionName}</h4>
+                      <div className="space-y-2">
+                        {typeof sectionData === 'object' && sectionData !== null ? (
+                          <pre className="text-sm text-neutral-300 overflow-x-auto bg-neutral-900/50 p-3 rounded-lg max-h-64 overflow-y-auto">
+                            {JSON.stringify(sectionData, null, 2)}
+                          </pre>
+                        ) : (
+                          <p className="text-neutral-300">{String(sectionData)}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {(!backendAnalysis.Sections || Object.keys(backendAnalysis.Sections).length === 0) && (
+                    <p className="text-neutral-400 text-center py-8">No analysis sections available</p>
+                  )}
+                </div>
+              </Card>
             )}
 
             {/* Statistics - MOVES WITH THE CONTENT */}
