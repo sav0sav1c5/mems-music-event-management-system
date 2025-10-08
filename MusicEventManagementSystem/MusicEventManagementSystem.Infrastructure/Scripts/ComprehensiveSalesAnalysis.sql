@@ -1,19 +1,19 @@
 -- ============================================
--- KOMPLETAN SISTEM ZA ANALIZU PRODAJE KARATA
+-- COMPREHENSIVE TICKET SALES ANALYSIS SYSTEM
 -- Music Event Management System
 -- 
--- Sadržaj:
--- 1. SLOŽENI PL/SQL TIPOVI
--- 2. SQL INDEKSI (sa demonstracijom performansi)
+-- Contents:
+-- 1. COMPLEX PL/SQL TYPES
+-- 2. SQL INDEXES (with performance demonstration)
 -- 3. PL/SQL TRIGGER
--- 4. KOMPLEKSNA PL/SQL FUNKCIJA sa eksplicitnim kursorom
+-- 4. COMPLEX PL/SQL FUNCTION with explicit cursor
 -- ============================================
 
 -- ============================================
--- 1. DEFINICIJA SLOŽENIH PL/SQL TIPOVA
+-- 1. COMPLEX PL/SQL TYPES DEFINITION
 -- ============================================
 
--- Tip za analizu jedne zone
+-- Type for zone analysis
 CREATE TYPE zone_analysis_type AS (
     zone_id INTEGER,
     zone_name VARCHAR(200),
@@ -25,7 +25,7 @@ CREATE TYPE zone_analysis_type AS (
     price_variance DECIMAL(5,2)
 );
 
--- Tip za metriku prodaje
+-- Type for sales metric
 CREATE TYPE sales_metric_type AS (
     metric_name VARCHAR(200),
     metric_value DECIMAL(18,2),
@@ -33,7 +33,7 @@ CREATE TYPE sales_metric_type AS (
     timestamp TIMESTAMP
 );
 
--- Tip za efikasnost ponuda
+-- Type for offer effectiveness
 CREATE TYPE offer_effectiveness_type AS (
     offer_id INTEGER,
     offer_name VARCHAR(200),
@@ -43,7 +43,7 @@ CREATE TYPE offer_effectiveness_type AS (
     roi DECIMAL(8,2)
 );
 
--- Tip za analizu cenovnih pravila
+-- Type for pricing rule analysis
 CREATE TYPE pricing_rule_analysis_type AS (
     rule_id INTEGER,
     rule_name VARCHAR(200),
@@ -52,7 +52,7 @@ CREATE TYPE pricing_rule_analysis_type AS (
     avg_price_change_pct DECIMAL(5,2)
 );
 
--- Tip za dnevni trend
+-- Type for daily trend
 CREATE TYPE daily_trend_type AS (
     sale_date DATE,
     tickets_sold INTEGER,
@@ -61,35 +61,35 @@ CREATE TYPE daily_trend_type AS (
 );
 
 -- ============================================
--- 2. KREIRANJE INDEKSA ZA OPTIMIZACIJU
+-- 2. INDEX CREATION FOR OPTIMIZATION
 -- ============================================
 
--- Indeks za ubrzanje filtriranja po datumu prodaje
+-- Index for faster filtering by sale date
 CREATE INDEX IF NOT EXISTS idx_recordedsales_saledate 
 ON "RecordedSales"("SaleDate");
 
--- Kompozitni indeks za JOIN između Tickets i RecordedSales
+-- Composite index for JOIN between Tickets and RecordedSales
 CREATE INDEX IF NOT EXISTS idx_tickets_recordedsale_tickettype
 ON "Tickets"("RecordedSaleId", "TicketTypeId")
 WHERE "RecordedSaleId" IS NOT NULL;
 
--- Indeks za brže povezivanje TicketTypes sa Events
+-- Index for faster connection of TicketTypes with Events
 CREATE INDEX IF NOT EXISTS idx_tickettypes_eventid_zoneid
 ON "TicketTypes"("EventId", "ZoneId");
 
--- Indeks za status tiketa
+-- Index for ticket status
 CREATE INDEX IF NOT EXISTS idx_tickets_status
 ON "Tickets"("Status");
 
--- Indeks za period važenja Special Offers
+-- Index for Special Offers validity period
 CREATE INDEX IF NOT EXISTS idx_specialoffers_dates
 ON "SpecialOffers"("StartDate", "EndDate");
 
 -- ============================================
--- DEMONSTRACIJA PERFORMANSI INDEKSA
+-- INDEX PERFORMANCE DEMONSTRATION
 -- ============================================
 
--- Funkcija za testiranje performansi upita
+-- Function for testing query performance
 CREATE OR REPLACE FUNCTION demonstrate_index_performance()
 RETURNS TABLE (
     test_name VARCHAR(100),
@@ -102,7 +102,7 @@ DECLARE
     v_end_time TIMESTAMP;
     v_row_count BIGINT;
 BEGIN
-    -- Test 1: Upit BEZ indeksa (simulacija)
+    -- Test 1: Query WITH index
     v_start_time := clock_timestamp();
     
     SELECT COUNT(*) INTO v_row_count
@@ -113,12 +113,12 @@ BEGIN
     
     RETURN QUERY
     SELECT 
-        'Test 1: Filtriranje po datumu (SA indeksom)'::VARCHAR(100),
+        'Test 1: Date filtering (WITH index)'::VARCHAR(100),
         EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
         v_row_count,
         TRUE;
     
-    -- Test 2: Kompleksan JOIN sa indeksima
+    -- Test 2: Complex JOIN with indexes
     v_start_time := clock_timestamp();
     
     SELECT COUNT(*) INTO v_row_count
@@ -132,12 +132,12 @@ BEGIN
     
     RETURN QUERY
     SELECT 
-        'Test 2: Kompleksan JOIN (SA indeksima)'::VARCHAR(100),
+        'Test 2: Complex JOIN (WITH indexes)'::VARCHAR(100),
         EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
         v_row_count,
         TRUE;
     
-    -- Test 3: Agregacija sa GROUP BY
+    -- Test 3: Aggregation with GROUP BY
     v_start_time := clock_timestamp();
     
     SELECT COUNT(*) INTO v_row_count
@@ -153,7 +153,7 @@ BEGIN
     
     RETURN QUERY
     SELECT 
-        'Test 3: Agregacija po Events (SA indeksom)'::VARCHAR(100),
+        'Test 3: Aggregation by Events (WITH index)'::VARCHAR(100),
         EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
         v_row_count,
         TRUE;
@@ -163,10 +163,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
--- 3. TRIGGER ZA AUTOMATSKU VALIDACIJU I AUDIT
+-- 3. TRIGGER FOR AUTOMATIC VALIDATION AND AUDIT
 -- ============================================
 
--- Tabela za audit log (ako već ne postoji)
+-- Audit log table (if not exists)
 CREATE TABLE IF NOT EXISTS "SalesAuditLog" (
     "AuditId" SERIAL PRIMARY KEY,
     "RecordedSaleId" INTEGER,
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS "SalesAuditLog" (
     "ChangedBy" VARCHAR(100)
 );
 
--- Trigger funkcija za validaciju i audit
+-- Trigger function for validation and audit
 CREATE OR REPLACE FUNCTION trg_validate_and_audit_sale()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -187,19 +187,19 @@ DECLARE
     v_event_date TIMESTAMP;
     v_min_price DECIMAL(18,2);
 BEGIN
-    -- INSERT operacija
+    -- INSERT operation
     IF TG_OP = 'INSERT' THEN
-        -- Validacija: TotalAmount ne može biti negativan
+        -- Validation: TotalAmount cannot be negative
         IF NEW."TotalAmount" < 0 THEN
-            RAISE EXCEPTION 'TotalAmount ne može biti negativan: %', NEW."TotalAmount";
+            RAISE EXCEPTION 'TotalAmount cannot be negative: %', NEW."TotalAmount";
         END IF;
         
-        -- Validacija: SaleDate ne može biti u budućnosti
+        -- Validation: SaleDate cannot be in the future
         IF NEW."SaleDate" AT TIME ZONE 'UTC' > CURRENT_TIMESTAMP AT TIME ZONE 'UTC' THEN
-            RAISE EXCEPTION 'SaleDate ne moze biti u buducnosti: %', NEW."SaleDate";
+            RAISE EXCEPTION 'SaleDate cannot be in the future: %', NEW."SaleDate";
         END IF;
         
-        -- Log operacije
+        -- Log operation
         INSERT INTO "SalesAuditLog" (
             "RecordedSaleId", "Action", "OldTotalAmount", 
             "NewTotalAmount", "TicketCount", "ChangedBy"
@@ -211,11 +211,11 @@ BEGIN
         RETURN NEW;
     END IF;
     
-    -- UPDATE operacija
+    -- UPDATE operation
     IF TG_OP = 'UPDATE' THEN
-        -- Proveri da li je TotalAmount promenjen
+        -- Check if TotalAmount changed
         IF OLD."TotalAmount" <> NEW."TotalAmount" THEN
-            -- Izračunaj stvarni total iz povezanih tiketa
+            -- Calculate actual total from related tickets
             SELECT 
                 COALESCE(SUM(t."FinalPrice"), 0),
                 COUNT(*)
@@ -223,9 +223,9 @@ BEGIN
             FROM "Tickets" t
             WHERE t."RecordedSaleId" = NEW."RecordedSaleId";
             
-            -- Upozorenje ako se razlikuje od izračunatog
+            -- Warning if differs from calculated
             IF ABS(NEW."TotalAmount" - v_calculated_total) > 0.01 THEN
-                RAISE WARNING 'TotalAmount (%) se razlikuje od izračunatog (%) za RecordedSaleId %',
+                RAISE WARNING 'TotalAmount (%) differs from calculated (%) for RecordedSaleId %',
                     NEW."TotalAmount", v_calculated_total, NEW."RecordedSaleId";
             END IF;
             
@@ -242,15 +242,15 @@ BEGIN
         RETURN NEW;
     END IF;
     
-    -- DELETE operacija
+    -- DELETE operation
     IF TG_OP = 'DELETE' THEN
-        -- Proveri da li postoje povezani tiketi
+        -- Check if there are related tickets
         SELECT COUNT(*) INTO v_ticket_count
         FROM "Tickets" t
         WHERE t."RecordedSaleId" = OLD."RecordedSaleId";
         
         IF v_ticket_count > 0 THEN
-            RAISE EXCEPTION 'Ne može se obrisati RecordedSale % jer ima % povezanih tiketa',
+            RAISE EXCEPTION 'Cannot delete RecordedSale % because it has % related tickets',
                 OLD."RecordedSaleId", v_ticket_count;
         END IF;
         
@@ -270,7 +270,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Kreiranje trigera
+-- Create trigger
 DROP TRIGGER IF EXISTS trg_sales_validation_audit ON "RecordedSales";
 CREATE TRIGGER trg_sales_validation_audit
     BEFORE INSERT OR UPDATE OR DELETE ON "RecordedSales"
@@ -278,7 +278,7 @@ CREATE TRIGGER trg_sales_validation_audit
     EXECUTE FUNCTION trg_validate_and_audit_sale();
 
 -- ============================================
--- 4. KOMPLEKSNA FUNKCIJA SA EKSPLICITNIM KURSOROM
+-- 4. COMPLEX FUNCTION WITH EXPLICIT CURSOR
 -- ============================================
 
 CREATE OR REPLACE FUNCTION sp_comprehensive_sales_analysis_v2(
@@ -294,7 +294,7 @@ RETURNS TABLE (
     additional_info JSONB
 ) AS $$
 DECLARE
-    -- Eksplicitna deklaracija kursora za zone analizu
+    -- Explicit cursor declaration for zone analysis
     zone_cursor CURSOR FOR
         SELECT 
             z."ZoneId",
@@ -316,7 +316,7 @@ DECLARE
         HAVING COUNT(t."TicketId") > 0
         ORDER BY COALESCE(SUM(t."FinalPrice"), 0) DESC;
     
-    -- Kursor za pricing rules
+    -- Cursor for pricing rules
     pricing_cursor CURSOR FOR
         SELECT 
             pr."PricingRuleId",
@@ -343,7 +343,7 @@ DECLARE
         HAVING COUNT(DISTINCT t."TicketId") > 0
         ORDER BY COALESCE(SUM(t."FinalPrice"), 0) DESC;
     
-    -- Promenljive za procesiranje
+    -- Processing variables
     v_zone_record RECORD;
     v_pricing_record RECORD;
     v_total_revenue DECIMAL(18,2);
@@ -351,12 +351,12 @@ DECLARE
     v_zone_count INTEGER := 0;
     v_pricing_count INTEGER := 0;
 BEGIN
-    -- Postavi default vrednosti
+    -- Set default values
     p_start_date := COALESCE(p_start_date, CURRENT_TIMESTAMP - INTERVAL '30 days');
     p_end_date := COALESCE(p_end_date, CURRENT_TIMESTAMP);
 
     -- ===========================================
-    -- SEKCIJA 1: OSNOVNE METRIKE
+    -- SECTION 1: BASIC METRICS
     -- ===========================================
     
     SELECT COALESCE(SUM(rs."TotalAmount"), 0)
@@ -372,8 +372,8 @@ BEGIN
     
     RETURN QUERY
     SELECT 
-        'OSNOVNE_METRIKE'::VARCHAR(100),
-        'Ukupan Revenue'::VARCHAR(200),
+        'BASIC_METRICS'::VARCHAR(100),
+        'Total Revenue'::VARCHAR(200),
         v_total_revenue::DECIMAL(18,2),
         'RSD'::VARCHAR(50),
         jsonb_build_object(
@@ -392,16 +392,16 @@ BEGIN
     
     RETURN QUERY
     SELECT 
-        'OSNOVNE_METRIKE'::VARCHAR(100),
-        'Ukupno Prodatih Karata'::VARCHAR(200),
+        'BASIC_METRICS'::VARCHAR(100),
+        'Total Tickets Sold'::VARCHAR(200),
         v_total_tickets_sold::DECIMAL(18,2),
-        'kom'::VARCHAR(50),
+        'pcs'::VARCHAR(50),
         NULL::JSONB;
 
     RETURN QUERY
     SELECT 
-        'OSNOVNE_METRIKE'::VARCHAR(100),
-        'Prosečna Cena Karte'::VARCHAR(200),
+        'BASIC_METRICS'::VARCHAR(100),
+        'Average Ticket Price'::VARCHAR(200),
         CASE WHEN v_total_tickets_sold > 0 
             THEN (v_total_revenue / v_total_tickets_sold)::DECIMAL(18,2)
             ELSE 0::DECIMAL(18,2)
@@ -410,10 +410,10 @@ BEGIN
         NULL::JSONB;
 
     -- ===========================================
-    -- SEKCIJA 2: ANALIZA PO ZONAMA (EKSPLICITNI KURSOR)
+    -- SECTION 2: ZONE ANALYSIS (EXPLICIT CURSOR)
     -- ===========================================
     
-    -- Otvori kursor za zone
+    -- Open cursor for zones
     OPEN zone_cursor;
     
     LOOP
@@ -422,11 +422,11 @@ BEGIN
         
         v_zone_count := v_zone_count + 1;
         
-        -- Generiši rezultat za svaku zonu koristeći kursor podatke
+        -- Generate result for each zone using cursor data
         RETURN QUERY
         SELECT 
-            'ANALIZA_PO_ZONAMA'::VARCHAR(100),
-            ('Zona: ' || COALESCE(v_zone_record."Name", 'N/A'))::VARCHAR(200),
+            'ZONE_ANALYSIS'::VARCHAR(100),
+            ('Zone: ' || COALESCE(v_zone_record."Name", 'N/A'))::VARCHAR(200),
             v_zone_record.total_revenue::DECIMAL(18,2),
             'RSD'::VARCHAR(50),
             jsonb_build_object(
@@ -454,14 +454,14 @@ BEGIN
             )::JSONB;
     END LOOP;
     
-    -- Zatvori kursor
+    -- Close cursor
     CLOSE zone_cursor;
 
     -- ===========================================
-    -- SEKCIJA 3: PRICING RULES (EKSPLICITNI KURSOR)
+    -- SECTION 3: PRICING RULES (EXPLICIT CURSOR)
     -- ===========================================
     
-    -- Otvori kursor za pricing rules
+    -- Open cursor for pricing rules
     OPEN pricing_cursor;
     
     LOOP
@@ -472,8 +472,8 @@ BEGIN
         
         RETURN QUERY
         SELECT 
-            'PRICING_RULES_EFIKASNOST'::VARCHAR(100),
-            ('Pravilo: ' || COALESCE(v_pricing_record."Name", 'N/A'))::VARCHAR(200),
+            'PRICING_RULES_EFFICIENCY'::VARCHAR(100),
+            ('Rule: ' || COALESCE(v_pricing_record."Name", 'N/A'))::VARCHAR(200),
             v_pricing_record.revenue::DECIMAL(18,2),
             'RSD'::VARCHAR(50),
             jsonb_build_object(
@@ -491,17 +491,17 @@ BEGIN
             )::JSONB;
     END LOOP;
     
-    -- Zatvori kursor
+    -- Close cursor
     CLOSE pricing_cursor;
 
     -- ===========================================
-    -- SEKCIJA 4: SPECIAL OFFERS PERFORMANCE
+    -- SECTION 4: SPECIAL OFFERS PERFORMANCE
     -- ===========================================
     
     RETURN QUERY
     SELECT 
         'SPECIAL_OFFERS_PERFORMANCE'::VARCHAR(100),
-        ('Ponuda: ' || COALESCE(so."Name", 'N/A'))::VARCHAR(200),
+        ('Offer: ' || COALESCE(so."Name", 'N/A'))::VARCHAR(200),
         COALESCE(SUM(t."FinalPrice"), 0)::DECIMAL(18,2),
         'RSD'::VARCHAR(50),
         jsonb_build_object(
@@ -536,7 +536,7 @@ BEGIN
     ORDER BY COALESCE(SUM(t."FinalPrice"), 0) DESC;
 
     -- ===========================================
-    -- SEKCIJA 5: TREND ANALIZA
+    -- SECTION 5: TREND ANALYSIS
     -- ===========================================
     
     RETURN QUERY
@@ -554,10 +554,10 @@ BEGIN
         GROUP BY DATE(rs."SaleDate")
     )
     SELECT 
-        'TREND_ANALIZA'::VARCHAR(100),
-        'Prosečna Dnevna Prodaja'::VARCHAR(200),
+        'TREND_ANALYSIS'::VARCHAR(100),
+        'Average Daily Sales'::VARCHAR(200),
         COALESCE(AVG(tickets_sold), 0)::DECIMAL(18,2),
-        'karata/dan'::VARCHAR(50),
+        'tickets/day'::VARCHAR(50),
         jsonb_build_object(
             'stddev', ROUND(COALESCE(STDDEV(tickets_sold), 0)::NUMERIC, 2),
             'peak', COALESCE(MAX(tickets_sold), 0),
@@ -568,7 +568,7 @@ BEGIN
     FROM daily_sales;
 
     -- ===========================================
-    -- SEKCIJA 6: EVENT PERFORMANCE COMPARISON
+    -- SECTION 6: EVENT PERFORMANCE COMPARISON
     -- ===========================================
     
     IF p_event_id IS NULL THEN
@@ -610,7 +610,7 @@ BEGIN
     END IF;
 
     -- ===========================================
-    -- SEKCIJA 7: REVENUE OPTIMIZATION INSIGHTS
+    -- SECTION 7: REVENUE OPTIMIZATION INSIGHTS
     -- ===========================================
     
     RETURN QUERY
@@ -628,7 +628,7 @@ BEGIN
     )
     SELECT 
         'REVENUE_OPTIMIZATION'::VARCHAR(100),
-        'Potencijalni Izgubljeni Revenue'::VARCHAR(200),
+        'Potential Lost Revenue'::VARCHAR(200),
         potential_revenue_lost::DECIMAL(18,2),
         'RSD'::VARCHAR(50),
         jsonb_build_object(
@@ -645,24 +645,24 @@ BEGIN
             ),
             'recommendation', CASE 
                 WHEN available_tickets > sold_tickets * 0.5 
-                THEN 'Razmislite o agresivnijim special offers'
+                THEN 'Consider more aggressive special offers'
                 WHEN discounted_tickets_count > sold_tickets * 0.3
-                THEN 'Previše popusta - možda smanjiti discount vrednosti'
-                ELSE 'Pricing strategija izgleda balansirana'
+                THEN 'Too many discounts - consider reducing discount values'
+                ELSE 'Pricing strategy appears balanced'
             END
         )::JSONB
     FROM optimization_data;
 
     -- ===========================================
-    -- SEKCIJA 8: STATISTIKA KURSORA
+    -- SECTION 8: CURSOR STATISTICS
     -- ===========================================
     
     RETURN QUERY
     SELECT 
         'CURSOR_STATISTICS'::VARCHAR(100),
-        'Rezultati Obrađeni Kursorima'::VARCHAR(200),
+        'Results Processed by Cursors'::VARCHAR(200),
         (v_zone_count + v_pricing_count)::DECIMAL(18,2),
-        'redova'::VARCHAR(50),
+        'rows'::VARCHAR(50),
         jsonb_build_object(
             'zones_processed', v_zone_count,
             'pricing_rules_processed', v_pricing_count,
@@ -674,10 +674,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
--- POMOĆNE FUNKCIJE ZA TESTIRANJE
+-- HELPER FUNCTIONS FOR TESTING
 -- ============================================
 
--- Funkcija za prikaz audit loga
+-- Function to display audit log
 CREATE OR REPLACE FUNCTION get_sales_audit_log(
     p_limit INTEGER DEFAULT 50
 )
@@ -709,27 +709,27 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
--- PRIMERI POZIVA FUNKCIJA
+-- EXAMPLES OF FUNCTION CALLS
 -- ============================================
 
 /*
--- Poziv glavne funkcije sa svim parametrima:
+-- Main function call with all parameters:
 SELECT * FROM sp_comprehensive_sales_analysis_v2(
     p_event_id := 1,
     p_start_date := '2024-01-01'::TIMESTAMP,
     p_end_date := '2024-12-31'::TIMESTAMP
 );
 
--- Poziv bez parametara (poslednjih 30 dana):
+-- Call without parameters (last 30 days):
 SELECT * FROM sp_comprehensive_sales_analysis_v2();
 
--- Testiranje performansi indeksa:
+-- Index performance testing:
 SELECT * FROM demonstrate_index_performance();
 
--- Pregled audit loga:
+-- Overview of the audit log:
 SELECT * FROM get_sales_audit_log(100);
 
--- EXPLAIN ANALYZE za proveru korišćenja indeksa:
+-- EXPLAIN ANALYZE to check index usage:
 EXPLAIN ANALYZE
 SELECT * FROM sp_comprehensive_sales_analysis_v2(NULL, CURRENT_DATE - 30, CURRENT_DATE);
 */
