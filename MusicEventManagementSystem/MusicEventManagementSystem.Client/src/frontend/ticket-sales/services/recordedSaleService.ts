@@ -12,17 +12,39 @@ export interface RevenueAnalysisResponse {
 }
 
 export interface AnalysisSection {
-  [key: string]: any;
+  analysisSection: string;
+  metricName: string;
+  metricValue: number;
+  metricUnit: string;
+  additionalInfo?: any;
+}
+
+export interface AnalysisSummary {
+  totalRevenue: number;
+  totalTicketsSold: number;
+  averageTicketPrice: number;
+  topPerformingZone?: string;
+  topPerformingOffer?: string;
+  recommendations?: string[];
 }
 
 export interface ComprehensiveAnalysisResponse {
-  Sections: {
-    [key: string]: AnalysisSection;
+  generatedAt: string;
+  startDate: string;
+  endDate: string;
+  eventId?: number;
+  sections: {
+    [key: string]: AnalysisSection[];
   };
-  GeneratedAt: string;
+  summary: AnalysisSummary;
+  // Backend returns PascalCase, so we support both
+  GeneratedAt?: string;
+  StartDate?: string;
+  EndDate?: string;
   EventId?: number;
-  StartDate: string;
-  EndDate: string;
+  Sections?: {
+    [key: string]: AnalysisSection[];
+  };
 }
 
 const API_BASE_URL = 'https://localhost:7011/api';
@@ -109,7 +131,7 @@ export class RecordedSaleService {
 
   static async getRevenueAnalysis(fromDate: Date, toDate: Date): Promise<RevenueAnalysisResponse> {
     const response = await apiService.get(
-    `${this.BASE_URL}/analytics/revenue?startDate=${fromDate.toISOString()}&endDate=${toDate.toISOString()}`
+    `${this.BASE_URL}/analytics/revenue?startDate=${fromDate.toISOString().split('T')[0]}&endDate=${toDate.toISOString().split('T')[0]}`
     );
     return response.data;
   }
@@ -121,10 +143,10 @@ export class RecordedSaleService {
       params.append('eventId', eventId.toString());
     }
     if (startDate) {
-      params.append('startDate', startDate.toISOString());
+      params.append('startDate', startDate.toISOString().split('T')[0]);
     }
     if (endDate) {
-      params.append('endDate', endDate.toISOString());
+      params.append('endDate', endDate.toISOString().split('T')[0]);
     }
 
     const queryString = params.toString();
@@ -168,10 +190,10 @@ export class RecordedSaleService {
       params.append('eventId', eventId.toString());
     }
     if (startDate) {
-      params.append('startDate', startDate.toISOString());
+      params.append('startDate', startDate.toISOString().split('T')[0]);
     }
     if (endDate) {
-      params.append('endDate', endDate.toISOString());
+      params.append('endDate', endDate.toISOString().split('T')[0]);
     }
 
     const queryString = params.toString();
@@ -186,7 +208,7 @@ export class RecordedSaleService {
     return response.data;
   }
 
-  static async getAnalysisSection(sectionName: string, eventId?: number, startDate?: Date, endDate?: Date): Promise<AnalysisSection> {
+  static async getAnalysisSection(sectionName: string, eventId?: number, startDate?: Date, endDate?: Date): Promise<AnalysisSection[]> {
     const params = new URLSearchParams();
     
     if (eventId !== undefined) {

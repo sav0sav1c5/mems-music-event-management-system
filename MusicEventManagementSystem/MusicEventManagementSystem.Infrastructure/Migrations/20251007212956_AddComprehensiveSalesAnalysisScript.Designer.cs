@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MusicEventManagementSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251007183313_AddComprehensiveSalesAnalysisScript")]
+    [Migration("20251007212956_AddComprehensiveSalesAnalysisScript")]
     partial class AddComprehensiveSalesAnalysisScript
     {
         /// <inheritdoc />

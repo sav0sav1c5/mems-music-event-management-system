@@ -10,8 +10,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Glavna stored procedura za sales analizu
-            var spComprehensiveSalesAnalysis = @"
+            var sql = @"
             CREATE OR REPLACE FUNCTION sp_comprehensive_sales_analysis(
                 p_event_id INTEGER DEFAULT NULL,
                 p_start_date TIMESTAMP DEFAULT NULL,
@@ -36,7 +35,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 -- SEKCIJA 1: OSNOVNE METRIKE
                 -- ===========================================
     
-                -- Ukupan revenue
+                -- FIX: Koristi RecordedSales.SaleDate za konzistentnost
                 SELECT COALESCE(SUM(rs.""TotalAmount""), 0)
                 INTO v_total_revenue
                 FROM ""RecordedSales"" rs
@@ -59,13 +58,15 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         'period_end', p_end_date
                     )::JSONB;
 
-                -- Ukupno prodatih karata
-                SELECT COUNT(*)::INTEGER
+                -- FIX: Broji samo tikete koji su prodati (imaju RecordedSaleId)
+                -- i čiji RecordedSale pada u željeni period
+                SELECT COUNT(DISTINCT t.""TicketId"")::INTEGER
                 INTO v_total_tickets_sold
                 FROM ""Tickets"" t
                 JOIN ""TicketTypes"" tt ON t.""TicketTypeId"" = tt.""TicketTypeId""
-                WHERE t.""RecordedSaleId"" IS NOT NULL
-                    AND t.""IssueDate"" BETWEEN p_start_date AND p_end_date
+                JOIN ""RecordedSales"" rs ON t.""RecordedSaleId"" = rs.""RecordedSaleId""
+                WHERE rs.""SaleDate"" BETWEEN p_start_date AND p_end_date
+                    AND t.""RecordedSaleId"" IS NOT NULL
                     AND (p_event_id IS NULL OR tt.""EventId"" = p_event_id);
     
                 RETURN QUERY
@@ -89,7 +90,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     NULL::JSONB;
 
                 -- ===========================================
-                -- SEKCIJA 2: ANALIZA PO ZONAMA
+                -- SEKCIJA 2: ANALIZA PO ZONAMA (FIXED)
                 -- ===========================================
     
                 RETURN QUERY
@@ -121,15 +122,18 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                     )::JSONB
                 FROM ""Zones"" z
                 JOIN ""TicketTypes"" tt ON z.""ZoneId"" = tt.""ZoneId""
-                LEFT JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId"" 
+                -- FIX: INNER JOIN umesto LEFT JOIN - samo zone sa prodatim kartama
+                INNER JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId"" 
+                INNER JOIN ""RecordedSales"" rs ON t.""RecordedSaleId"" = rs.""RecordedSaleId""
+                WHERE rs.""SaleDate"" BETWEEN p_start_date AND p_end_date
                     AND t.""RecordedSaleId"" IS NOT NULL
-                    AND t.""IssueDate"" BETWEEN p_start_date AND p_end_date
-                WHERE (p_event_id IS NULL OR tt.""EventId"" = p_event_id)
+                    AND (p_event_id IS NULL OR tt.""EventId"" = p_event_id)
                 GROUP BY z.""ZoneId"", z.""Name"", z.""BasePrice"", z.""Position"", z.""Capacity""
+                HAVING COUNT(t.""TicketId"") > 0  -- FIX: Samo zone sa prodatim kartama
                 ORDER BY COALESCE(SUM(t.""FinalPrice""), 0) DESC;
 
                 -- ===========================================
-                -- SEKCIJA 3: PRICING RULES EFIKASNOST
+                -- SEKCIJA 3: PRICING RULES EFIKASNOST (FIXED)
                 -- ===========================================
     
                 RETURN QUERY
@@ -166,16 +170,18 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 JOIN ""TicketTypePricingRules"" prtt ON pr.""PricingRuleId"" = prtt.""PricingRulesPricingRuleId""
                 JOIN ""TicketTypes"" tt ON prtt.""TicketTypesTicketTypeId"" = tt.""TicketTypeId""
                 JOIN ""Zones"" z ON tt.""ZoneId"" = z.""ZoneId""
-                LEFT JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId""
+                -- FIX: INNER JOIN za samo prodati tiketi
+                INNER JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId""
+                INNER JOIN ""RecordedSales"" rs ON t.""RecordedSaleId"" = rs.""RecordedSaleId""
+                WHERE rs.""SaleDate"" BETWEEN p_start_date AND p_end_date
                     AND t.""RecordedSaleId"" IS NOT NULL
-                    AND t.""IssueDate"" BETWEEN p_start_date AND p_end_date
-                WHERE (p_event_id IS NULL OR tt.""EventId"" = p_event_id)
+                    AND (p_event_id IS NULL OR tt.""EventId"" = p_event_id)
                 GROUP BY pr.""PricingRuleId"", pr.""Name""
                 HAVING COUNT(DISTINCT t.""TicketId"") > 0
                 ORDER BY COALESCE(SUM(t.""FinalPrice""), 0) DESC;
 
                 -- ===========================================
-                -- SEKCIJA 4: SPECIAL OFFERS PERFORMANCE
+                -- SEKCIJA 4: SPECIAL OFFERS PERFORMANCE (FIXED)
                 -- ===========================================
     
                 RETURN QUERY
@@ -204,11 +210,12 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 JOIN ""TicketTypeSpecialOffers"" sott ON so.""SpecialOfferId"" = sott.""SpecialOffersSpecialOfferId""
                 JOIN ""TicketTypes"" tt ON sott.""TicketTypesTicketTypeId"" = tt.""TicketTypeId""
                 JOIN ""Zones"" z ON tt.""ZoneId"" = z.""ZoneId""
-                LEFT JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId""
+                -- FIX: INNER JOIN za samo prodati tiketi
+                INNER JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId""
+                INNER JOIN ""RecordedSales"" rs ON t.""RecordedSaleId"" = rs.""RecordedSaleId""
+                WHERE rs.""SaleDate"" BETWEEN p_start_date AND p_end_date
                     AND t.""RecordedSaleId"" IS NOT NULL
-                    AND t.""IssueDate"" BETWEEN p_start_date AND p_end_date
-                LEFT JOIN ""RecordedSales"" rs ON t.""RecordedSaleId"" = rs.""RecordedSaleId""
-                WHERE so.""StartDate"" <= p_end_date
+                    AND so.""StartDate"" <= p_end_date
                     AND so.""EndDate"" >= p_start_date
                     AND (p_event_id IS NULL OR tt.""EventId"" = p_event_id)
                 GROUP BY so.""SpecialOfferId"", so.""Name"", so.""OfferType"", so.""DiscountValue""
@@ -216,21 +223,22 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 ORDER BY COALESCE(SUM(t.""FinalPrice""), 0) DESC;
 
                 -- ===========================================
-                -- SEKCIJA 5: TREND ANALIZA (VELOCITY)
+                -- SEKCIJA 5: TREND ANALIZA (FIXED)
                 -- ===========================================
     
                 RETURN QUERY
                 WITH daily_sales AS (
                     SELECT 
-                        DATE(t.""IssueDate"") AS sale_date,
-                        COUNT(*)::INTEGER AS tickets_sold,
+                        DATE(rs.""SaleDate"") AS sale_date,
+                        COUNT(DISTINCT t.""TicketId"")::INTEGER AS tickets_sold,
                         SUM(t.""FinalPrice"")::DECIMAL(18,2) AS daily_revenue
-                    FROM ""Tickets"" t
+                    FROM ""RecordedSales"" rs
+                    JOIN ""Tickets"" t ON rs.""RecordedSaleId"" = t.""RecordedSaleId""
                     JOIN ""TicketTypes"" tt ON t.""TicketTypeId"" = tt.""TicketTypeId""
-                    WHERE t.""RecordedSaleId"" IS NOT NULL
-                        AND t.""IssueDate"" BETWEEN p_start_date AND p_end_date
+                    WHERE rs.""SaleDate"" BETWEEN p_start_date AND p_end_date
+                        AND t.""RecordedSaleId"" IS NOT NULL
                         AND (p_event_id IS NULL OR tt.""EventId"" = p_event_id)
-                    GROUP BY DATE(t.""IssueDate"")
+                    GROUP BY DATE(rs.""SaleDate"")
                 )
                 SELECT 
                     'TREND_ANALIZA'::VARCHAR(100),
@@ -245,7 +253,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                 FROM daily_sales;
 
                 -- ===========================================
-                -- SEKCIJA 6: EVENT PERFORMANCE COMPARISON
+                -- SEKCIJA 6: EVENT PERFORMANCE COMPARISON (FIXED)
                 -- ===========================================
     
                 IF p_event_id IS NULL THEN
@@ -277,25 +285,28 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
                         )::JSONB
                     FROM ""Events"" e
                     JOIN ""TicketTypes"" tt ON e.""Id"" = tt.""EventId""
-                    LEFT JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId"" 
+                    -- FIX: INNER JOIN za samo prodati tiketi
+                    INNER JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId"" 
+                    INNER JOIN ""RecordedSales"" rs ON t.""RecordedSaleId"" = rs.""RecordedSaleId""
+                    WHERE rs.""SaleDate"" BETWEEN p_start_date AND p_end_date
                         AND t.""RecordedSaleId"" IS NOT NULL
-                        AND t.""IssueDate"" BETWEEN p_start_date AND p_end_date
                     GROUP BY e.""Id"", e.""Name"", e.""Status""
+                    HAVING COUNT(DISTINCT t.""TicketId"") > 0
                     ORDER BY COALESCE(SUM(t.""FinalPrice""), 0) DESC;
                 END IF;
 
                 -- ===========================================
-                -- SEKCIJA 7: REVENUE OPTIMIZATION INSIGHTS
+                -- SEKCIJA 7: REVENUE OPTIMIZATION INSIGHTS (FIXED)
                 -- ===========================================
     
                 RETURN QUERY
                 WITH optimization_data AS (
                     SELECT 
-                        COUNT(*) FILTER (WHERE t.""Status"" = 0)::INTEGER AS available_tickets,
-                        COUNT(*) FILTER (WHERE t.""Status"" = 1)::INTEGER AS sold_tickets,
-                        COALESCE(SUM(z.""BasePrice"") FILTER (WHERE t.""Status"" = 0), 0)::DECIMAL(18,2) AS potential_revenue_lost,
-                        COALESCE(AVG(t.""FinalPrice"") FILTER (WHERE t.""FinalPrice"" < z.""BasePrice""), 0)::DECIMAL(18,2) AS avg_discounted_price,
-                        COUNT(*) FILTER (WHERE t.""FinalPrice"" < z.""BasePrice"")::INTEGER AS discounted_tickets_count
+                        COUNT(*) FILTER (WHERE t.""Status"" = 0 AND t.""RecordedSaleId"" IS NULL)::INTEGER AS available_tickets,
+                        COUNT(*) FILTER (WHERE t.""RecordedSaleId"" IS NOT NULL)::INTEGER AS sold_tickets,
+                        COALESCE(SUM(z.""BasePrice"") FILTER (WHERE t.""Status"" = 0 AND t.""RecordedSaleId"" IS NULL), 0)::DECIMAL(18,2) AS potential_revenue_lost,
+                        COALESCE(AVG(t.""FinalPrice"") FILTER (WHERE t.""FinalPrice"" < z.""BasePrice"" AND t.""RecordedSaleId"" IS NOT NULL), 0)::DECIMAL(18,2) AS avg_discounted_price,
+                        COUNT(*) FILTER (WHERE t.""FinalPrice"" < z.""BasePrice"" AND t.""RecordedSaleId"" IS NOT NULL)::INTEGER AS discounted_tickets_count
                     FROM ""TicketTypes"" tt
                     JOIN ""Zones"" z ON tt.""ZoneId"" = z.""ZoneId""
                     LEFT JOIN ""Tickets"" t ON tt.""TicketTypeId"" = t.""TicketTypeId""
@@ -323,45 +334,16 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
 
                 RETURN;
             END;
-            $$ LANGUAGE plpgsql;";
+            $$ LANGUAGE plpgsql;
+            ";
 
-            migrationBuilder.Sql(spComprehensiveSalesAnalysis);
-
-            // Helper function to export results as CSV
-            var spExportSalesAnalysisCsv = @"
-                CREATE OR REPLACE FUNCTION sp_export_sales_analysis_csv(
-                    p_event_id INTEGER DEFAULT NULL,
-                    p_start_date TIMESTAMP DEFAULT NULL,
-                    p_end_date TIMESTAMP DEFAULT NULL
-                )
-                RETURNS TEXT AS $$
-                DECLARE
-                    v_result TEXT := 'Sekcija,Metrika,Vrednost,Jedinica' || CHR(10);
-                    v_row RECORD;
-                BEGIN
-                    FOR v_row IN 
-                        SELECT * FROM sp_comprehensive_sales_analysis(p_event_id, p_start_date, p_end_date)
-                    LOOP
-                        v_result := v_result || 
-                            v_row.analysis_section || ',' || 
-                            v_row.metric_name || ',' || 
-                            v_row.metric_value || ',' || 
-                            v_row.metric_unit || CHR(10);
-                    END LOOP;
-    
-                    RETURN v_result;
-                END;
-                $$ LANGUAGE plpgsql;";
-
-            migrationBuilder.Sql(spExportSalesAnalysisCsv);
+            migrationBuilder.Sql(sql);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Uklanjanje funkcija pri rollback-u
             migrationBuilder.Sql("DROP FUNCTION IF EXISTS sp_comprehensive_sales_analysis(INTEGER, TIMESTAMP, TIMESTAMP);");
-            migrationBuilder.Sql("DROP FUNCTION IF EXISTS sp_export_sales_analysis_csv(INTEGER, TIMESTAMP, TIMESTAMP);");
         }
     }
 }
