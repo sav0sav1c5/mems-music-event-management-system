@@ -9,6 +9,7 @@ export interface SpecialOfferCreateForm {
   applicationCondition?: string;
   discountValue: number;
   ticketLimit: number;
+  ticketTypeIds: number[];
 }
 
 export interface SpecialOfferUpdateForm {
@@ -20,4 +21,5 @@ export interface SpecialOfferUpdateForm {
   applicationCondition?: string;
   discountValue?: number;
   ticketLimit?: number;
+  ticketTypeIds?: number[];
 }

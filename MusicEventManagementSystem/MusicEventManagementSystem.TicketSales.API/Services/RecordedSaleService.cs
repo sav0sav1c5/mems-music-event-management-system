@@ -143,7 +143,13 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
         public async Task<IEnumerable<RecordedSaleResponseDto>> GetSalesByDateRangeAsync(DateTime fromDate, DateTime toDate)
         {
-            var sales = await _recordedSaleRepository.GetSalesByDateRangeAsync(fromDate, toDate);
+            var sales = await _recordedSaleRepository.GetSalesByDateRangeAsync(fromDate, toDate, null);
+            return sales.Select(MapToResponseDto);
+        }
+
+        public async Task<IEnumerable<RecordedSaleResponseDto>> GetCompletedSalesByDateRangeAsync(DateTime from, DateTime to)
+        {
+            var sales = await _recordedSaleRepository.GetCompletedSalesByDateRangeAsync(from, to);
             return sales.Select(MapToResponseDto);
         }
 

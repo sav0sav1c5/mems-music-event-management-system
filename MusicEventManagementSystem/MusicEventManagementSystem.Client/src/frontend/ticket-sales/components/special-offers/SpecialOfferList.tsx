@@ -19,7 +19,7 @@ const SpecialOfferList = ({
   getOfferStatus
 }: SpecialOfferListProps) => {
   return (
-    <div className="flex-1 overflow-y-auto min-h-0">
+    <div className="flex-1 overflow-y-auto">
       <Card className="overflow-hidden h-full">
         <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
           <h3 className="text-xl font-semibold text-white">Special Offers</h3>
@@ -28,7 +28,7 @@ const SpecialOfferList = ({
           </div>
         </div>
         
-        <div className="mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+        <div className="mt-4">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64">
               <RefreshCw className="w-10 h-10 text-lime-400 animate-spin mb-3" />

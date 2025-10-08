@@ -14,6 +14,7 @@ namespace MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales
 
         Task<IEnumerable<RecordedSaleResponseDto>> GetSalesByUserAsync(string userId);
         Task<IEnumerable<RecordedSaleResponseDto>> GetSalesByDateRangeAsync(DateTime from, DateTime to);
+        Task<IEnumerable<RecordedSaleResponseDto>> GetCompletedSalesByDateRangeAsync(DateTime from, DateTime to);
         Task<IEnumerable<RecordedSaleResponseDto>> GetSalesByStatusAsync(TransactionStatus status);
         Task<IEnumerable<RecordedSaleResponseDto>> GetSalesByPaymentMethodAsync(PaymentMethod paymentMethod);
         Task<decimal> GetTotalRevenueAsync();

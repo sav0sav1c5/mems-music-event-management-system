@@ -1,7 +1,10 @@
 import { Card } from '../ui/card';
-import { X, Save, Loader2, XCircle } from 'lucide-react';
+import { X, Save, Loader2, XCircle, Ticket } from 'lucide-react';
 import type { SpecialOfferCreateForm } from '../../types/forms/specialOffer';
 import type { OfferType } from '../../types';
+import { useState, useEffect } from 'react';
+import { TicketTypeService } from '../../services/ticketTypeService';
+import type { TicketTypeResponse } from '../../types';
 
 interface SpecialOfferFormProps {
   panelMode: 'create' | 'edit';
@@ -37,6 +40,25 @@ const SpecialOfferForm = ({
   onSubmit,
   onClose
 }: SpecialOfferFormProps) => {
+  const [ticketTypes, setTicketTypes] = useState<TicketTypeResponse[]>([]);
+  const [loadingTicketTypes, setLoadingTicketTypes] = useState(false);
+
+  useEffect(() => {
+    loadTicketTypes();
+  }, []);
+
+  const loadTicketTypes = async () => {
+    try {
+      setLoadingTicketTypes(true);
+      const data = await TicketTypeService.getAllTicketTypes();
+      setTicketTypes(data);
+    } catch (error) {
+      console.error('Error loading ticket types:', error);
+    } finally {
+      setLoadingTicketTypes(false);
+    }
+  };
+
   const getPanelTitle = () => {
     return panelMode === 'create' ? 'Create New Special Offer' : 'Edit Special Offer';
   };
@@ -48,6 +70,19 @@ const SpecialOfferForm = ({
     });
   };
 
+  const handleTicketTypeChange = (ticketTypeId: number, isChecked: boolean) => {
+    const currentIds = offerForm.ticketTypeIds || [];
+    let newIds: number[];
+
+    if (isChecked) {
+      newIds = [...currentIds, ticketTypeId];
+    } else {
+      newIds = currentIds.filter(id => id !== ticketTypeId);
+    }
+
+    handleFieldChange('ticketTypeIds', newIds);
+  };
+
   const isFormValid = () => {
     return offerForm.name && 
            offerForm.discountValue >= 0 && 
@@ -56,7 +91,7 @@ const SpecialOfferForm = ({
   };
 
   return (
-    <Card className="overflow-hidden border border-neutral-800 shadow-xl bg-neutral-900/60 backdrop-blur-sm h-full">
+    <Card className="overflow-hidden border border-neutral-800 shadow-xl bg-neutral-900/60 backdrop-blur-sm">
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-neutral-800">
         <h2 className="text-xl font-bold text-lime-400">
           {getPanelTitle()}
@@ -174,6 +209,54 @@ const SpecialOfferForm = ({
             placeholder="Enter application conditions"
             rows={3}
           />
+        </div>
+
+        {/* New field for Ticket Types */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-neutral-300">
+            Applicable Ticket Types {offerForm.ticketTypeIds?.length === 0 && '(applies to all)'}
+          </label>
+          <div className="bg-neutral-800 border border-neutral-700 rounded-2xl p-4 max-h-48 overflow-y-auto">
+            {loadingTicketTypes ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 text-lime-400 animate-spin" />
+                <span className="text-neutral-400 ml-2">Loading ticket types...</span>
+              </div>
+            ) : ticketTypes.length === 0 ? (
+              <div className="text-center py-4 text-neutral-500">
+                No ticket types available
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {ticketTypes.map((ticketType) => (
+                  <label key={ticketType.ticketTypeId} className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={offerForm.ticketTypeIds?.includes(ticketType.ticketTypeId) || false}
+                      onChange={(e) => handleTicketTypeChange(ticketType.ticketTypeId, e.target.checked)}
+                      className="w-4 h-4 text-lime-500 bg-neutral-700 border-neutral-600 rounded focus:ring-lime-400 focus:ring-2"
+                    />
+                    <div className="flex-1">
+                      <span className="text-white text-sm font-medium">
+                        {ticketType.name || `Ticket Type #${ticketType.ticketTypeId}`}
+                      </span>
+                      {ticketType.description && (
+                        <p className="text-neutral-400 text-xs mt-1">{ticketType.description}</p>
+                      )}
+                    </div>
+                    <span className="text-lime-400 text-sm font-medium">
+                      {ticketType.availableQuantity} available
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <p className="text-neutral-500 text-xs mt-2">
+            {offerForm.ticketTypeIds?.length === 0 
+              ? 'This offer will apply to all ticket types' 
+              : `Selected ${offerForm.ticketTypeIds?.length} ticket type(s)`}
+          </p>
         </div>
 
         <div className="flex gap-3 pt-4 border-t border-neutral-800">

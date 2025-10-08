@@ -1,6 +1,9 @@
 import { Card } from '../ui/card';
-import { Gift, Edit, Trash2, Percent, Users, Clock } from 'lucide-react';
+import { Gift, Edit, Trash2, Percent, Users, Clock, Ticket } from 'lucide-react';
 import type { SpecialOfferResponse } from '../../types';
+import { useState, useEffect } from 'react';
+import { TicketTypeService } from '../../services/ticketTypeService';
+import type { TicketTypeResponse } from '../../types';
 
 interface SpecialOfferCardProps {
   offer: SpecialOfferResponse;
@@ -45,6 +48,55 @@ const SpecialOfferCard = ({
   onDelete,
   getOfferStatus
 }: SpecialOfferCardProps) => {
+  const [applicableTicketTypes, setApplicableTicketTypes] = useState<TicketTypeResponse[]>([]);
+  const [loadingTicketTypes, setLoadingTicketTypes] = useState(false);
+
+  useEffect(() => {
+    if (offer.ticketTypeIds && offer.ticketTypeIds.length > 0) {
+      loadApplicableTicketTypes();
+    } 
+    else {
+      setApplicableTicketTypes([]);
+    }
+  }, [offer.ticketTypeIds]);
+
+  const loadApplicableTicketTypes = async () => {
+    try {
+      setLoadingTicketTypes(true);
+      const types: TicketTypeResponse[] = [];
+      
+      for (const typeId of offer.ticketTypeIds || []) {
+        try {
+          const type = await TicketTypeService.getTicketTypeById(typeId);
+          types.push(type);
+        } catch (error) {
+          console.error(`Error loading ticket type ${typeId}:`, error);
+        }
+      }
+      
+      setApplicableTicketTypes(types);
+    } catch (error) {
+      console.error('Error loading applicable ticket types:', error);
+    } finally {
+      setLoadingTicketTypes(false);
+    }
+  };
+
+  // Get Ticket Type Names
+  const getTicketTypesText = () => {
+    if (loadingTicketTypes) {
+      return 'Loading ticket types...';
+    }
+    
+    // If ticketTypeIds is empty or undefined, it applies to all ticket types
+    if (!offer.ticketTypeIds || offer.ticketTypeIds.length === 0) {
+      return 'All ticket types';
+    }
+
+    // If there are ticketTypeIds show them
+    return `${applicableTicketTypes.length} ticket type(s)`;
+  };
+
   const status = getOfferStatus(offer);
   const TypeIcon = getOfferTypeIcon(offer.offerType);
 
@@ -122,6 +174,34 @@ const SpecialOfferCard = ({
           </div>
         </div>
         
+        {/* Applicable Ticket Types */}
+        <div className="flex items-start gap-3">
+          <Ticket className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <span className="text-white text-sm font-medium block">
+              {getTicketTypesText()}
+            </span>
+            {applicableTicketTypes.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {applicableTicketTypes.slice(0, 3).map(type => (
+                  <span
+                    key={type.ticketTypeId}
+                    className="inline-block px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs"
+                  >
+                    {type.name || `Type #${type.ticketTypeId}`}
+                  </span>
+                ))}
+                {applicableTicketTypes.length > 3 && (
+                  <span className="inline-block px-2 py-1 bg-neutral-700 text-neutral-300 rounded text-xs">
+                    +{applicableTicketTypes.length - 3} more
+                  </span>
+                )}
+              </div>
+            )}
+            <span className="text-neutral-400 text-xs">Applicable Tickets</span>
+          </div>
+        </div>
+
         {/* Date Range */}
         <div className="flex items-start gap-3">
           <Clock className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />

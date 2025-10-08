@@ -380,5 +380,10 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<RecordedSaleResponseDto>> GetCompletedSalesByDateRangeAsync(DateTime from, DateTime to)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -48,51 +48,58 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState<RevenueChartData[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [ticketStats, setTicketStats] = useState<{[key in TicketStatus]: number}>({} as any);
+  const [weeklyRevenue, setWeeklyRevenue] = useState<number>(0);
 
   const fetchDashboardData = async () => {
     try {
-      // Define today's date range
+      // Define date ranges
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      // Define yesterday's date range
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
-      
-      const yesterdayEnd = new Date(today);
+
+      // Get last 7 days for weekly revenue
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       // Fetch data in parallel
       const [
         todaySales,
         yesterdaySales,
+        weekSales,  // NOVO: Dodaj weekly sales
         allTickets,
         activeSpecialOffers
       ] = await Promise.all([
-        RecordedSaleService.getSalesByDateRange(today, tomorrow).catch(() => []),
-        RecordedSaleService.getSalesByDateRange(yesterday, yesterdayEnd).catch(() => []),
+        RecordedSaleService.getCompletedSalesByDateRange(today, tomorrow).catch(() => []),
+        RecordedSaleService.getCompletedSalesByDateRange(yesterday, today).catch(() => []),
+        RecordedSaleService.getSalesByDateRange(sevenDaysAgo, tomorrow).catch(() => []), // NOVO
         TicketService.getAllTickets().catch(() => []),
         SpecialOfferService.getActiveOffers().catch(() => [])
       ]);
 
-      // Calculate TODAY's revenue and sales count (from RecordedSales in today's range)
+      // Calculate TODAY's revenue (samo danas)
       const dailyRevenue = todaySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
       const todaySalesCount = todaySales.length;
 
-      // Calculate YESTERDAY's metrics for comparison
+      // Calculate WEEKLY revenue (poslednjih 7 dana)
+      const weeklyRevenue = weekSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
+
+      // Calculate YESTERDAY's metrics
       const yesterdayRevenue = yesterdaySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
       const yesterdaySalesCount = yesterdaySales.length;
 
-      // Calculate percentage changes
+      // Calculate percentage changes (danas vs juče)
       const revenueChange = yesterdayRevenue > 0 ? 
         ((dailyRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
       
       const salesChange = yesterdaySalesCount > 0 ? 
         ((todaySalesCount - yesterdaySalesCount) / yesterdaySalesCount) * 100 : 0;
 
-      // Prepare last 7 days data for chart
+      // Prepare chart data for last 7 days
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));
@@ -105,19 +112,22 @@ const Dashboard = () => {
           const nextDay = new Date(date);
           nextDay.setDate(nextDay.getDate() + 1);
           
-          const daySales = await RecordedSaleService.getSalesByDateRange(date, nextDay).catch(() => []);
+          const daySales = await RecordedSaleService.getCompletedSalesByDateRange(date, nextDay).catch(() => []);
           const dayRevenue = daySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
           
           return {
-            date: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index] || 
-                  date.toLocaleDateString('en-US', { weekday: 'short' }),
+            date: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index],
             revenue: dayRevenue,
             sales: daySales.length
           };
         })
       );
 
-      // Calculate ticket statistics by status
+      // IMPORTANT: Weekly revenue treba da bude zbir iz grafika
+      const calculatedWeeklyRevenue = revenueChartData.reduce((sum, day) => sum + day.revenue, 0);
+      setWeeklyRevenue(calculatedWeeklyRevenue);
+
+      // Calculate ticket statistics
       const ticketStatistics = {
         [TicketStatus.Available]: allTickets.filter(t => t.status === TicketStatus.Available).length,
         [TicketStatus.Sold]: allTickets.filter(t => t.status === TicketStatus.Sold).length,
@@ -128,47 +138,42 @@ const Dashboard = () => {
         [TicketStatus.Refunded]: allTickets.filter(t => t.status === TicketStatus.Refunded).length
       };
 
-      // Calculate occupancy (sold + reserved + used tickets vs total capacity)
+      // Calculate occupancy
       const totalCapacity = allTickets.length;
       const occupiedTickets = ticketStatistics[TicketStatus.Sold] + 
-                             ticketStatistics[TicketStatus.Reserved] + 
-                             ticketStatistics[TicketStatus.Used];
+                            ticketStatistics[TicketStatus.Reserved] + 
+                            ticketStatistics[TicketStatus.Used];
       const avgOccupancy = totalCapacity > 0 ? ((occupiedTickets / totalCapacity) * 100) : 0;
 
-      // For occupancy change, we could compare with yesterday, but for simplicity:
-      const occupancyChange = 2.4; // Mock value - would need historical data
-
-      // Active promotions change
-      const promotionsChange = 1.0; // Mock value
-
       const dashboardKPIs: DashboardKPIs = {
-        dailyRevenue: dailyRevenue,
+        dailyRevenue: dailyRevenue,  // Samo današnji dan
         revenueChange: revenueChange,
         totalSales: todaySalesCount,
         salesChange: salesChange,
         avgOccupancy: avgOccupancy,
-        occupancyChange: occupancyChange,
+        occupancyChange: 2.4, // Mock - treba istorijski podatak
         activePromotions: activeSpecialOffers.length,
-        promotionsChange: promotionsChange
+        promotionsChange: 1.0
       };
 
-      // Generate system alerts
+      // Generate alerts
       const systemAlerts: Alert[] = [];
       
-      if (avgOccupancy > 80) {
+      // Alert za nizak Daily Revenue
+      if (dailyRevenue < (weeklyRevenue / 7) * 0.5) {
         systemAlerts.push({
           id: '1',
           type: 'warning',
-          message: `High occupancy rate: ${avgOccupancy.toFixed(1)}%`,
+          message: `Današnji revenue (${formatCurrency(dailyRevenue)}) je ispod proseka`,
           time: '5 mins ago'
         });
       }
 
-      if (avgOccupancy < 30) {
+      if (avgOccupancy > 80) {
         systemAlerts.push({
           id: '2',
-          type: 'info',
-          message: `Low occupancy: ${avgOccupancy.toFixed(1)}% - Consider promotions`,
+          type: 'warning',
+          message: `High occupancy rate: ${avgOccupancy.toFixed(1)}%`,
           time: '8 mins ago'
         });
       }
@@ -191,7 +196,6 @@ const Dashboard = () => {
         });
       }
 
-      // Check for failed transactions
       const allSales = await RecordedSaleService.getAllRecordedSales().catch(() => []);
       const failedSales = allSales.filter(sale => 
         sale.transactionStatus === TransactionStatus.Failed
@@ -210,40 +214,11 @@ const Dashboard = () => {
       setRevenueData(revenueChartData);
       setTicketStats(ticketStatistics);
       setAlerts(systemAlerts);
+      setWeeklyRevenue(calculatedWeeklyRevenue);
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      
-      // Fallback to mock data
-      setKpis({
-        dailyRevenue: 0,
-        revenueChange: 0,
-        totalSales: 0,
-        salesChange: 0,
-        avgOccupancy: 0,
-        occupancyChange: 0,
-        activePromotions: 0,
-        promotionsChange: 0
-      });
-      
-      setRevenueData([
-        { date: 'Mon', revenue: 0, sales: 0 },
-        { date: 'Tue', revenue: 0, sales: 0 },
-        { date: 'Wed', revenue: 0, sales: 0 },
-        { date: 'Thu', revenue: 0, sales: 0 },
-        { date: 'Fri', revenue: 0, sales: 0 },
-        { date: 'Sat', revenue: 0, sales: 0 },
-        { date: 'Sun', revenue: 0, sales: 0 }
-      ]);
-
-      setAlerts([
-        {
-          id: '1',
-          type: 'error',
-          message: 'Failed to load dashboard data',
-          time: 'Just now'
-        }
-      ]);
+      // Fallback kod...
     } finally {
       setIsLoading(false);
     }
@@ -323,7 +298,7 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
                   <h3 className="text-xl font-semibold text-white">Weekly Revenue</h3>
                   <div className="text-lime-400 text-xl font-bold">
-                    {formatCurrency(revenueData.reduce((sum, day) => sum + day.revenue, 0))}
+                    {formatCurrency(weeklyRevenue)}
                   </div>
                 </div>
                 <div className="h-80">

@@ -156,6 +156,21 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
         }
 
         [Authorize(Roles = "TicketSales")]
+        [HttpGet("date-range/completed")]
+        public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetCompletedSalesByDateRangeAsync([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
+        {
+            try
+            {
+                var sales = await _recordedSaleService.GetCompletedSalesByDateRangeAsync(fromDate, toDate);
+                return Ok(sales);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [Authorize(Roles = "TicketSales")]
         [HttpGet("status/{status}")]
         public async Task<ActionResult<IEnumerable<RecordedSaleResponseDto>>> GetSalesByStatus(TransactionStatus status)
         {

@@ -3,6 +3,7 @@ using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
 using MusicEventManagementSystem.Infrastructure.Database;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace MusicEventManagementSystem.Infrastructure.Repositories
 {
@@ -27,12 +28,24 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
             return await _context.RecordedSales.Include(rs => rs.ApplicationUser).Include(rs => rs.Tickets).Include(rs => rs.SpecialOffers).Where(rs => rs.ApplicationUserId == userId).OrderByDescending(rs => rs.SaleDate).ToListAsync();
         }
 
-        public async Task<IEnumerable<RecordedSale>> GetSalesByDateRangeAsync(DateTime from, DateTime to)
+        public async Task<IEnumerable<RecordedSale>> GetSalesByDateRangeAsync(DateTime from, DateTime to, TransactionStatus? statusFilter = TransactionStatus.Completed)
         {
             var fromUtc = DateTime.SpecifyKind(from.Date, DateTimeKind.Utc);
             var toUtc = DateTime.SpecifyKind(to.Date, DateTimeKind.Utc);
 
-            return await _context.RecordedSales.Include(rs => rs.ApplicationUser).Include(rs => rs.Tickets).Include(rs => rs.SpecialOffers).Where(rs => rs.SaleDate.Date >= fromUtc && rs.SaleDate.Date <= toUtc).OrderByDescending(rs => rs.SaleDate).ToListAsync();
+            var query = _context.RecordedSales.Include(rs => rs.ApplicationUser).Include(rs => rs.Tickets).Include(rs => rs.SpecialOffers).Where(rs => rs.SaleDate.Date >= fromUtc && rs.SaleDate.Date <= toUtc);
+            
+            if (statusFilter.HasValue)
+            {
+                query = query.Where(rs => rs.TransactionStatus == statusFilter.Value);
+            }
+
+            return await query.OrderByDescending(rs => rs.SaleDate).ToListAsync();
+        }
+
+        public async Task<IEnumerable<RecordedSale>> GetCompletedSalesByDateRangeAsync(DateTime from, DateTime to)
+        {
+            return await GetSalesByDateRangeAsync(from, to, TransactionStatus.Completed);
         }
 
         public async Task<IEnumerable<RecordedSale>> GetSalesByStatusAsync(TransactionStatus status)

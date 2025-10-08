@@ -118,6 +118,16 @@ export class RecordedSaleService {
     return response.data;
   }
 
+  static async getCompletedSalesByDateRange(fromDate: Date, toDate: Date): Promise<RecordedSaleResponse[]> {
+    const fromDateStr = fromDate.toISOString().split('T')[0];
+    const toDateStr = toDate.toISOString().split('T')[0];
+    
+    const response = await apiService.get(
+      `${this.BASE_URL}/date-range/completed?fromDate=${fromDateStr}&toDate=${toDateStr}`
+    );
+    return response.data;
+  }
+
   static async getSalesByStatus(status: TransactionStatus): Promise<RecordedSaleResponse[]> {
     const response = await apiService.get(`${this.BASE_URL}/status/${status}`);
     return response.data;

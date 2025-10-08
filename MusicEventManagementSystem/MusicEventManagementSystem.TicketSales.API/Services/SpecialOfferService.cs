@@ -8,10 +8,11 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
     public class SpecialOfferService : ISpecialOfferService
     {
         private readonly ISpecialOfferRepository _specialOfferRepository;
-
-        public SpecialOfferService(ISpecialOfferRepository specialOfferRepository)
+        private readonly ITicketTypeRepository _ticketTypeRepository;
+        public SpecialOfferService(ISpecialOfferRepository specialOfferRepository, ITicketTypeRepository ticketTypeRepository)
         {
             _specialOfferRepository = specialOfferRepository;
+            _ticketTypeRepository = ticketTypeRepository;
         }
 
         public async Task<IEnumerable<SpecialOfferResponseDto>> GetAllSpecialOffersAsync()
@@ -35,6 +36,13 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         public async Task<SpecialOfferResponseDto> CreateSpecialOfferAsync(SpecialOfferCreateDto createSpecialOfferDto)
         {
             var specialOffer = MapToEntity(createSpecialOfferDto);
+
+            // Associate TicketTypes
+            if (createSpecialOfferDto.TicketTypeIds?.Any() == true)
+            {
+                var ticketTypes = await _ticketTypeRepository.GetByIdsAsync(createSpecialOfferDto.TicketTypeIds);
+                specialOffer.TicketTypes = ticketTypes.ToList();
+            }
 
             await _specialOfferRepository.AddAsync(specialOffer);
             await _specialOfferRepository.SaveChangesAsync();
@@ -72,6 +80,18 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
             if (updateSpecialOfferDto.TicketLimit.HasValue)
                 existingSpecialOffer.TicketLimit = updateSpecialOfferDto.TicketLimit.Value;
+
+            // Update associated TicketTypes
+            if (updateSpecialOfferDto.TicketTypeIds != null)
+            {
+                existingSpecialOffer.TicketTypes.Clear();
+
+                if (updateSpecialOfferDto.TicketTypeIds.Any())
+                {
+                    var ticketTypes = await _ticketTypeRepository.GetByIdsAsync(updateSpecialOfferDto.TicketTypeIds);
+                    existingSpecialOffer.TicketTypes = ticketTypes.ToList();
+                }
+            }
 
             _specialOfferRepository.Update(existingSpecialOffer);
             await _specialOfferRepository.SaveChangesAsync();

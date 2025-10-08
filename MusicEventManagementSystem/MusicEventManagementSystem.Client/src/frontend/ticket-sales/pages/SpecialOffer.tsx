@@ -32,7 +32,8 @@ const SpecialOffers = () => {
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     applicationCondition: '',
     discountValue: 0,
-    ticketLimit: 0
+    ticketLimit: 0,
+    ticketTypeIds: []
   });
 
   useEffect(() => {
@@ -149,7 +150,8 @@ const SpecialOffers = () => {
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       applicationCondition: '',
       discountValue: 0,
-      ticketLimit: 0
+      ticketLimit: 0,
+      ticketTypeIds: []
     });
   };
 
@@ -171,7 +173,8 @@ const SpecialOffers = () => {
       endDate: new Date(offer.endDate),
       applicationCondition: offer.applicationCondition || '',
       discountValue: offer.discountValue,
-      ticketLimit: offer.ticketLimit
+      ticketLimit: offer.ticketLimit,
+      ticketTypeIds : offer.ticketTypeIds || []
     });
     setPanelMode('edit');
     setShowPanel(true);
@@ -243,13 +246,15 @@ const SpecialOffers = () => {
 
             <SpecialOfferStats specialOffers={specialOffers} />
 
-            <SpecialOfferList
-              loading={loading}
-              offers={filteredOffers}
-              onEdit={openEditPanel}
-              onDelete={handleDeleteOffer}
-              getOfferStatus={getOfferStatus}
-            />
+            <div className="flex-1 min-h-0">
+              <SpecialOfferList
+                loading={loading}
+                offers={filteredOffers}
+                onEdit={openEditPanel}
+                onDelete={handleDeleteOffer}
+                getOfferStatus={getOfferStatus}
+              />
+            </div>
           </div>
 
           {/* Right Form Panel */}

@@ -720,13 +720,26 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
                     var priceVariation = (decimal)(_random.NextDouble() * 0.2 - 0.1); // -10% to +10%
                     var finalPrice = zone.BasePrice + zone.BasePrice * priceVariation;
 
-                    // Varied ticket statuses
+                    // Using just Available, Reserved, Cancelled and Expired cuz Sold will be added in Recorded Sales
                     TicketStatus status;
                     var statusRoll = _random.Next(100);
-                    if (statusRoll < 40) status = TicketStatus.Available;
-                    else if (statusRoll < 70) status = TicketStatus.Sold;
-                    else if (statusRoll < 85) status = TicketStatus.Reserved;
-                    else status = TicketStatus.Cancelled;
+
+                    if (statusRoll < 50)        // 50% Available
+                    {
+                        status = TicketStatus.Available;
+                    }
+                    else if (statusRoll < 85)   // 35% Reserved (biće korišćeni za Sales)
+                    {
+                        status = TicketStatus.Reserved;
+                    }
+                    else if (statusRoll < 95)   // 10% Cancelled
+                    {
+                        status = TicketStatus.Cancelled;
+                    }
+                    else                        // 5% Expired
+                    {
+                        status = TicketStatus.Expired;
+                    }
 
                     tickets.Add(new Ticket
                     {
@@ -735,7 +748,8 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
                         IssueDate = DateTime.UtcNow.AddDays(-_random.Next(1, 90)),
                         FinalPrice = Math.Round(finalPrice, 0),
                         Status = status,
-                        TicketTypeId = ticketType.TicketTypeId
+                        TicketTypeId = ticketType.TicketTypeId,
+                        RecordedSaleId = null
                     });
                 }
             }
@@ -758,8 +772,9 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
                 var recordedSales = new List<RecordedSale>();
                 var paymentMethods = new[] { PaymentMethod.CreditCard, PaymentMethod.DebitCard, PaymentMethod.PayPal, PaymentMethod.BankTransfer };
 
-                var soldOrReservedTickets = tickets.Where(t => t.Status == TicketStatus.Sold || t.Status == TicketStatus.Reserved).ToList();
-                var availableTickets = new List<Ticket>(soldOrReservedTickets);
+                // Using just tickets with status Reserved cuz they will became Sold
+                var reservedTickets = tickets.Where(t => t.Status == TicketStatus.Reserved).ToList();
+                var availableTickets = new List<Ticket>(reservedTickets);
 
                 var salesDistribution = new[]
                 {
@@ -784,7 +799,7 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
                     {
                         var user = users[_random.Next(users.Count)];
 
-                        // Create date in past days with some time variation and without timezone offset
+                        // Create date in past days with some time variation
                         var saleDate = DateTime.UtcNow.AddDays(daysAgo).AddHours(_random.Next(-12, 12));
 
                         if (saleDate >= DateTime.UtcNow)
@@ -827,7 +842,6 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
                             TransactionStatus = status,
                             PaymentMethod = paymentMethods[_random.Next(paymentMethods.Length)],
                             ApplicationUserId = user.Id,
-                            Tickets = saleTickets,
                             SpecialOffers = appliedOffers
                         };
 
@@ -835,24 +849,46 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
 
                         foreach (var ticket in saleTickets)
                         {
-                            ticket.Status = status == TransactionStatus.Completed ? TicketStatus.Sold :
-                                           status == TransactionStatus.Failed ? TicketStatus.Available :
-                                           TicketStatus.Reserved;
+                            // Set status based on transaction status
+                            if (status == TransactionStatus.Completed)
+                            {
+                                ticket.Status = TicketStatus.Sold;
+                            }
+                            else if (status == TransactionStatus.Failed)
+                            {
+                                // Failed sale does not link ticket
+                                ticket.Status = TicketStatus.Available;
+                                ticket.RecordedSaleId = null;
+                            }
+                            else
+                            {
+                                // Pending
+                                ticket.Status = TicketStatus.Reserved;
+                            }
+                        }
+
+                        // Link tickets to the sale
+                        sale.Tickets = saleTickets;
+                    }
+                }
+
+                // Save sales
+                context.RecordedSales.AddRange(recordedSales);
+                await context.SaveChangesAsync();
+
+                // Set RecordedSaleId for tickets in non-failed sales
+                foreach (var sale in recordedSales)
+                {
+                    if (sale.TransactionStatus != TransactionStatus.Failed)
+                    {
+                        foreach (var ticket in sale.Tickets)
+                        {
+                            ticket.RecordedSaleId = sale.RecordedSaleId;
                         }
                     }
                 }
 
-                context.RecordedSales.AddRange(recordedSales);
-                await context.SaveChangesAsync();
-
-                // Link tickets to their sales
-                foreach (var sale in recordedSales)
-                {
-                    foreach (var ticket in sale.Tickets)
-                    {
-                        ticket.RecordedSaleId = sale.RecordedSaleId;
-                    }
-                }
+                // Save updated tickets
                 await context.SaveChangesAsync();
 
                 var todaySales = recordedSales.Count(s => s.SaleDate.Date == DateTime.UtcNow.Date);

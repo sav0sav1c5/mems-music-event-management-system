@@ -45,6 +45,8 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         [Required]
         [Range(1, int.MaxValue)]
         public int TicketLimit { get; set; }
+
+        public List<int>? TicketTypeIds { get; set; }
     }
 
     public class SpecialOfferUpdateDto
@@ -65,5 +67,7 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
 
         [Range(1, int.MaxValue)]
         public int? TicketLimit { get; set; }
+
+        public List<int>? TicketTypeIds { get; set; }
     }
 }
