@@ -195,8 +195,8 @@ BEGIN
         END IF;
         
         -- Validacija: SaleDate ne može biti u budućnosti
-        IF NEW."SaleDate" > CURRENT_TIMESTAMP THEN
-            RAISE EXCEPTION 'SaleDate ne može biti u budućnosti: %', NEW."SaleDate";
+        IF NEW."SaleDate" AT TIME ZONE 'UTC' > CURRENT_TIMESTAMP AT TIME ZONE 'UTC' THEN
+            RAISE EXCEPTION 'SaleDate ne moze biti u buducnosti: %', NEW."SaleDate";
         END IF;
         
         -- Log operacije

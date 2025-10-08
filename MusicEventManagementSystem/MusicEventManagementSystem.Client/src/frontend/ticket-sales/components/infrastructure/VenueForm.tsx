@@ -79,8 +79,8 @@ const VenueForm = ({
     : !!venueForm.name && !!venueForm.address && !!venueForm.city && venueForm.eventId !== 0;
 
   return (
-    <Card className="overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-900/60 backdrop-blur-sm">
-      <div className="flex justify-between items-center mb-3 pb-3 border-b border-neutral-800">
+    <Card className="overflow-hidden border border-neutral-800 shadow-xl bg-neutral-900/60 backdrop-blur-sm">
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-neutral-800">
         <h2 className="text-xl font-bold text-lime-400">
           {isEdit ? 'Edit Venue' : 'Create New Venue'}
         </h2>

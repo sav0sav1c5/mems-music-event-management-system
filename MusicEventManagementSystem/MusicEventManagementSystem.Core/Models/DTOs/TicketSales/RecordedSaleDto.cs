@@ -32,6 +32,8 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
 
         [Required]
         public string ApplicationUserId { get; set; }
+
+        public List<int> TicketIds { get; set; } = new();
     }
 
     public class RecordedSaleUpdateDto

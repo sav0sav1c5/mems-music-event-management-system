@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using MusicEventManagementSystem.Infrastructure.Database;
+using MusicEventManagementSystem.Infrastructure.Repositories;
 using Npgsql;
 using System.Text.Json;
 
@@ -15,13 +18,17 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
         private readonly IPdfGeneratorService _pdfGenerator;
+        private readonly ITicketRepository _ticketRepository;
+        private readonly ApplicationDbContext _context;
 
-        public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository, IConfiguration configuration, IPdfGeneratorService pdfGenerator)
+        public RecordedSaleService(IRecordedSaleRepository recordedSaleRepository, IConfiguration configuration, IPdfGeneratorService pdfGenerator, ITicketRepository ticketRepository, ApplicationDbContext context)
         {
             _recordedSaleRepository = recordedSaleRepository;
             _configuration = configuration;
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _pdfGenerator = pdfGenerator;
+            _ticketRepository = ticketRepository;
+            _context = context;
         }
 
         public async Task<IEnumerable<RecordedSaleResponseDto>> GetAllRecordedSalesAsync()
@@ -44,13 +51,48 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
         public async Task<RecordedSaleResponseDto> CreateRecordedSaleAsync(RecordedSaleCreateDto createRecordedSaleDto)
         {
-            var recordedSale = MapToEntity(createRecordedSaleDto);
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            recordedSale.SaleDate = DateTime.UtcNow;
+            try
+            {
+                // VALIDACIJA - prodaja mora imati tikete
+                if (createRecordedSaleDto.TicketIds == null || !createRecordedSaleDto.TicketIds.Any())
+                {
+                    throw new ArgumentException("Prodaja mora imati barem jedan tiket");
+                }
 
-            await _recordedSaleRepository.AddAsync(recordedSale);
-            await _recordedSaleRepository.SaveChangesAsync();
-            return MapToResponseDto(recordedSale);
+                // 1. Kreiraj prodaju
+                var recordedSale = MapToEntity(createRecordedSaleDto);
+                recordedSale.SaleDate = DateTime.UtcNow;
+
+                await _recordedSaleRepository.AddAsync(recordedSale);
+                await _recordedSaleRepository.SaveChangesAsync();
+
+                // 2. POVEŽI POSTOJEĆE TIKETE SA PRODAJOM
+                foreach (var ticketId in createRecordedSaleDto.TicketIds)
+                {
+                    var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+                    if (ticket == null)
+                        throw new Exception($"Tiket sa ID {ticketId} ne postoji");
+
+                    if (ticket.RecordedSaleId != null)
+                        throw new Exception($"Tiket sa ID {ticketId} je već prodat");
+
+                    ticket.RecordedSaleId = recordedSale.RecordedSaleId;
+                    ticket.Status = TicketStatus.Sold;
+                    _ticketRepository.Update(ticket);
+                }
+
+                await _ticketRepository.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return MapToResponseDto(recordedSale);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new Exception($"Greška pri kreiranju prodaje: {ex.Message}");
+            }
         }
 
         public async Task<RecordedSaleResponseDto?> UpdateRecordedSaleAsync(int id, RecordedSaleUpdateDto updateRecordedSaleDto)

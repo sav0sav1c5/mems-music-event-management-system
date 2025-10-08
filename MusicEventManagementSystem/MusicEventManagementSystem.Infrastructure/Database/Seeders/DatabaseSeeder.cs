@@ -748,113 +748,129 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
 
         private static async Task SeedRecordedSales(ApplicationDbContext context, List<Ticket> tickets, List<SpecialOffer> specialOffers, List<ApplicationUser> users)
         {
-            var recordedSales = new List<RecordedSale>();
-            var paymentMethods = new[] { PaymentMethod.CreditCard, PaymentMethod.DebitCard, PaymentMethod.PayPal, PaymentMethod.BankTransfer };
+            // Turn off the trigger temporarily to avoid issues during bulk insert
+            await context.Database.ExecuteSqlRawAsync(
+                @"ALTER TABLE ""RecordedSales"" DISABLE TRIGGER trg_sales_validation_audit;"
+            );
 
-            var soldOrReservedTickets = tickets.Where(t => t.Status == TicketStatus.Sold || t.Status == TicketStatus.Reserved).ToList();
-            var availableTickets = new List<Ticket>(soldOrReservedTickets);
-
-            // Distribution of sales across different time periods
-            var salesDistribution = new[]
+            try
             {
-                // (daysAgo, salesCount, description)
-                (0, 8, "Today"), // TODAY - for daily revenue
-                (-1, 12, "Yesterday"),
-                (-2, 10, "2 days ago"),
-                (-3, 6, "3 days ago"),
-                (-4, 5, "4 days ago"),
-                (-5, 8, "5 days ago"),
-                (-6, 7, "6 days ago"), // One week ago - for weekly revenue
-                (-10, 5, "10 days ago"),
-                (-15, 6, "15 days ago"),
-                (-20, 4, "20 days ago"),
-                (-30, 5, "30 days ago"),
-                (-45, 3, "45 days ago"),
-                (-60, 2, "60 days ago")
-            };
+                var recordedSales = new List<RecordedSale>();
+                var paymentMethods = new[] { PaymentMethod.CreditCard, PaymentMethod.DebitCard, PaymentMethod.PayPal, PaymentMethod.BankTransfer };
 
-            foreach (var (daysAgo, salesCount, description) in salesDistribution)
-            {
-                for (int i = 0; i < salesCount && availableTickets.Count > 0; i++)
+                var soldOrReservedTickets = tickets.Where(t => t.Status == TicketStatus.Sold || t.Status == TicketStatus.Reserved).ToList();
+                var availableTickets = new List<Ticket>(soldOrReservedTickets);
+
+                var salesDistribution = new[]
                 {
-                    var user = users[_random.Next(users.Count)];
-                    var saleDate = DateTime.UtcNow.AddDays(daysAgo).AddHours(_random.Next(-12, 12));
+                    (0, 8, "Today"),
+                    (-1, 12, "Yesterday"),
+                    (-2, 10, "2 days ago"),
+                    (-3, 6, "3 days ago"),
+                    (-4, 5, "4 days ago"),
+                    (-5, 8, "5 days ago"),
+                    (-6, 7, "6 days ago"),
+                    (-10, 5, "10 days ago"),
+                    (-15, 6, "15 days ago"),
+                    (-20, 4, "20 days ago"),
+                    (-30, 5, "30 days ago"),
+                    (-45, 3, "45 days ago"),
+                    (-60, 2, "60 days ago")
+                };
 
-                    // Select 1-4 tickets for this sale
-                    var ticketCount = Math.Min(_random.Next(1, 5), availableTickets.Count);
-                    var saleTickets = new List<Ticket>();
-
-                    for (int j = 0; j < ticketCount; j++)
+                foreach (var (daysAgo, salesCount, description) in salesDistribution)
+                {
+                    for (int i = 0; i < salesCount && availableTickets.Count > 0; i++)
                     {
-                        var ticket = availableTickets[_random.Next(availableTickets.Count)];
-                        saleTickets.Add(ticket);
-                        availableTickets.Remove(ticket);
-                    }
+                        var user = users[_random.Next(users.Count)];
 
-                    if (saleTickets.Count == 0) continue;
+                        // Create date in past days with some time variation and without timezone offset
+                        var saleDate = DateTime.UtcNow.AddDays(daysAgo).AddHours(_random.Next(-12, 12));
 
-                    var totalAmount = saleTickets.Sum(t => t.FinalPrice);
-                    var appliedOffers = new List<SpecialOffer>();
+                        if (saleDate >= DateTime.UtcNow)
+                        {
+                            saleDate = DateTime.UtcNow.AddMinutes(-5);
+                        }
 
-                    // Randomly apply 0-1 special offers
-                    if (_random.Next(100) < 40) // 40% chance
-                    {
-                        var offer = specialOffers[_random.Next(specialOffers.Count)];
-                        appliedOffers.Add(offer);
-                        totalAmount -= totalAmount * (offer.DiscountValue / 100m);
-                    }
+                        var ticketCount = Math.Min(_random.Next(1, 5), availableTickets.Count);
+                        var saleTickets = new List<Ticket>();
 
-                    // Transaction status distribution
-                    TransactionStatus status;
-                    var statusRoll = _random.Next(100);
-                    if (statusRoll < 85) status = TransactionStatus.Completed;
-                    else if (statusRoll < 95) status = TransactionStatus.Pending;
-                    else status = TransactionStatus.Failed;
+                        for (int j = 0; j < ticketCount; j++)
+                        {
+                            var ticket = availableTickets[_random.Next(availableTickets.Count)];
+                            saleTickets.Add(ticket);
+                            availableTickets.Remove(ticket);
+                        }
 
-                    var sale = new RecordedSale
-                    {
-                        TotalAmount = Math.Round(Math.Max(totalAmount, 0), 2),
-                        SaleDate = saleDate,
-                        TransactionStatus = status,
-                        PaymentMethod = paymentMethods[_random.Next(paymentMethods.Length)],
-                        ApplicationUserId = user.Id,
-                        Tickets = saleTickets,
-                        SpecialOffers = appliedOffers
-                    };
+                        if (saleTickets.Count == 0) continue;
 
-                    recordedSales.Add(sale);
+                        var totalAmount = saleTickets.Sum(t => t.FinalPrice);
+                        var appliedOffers = new List<SpecialOffer>();
 
-                    // Update ticket statuses
-                    foreach (var ticket in saleTickets)
-                    {
-                        ticket.Status = status == TransactionStatus.Completed ? TicketStatus.Sold :
-                                       status == TransactionStatus.Failed ? TicketStatus.Available :
-                                       TicketStatus.Reserved;
+                        if (_random.Next(100) < 40)
+                        {
+                            var offer = specialOffers[_random.Next(specialOffers.Count)];
+                            appliedOffers.Add(offer);
+                            totalAmount -= totalAmount * (offer.DiscountValue / 100m);
+                        }
+
+                        TransactionStatus status;
+                        var statusRoll = _random.Next(100);
+                        if (statusRoll < 85) status = TransactionStatus.Completed;
+                        else if (statusRoll < 95) status = TransactionStatus.Pending;
+                        else status = TransactionStatus.Failed;
+
+                        var sale = new RecordedSale
+                        {
+                            TotalAmount = Math.Round(Math.Max(totalAmount, 0), 2),
+                            SaleDate = saleDate,
+                            TransactionStatus = status,
+                            PaymentMethod = paymentMethods[_random.Next(paymentMethods.Length)],
+                            ApplicationUserId = user.Id,
+                            Tickets = saleTickets,
+                            SpecialOffers = appliedOffers
+                        };
+
+                        recordedSales.Add(sale);
+
+                        foreach (var ticket in saleTickets)
+                        {
+                            ticket.Status = status == TransactionStatus.Completed ? TicketStatus.Sold :
+                                           status == TransactionStatus.Failed ? TicketStatus.Available :
+                                           TicketStatus.Reserved;
+                        }
                     }
                 }
-            }
 
-            context.RecordedSales.AddRange(recordedSales);
-            await context.SaveChangesAsync();
+                context.RecordedSales.AddRange(recordedSales);
+                await context.SaveChangesAsync();
 
-            // Link tickets to their sales
-            foreach (var sale in recordedSales)
-            {
-                foreach (var ticket in sale.Tickets)
+                // Link tickets to their sales
+                foreach (var sale in recordedSales)
                 {
-                    ticket.RecordedSaleId = sale.RecordedSaleId;
+                    foreach (var ticket in sale.Tickets)
+                    {
+                        ticket.RecordedSaleId = sale.RecordedSaleId;
+                    }
                 }
+                await context.SaveChangesAsync();
+
+                var todaySales = recordedSales.Count(s => s.SaleDate.Date == DateTime.UtcNow.Date);
+                var thisWeekSales = recordedSales.Count(s => s.SaleDate >= DateTime.UtcNow.AddDays(-7));
+                var todayRevenue = recordedSales.Where(s => s.SaleDate.Date == DateTime.UtcNow.Date && s.TransactionStatus == TransactionStatus.Completed).Sum(s => s.TotalAmount);
+
+                Console.WriteLine($"✓ Created {recordedSales.Count} recorded sales");
+                Console.WriteLine($"  ├─ Today: {todaySales} sales (Revenue: {todayRevenue:N0} RSD)");
+                Console.WriteLine($"  ├─ This week: {thisWeekSales} sales");
+                Console.WriteLine($"  └─ Distributed across {salesDistribution.Length} time periods");
             }
-            await context.SaveChangesAsync();
-
-            var todaySales = recordedSales.Count(s => s.SaleDate.Date == DateTime.UtcNow.Date);
-            var thisWeekSales = recordedSales.Count(s => s.SaleDate >= DateTime.UtcNow.AddDays(-7));
-            var todayRevenue = recordedSales.Where(s => s.SaleDate.Date == DateTime.UtcNow.Date && s.TransactionStatus == TransactionStatus.Completed).Sum(s => s.TotalAmount);
-
-            Console.WriteLine($"✓ Created {recordedSales.Count} recorded sales");
-            Console.WriteLine($"  ├─ Today: {todaySales} sales (Revenue: {todayRevenue:N0} RSD)");
-            Console.WriteLine($"  ├─ This week: {thisWeekSales} sales");
-            Console.WriteLine($"  └─ Distributed across {salesDistribution.Length} time periods");
+            finally
+            {
+                // Turn on the trigger back on
+                await context.Database.ExecuteSqlRawAsync(
+                    @"ALTER TABLE ""RecordedSales"" ENABLE TRIGGER trg_sales_validation_audit;"
+                );
+            }
         }
 
         private static async Task LinkRelationships(ApplicationDbContext context, List<Event> events, List<TicketType> ticketTypes, List<PricingRule> pricingRules, List<SpecialOffer> specialOffers)

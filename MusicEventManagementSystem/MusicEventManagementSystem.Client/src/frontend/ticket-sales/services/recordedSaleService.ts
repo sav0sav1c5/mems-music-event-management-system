@@ -37,14 +37,30 @@ export interface ComprehensiveAnalysisResponse {
     [key: string]: AnalysisSection[];
   };
   summary: AnalysisSummary;
-  // Backend returns PascalCase, so we support both
-  GeneratedAt?: string;
   StartDate?: string;
   EndDate?: string;
   EventId?: number;
   Sections?: {
     [key: string]: AnalysisSection[];
   };
+}
+
+export interface AuditLogEntry {
+  auditId: number;
+  recordedSaleId: number;
+  action: string;
+  oldTotalAmount: number | null;
+  newTotalAmount: number | null;
+  ticketCount: number;
+  changedAt: string;
+  changedBy: string;
+}
+
+export interface PerformanceMetric {
+  testName: string;
+  executionTimeMs: number;
+  rowsReturned: number;
+  indexUsed: boolean;
 }
 
 const API_BASE_URL = 'https://localhost:7011/api';
@@ -131,7 +147,7 @@ export class RecordedSaleService {
 
   static async getRevenueAnalysis(fromDate: Date, toDate: Date): Promise<RevenueAnalysisResponse> {
     const response = await apiService.get(
-    `${this.BASE_URL}/analytics/revenue?startDate=${fromDate.toISOString().split('T')[0]}&endDate=${toDate.toISOString().split('T')[0]}`
+      `${this.BASE_URL}/analytics/revenue?startDate=${fromDate.toISOString().split('T')[0]}&endDate=${toDate.toISOString().split('T')[0]}`
     );
     return response.data;
   }
@@ -227,6 +243,16 @@ export class RecordedSaleService {
       : `${this.BASE_URL}/section/${encodeURIComponent(sectionName)}`;
 
     const response = await apiService.get(url);
+    return response.data;
+  }
+
+  static async getSalesAuditLog(limit: number = 50): Promise<AuditLogEntry[]> {
+    const response = await apiService.get(`${this.BASE_URL}/audit-log?limit=${limit}`);
+    return response.data;
+  }
+
+  static async getIndexPerformance(): Promise<PerformanceMetric[]> {
+    const response = await apiService.get(`${this.BASE_URL}/performance/indexes`);
     return response.data;
   }
 }
