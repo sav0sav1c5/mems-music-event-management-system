@@ -9,6 +9,7 @@ interface PricingRuleCardProps {
   ticketTypes: TicketTypeResponse[];
   onEdit: (rule: PricingRuleResponse) => void;
   onDelete: (ruleId: number) => void;
+  onView: (rule: PricingRuleResponse) => void;
 }
 
 const formatPricingCondition = (condition: number): string => {
@@ -44,7 +45,8 @@ const PricingRuleCard = ({
   events,
   ticketTypes,
   onEdit,
-  onDelete
+  onDelete,
+  onView
 }: PricingRuleCardProps) => {
   const relatedEvents = events.filter(event => 
     rule.eventIds?.includes(event.id)
@@ -55,7 +57,8 @@ const PricingRuleCard = ({
 
   return (
     <Card
-      className="group p-6 relative border border-neutral-800 hover:border-lime-500/50 transition-all duration-200"
+      className="group p-6 relative border border-neutral-800 hover:border-lime-500/50 transition-all duration-200 cursor-pointer"
+      onClick={() => onView(rule)}
     >
       {/* Action Buttons - Always Visible */}
       <div className="absolute top-4 right-4 flex gap-2 opacity-100 transition-opacity duration-200">

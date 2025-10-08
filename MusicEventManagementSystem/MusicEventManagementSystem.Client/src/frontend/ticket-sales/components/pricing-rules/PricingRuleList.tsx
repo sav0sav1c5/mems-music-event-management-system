@@ -12,6 +12,7 @@ interface PricingRuleListProps {
   eventFilter: string;
   onEdit: (rule: PricingRuleResponse) => void;
   onDelete: (ruleId: number) => void;
+  onView: (rule: PricingRuleResponse) => void;
 }
 
 const PricingRuleList = ({
@@ -21,7 +22,8 @@ const PricingRuleList = ({
   ticketTypes,
   eventFilter,
   onEdit,
-  onDelete
+  onDelete,
+  onView
 }: PricingRuleListProps) => {
   return (
     <div className="flex-1 overflow-y-auto min-h-0">
@@ -54,6 +56,7 @@ const PricingRuleList = ({
                   ticketTypes={ticketTypes}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onView={onView}
                 />
               ))}
             </div>

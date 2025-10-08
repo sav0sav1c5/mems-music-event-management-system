@@ -14,7 +14,6 @@ interface PricingRuleHeaderProps {
   events: EventResponse[];
   onCreateNew: () => void;
   error: string | null;
-  showPanel: boolean;
 }
 
 const formatPricingCondition = (condition: PricingCondition): string => {
@@ -40,8 +39,7 @@ const PricingRuleHeader = ({
   onEventFilterChange,
   events,
   onCreateNew,
-  error,
-  showPanel
+  error
 }: PricingRuleHeaderProps) => {
   const conditionOptions: CustomSelectOption[] = [
     { value: 'all', label: 'All Conditions' },
@@ -114,8 +112,8 @@ const PricingRuleHeader = ({
         </div>
       </div>
 
-      {error && !showPanel && (
-        <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-xl flex items-center gap-3 backdrop-blur-sm mb-6">
+      {error && (
+        <div className="bg-red-900/20 border border-red-500/30 text-red-200 p-4 rounded-xl flex items-center gap-3 backdrop-blur-sm mt-4">
           <div className="p-2 bg-red-500/20 rounded-xl">
             <XCircle size={20} className="text-red-400" />
           </div>
