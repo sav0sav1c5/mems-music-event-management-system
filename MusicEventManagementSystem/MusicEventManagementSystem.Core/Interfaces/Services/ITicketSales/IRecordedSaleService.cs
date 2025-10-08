@@ -21,8 +21,18 @@ namespace MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales
         Task<int> GetSalesCountByStatusAsync(TransactionStatus status);
 
         Task<RevenueAnalysisDto> GetRevenueAnalysisAsync(DateTime startDate, DateTime endDate);
+
+        // Comprehensive analysis (uses new analysis function with cursors)
         Task<AnalysisReport> GenerateComprehensiveAnalysisAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
+
+        // Export operations
         Task<byte[]> ExportAnalysisToPdfAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> ExportAnalysisToExcelAsync(int? eventId = null, DateTime? startDate = null, DateTime? endDate = null);
+
+        // Audit log operations (from database trigger)
+        Task<List<SalesAuditLogDto>> GetSalesAuditLogAsync(int limit = 50);
+
+        // Performance monitoring (from index performance tests)
+        Task<List<IndexPerformanceDto>> GetIndexPerformanceAsync();
     }
 }

@@ -43,4 +43,24 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public DateTime? SaleDate { get; set; }
         public TransactionStatus? TransactionStatus { get; set; }
     }
+
+    public class SalesAuditLogDto
+    {
+        public int AuditId { get; set; }
+        public int RecordedSaleId { get; set; }
+        public string Action { get; set; } // INSERT, UPDATE, DELETE
+        public decimal? OldTotalAmount { get; set; }
+        public decimal? NewTotalAmount { get; set; }
+        public int TicketCount { get; set; }
+        public DateTime ChangedAt { get; set; }
+        public string ChangedBy { get; set; }
+    }
+
+    public class IndexPerformanceDto
+    {
+        public string TestName { get; set; }
+        public decimal ExecutionTimeMs { get; set; }
+        public long RowsReturned { get; set; }
+        public bool IndexUsed { get; set; }
+    }
 }

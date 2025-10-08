@@ -337,5 +337,39 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
                 return StatusCode(500, "An error occurred");
             }
         }
+
+        // Get sales audit log (triggered by database trigger)
+        [Authorize(Roles = "TicketSales")]
+        [HttpGet("audit-log")]
+        public async Task<IActionResult> GetSalesAuditLog([FromQuery] int limit = 50)
+        {
+            try
+            {
+                var auditLog = await _recordedSaleService.GetSalesAuditLogAsync(limit);
+                return Ok(auditLog);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving audit log");
+                return StatusCode(500, "An error occurred while retrieving audit log");
+            }
+        }
+
+        // Get index performance statistics
+        [Authorize(Roles = "TicketSales")]
+        [HttpGet("performance/indexes")]
+        public async Task<IActionResult> GetIndexPerformance()
+        {
+            try
+            {
+                var performance = await _recordedSaleService.GetIndexPerformanceAsync();
+                return Ok(performance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving index performance");
+                return StatusCode(500, "An error occurred while retrieving performance data");
+            }
+        }
     }
 }

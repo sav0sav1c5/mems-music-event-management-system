@@ -181,8 +181,8 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
             // Call the stored procedure - PLSQL function
             await using var cmd = new NpgsqlCommand(
-                "SELECT * FROM sp_comprehensive_sales_analysis(@eventId, @startDate, @endDate)",
-                connection);
+                            "SELECT * FROM sp_comprehensive_sales_analysis_v2(@eventId, @startDate, @endDate)",
+                            connection);
 
             cmd.Parameters.AddWithValue("eventId", eventId ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("startDate", startDate ?? (object)DBNull.Value);
@@ -262,6 +262,68 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
             }
 
             return package.GetAsByteArray();
+        }
+
+        public async Task<List<SalesAuditLogDto>> GetSalesAuditLogAsync(int limit = 50)
+        {
+            var auditLogs = new List<SalesAuditLogDto>();
+
+            await using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            // Call the helper function from SQL script
+            await using var cmd = new NpgsqlCommand(
+                "SELECT * FROM get_sales_audit_log(@limit)",
+                connection);
+
+            cmd.Parameters.AddWithValue("limit", limit);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                auditLogs.Add(new SalesAuditLogDto
+                {
+                    AuditId = reader.GetInt32(0),
+                    RecordedSaleId = reader.GetInt32(1),
+                    Action = reader.GetString(2),
+                    OldTotalAmount = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
+                    NewTotalAmount = reader.IsDBNull(4) ? null : reader.GetDecimal(4),
+                    TicketCount = reader.GetInt32(5),
+                    ChangedAt = reader.GetDateTime(6),
+                    ChangedBy = reader.GetString(7)
+                });
+            }
+
+            return auditLogs;
+        }
+
+        public async Task<List<IndexPerformanceDto>> GetIndexPerformanceAsync()
+        {
+            var performanceTests = new List<IndexPerformanceDto>();
+
+            await using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            // Call the performance demonstration function
+            await using var cmd = new NpgsqlCommand(
+                "SELECT * FROM demonstrate_index_performance()",
+                connection);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                performanceTests.Add(new IndexPerformanceDto
+                {
+                    TestName = reader.GetString(0),
+                    ExecutionTimeMs = reader.GetDecimal(1),
+                    RowsReturned = reader.GetInt64(2),
+                    IndexUsed = reader.GetBoolean(3)
+                });
+            }
+
+            return performanceTests;
         }
 
         // Private helper methods for analysis report generation

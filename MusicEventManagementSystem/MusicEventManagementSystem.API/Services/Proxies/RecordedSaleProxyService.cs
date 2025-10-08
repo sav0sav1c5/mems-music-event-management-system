@@ -370,5 +370,15 @@ namespace MusicEventManagementSystem.API.Services.Proxies
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<SalesAuditLogDto>> GetSalesAuditLogAsync(int limit = 50)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<IndexPerformanceDto>> GetIndexPerformanceAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
