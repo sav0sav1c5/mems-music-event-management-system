@@ -12,6 +12,7 @@ namespace MusicEventManagementSystem.Core.Models.DTOs.Client
         public string ApplicationUserId { get; set; } = string.Empty;
         public PaymentMethod PaymentMethod { get; set; }
         public string? PromoCode { get; set; }
+        public List<CartItemDto> CartItems { get; set; } = new();
     }
 
     public class CheckoutResponseDto

@@ -75,7 +75,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
             }
         }
 
-        [Authorize(Roles = "TicketSales")]
+        [Authorize(Roles = "MEMSClient,TicketSales")]
         [HttpPut("{id}")]
         public async Task<ActionResult<TicketResponseDto>> UpdateTicket(int id, [FromBody] TicketUpdateDto updateTicketDto)
         {

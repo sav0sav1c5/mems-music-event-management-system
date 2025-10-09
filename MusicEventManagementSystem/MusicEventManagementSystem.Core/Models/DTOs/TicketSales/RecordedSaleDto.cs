@@ -33,7 +33,7 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         [Required]
         public string ApplicationUserId { get; set; }
 
-        public List<int> TicketIds { get; set; } = new();
+        public List<int>? TicketIds { get; set; }
     }
 
     public class RecordedSaleUpdateDto
@@ -44,6 +44,8 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public PaymentMethod? PaymentMethod { get; set; }
         public DateTime? SaleDate { get; set; }
         public TransactionStatus? TransactionStatus { get; set; }
+        public List<int>? TicketIds { get; set; }
+
     }
 
     public class SalesAuditLogDto

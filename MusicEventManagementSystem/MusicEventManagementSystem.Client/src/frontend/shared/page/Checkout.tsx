@@ -9,16 +9,30 @@ import type { CheckoutRequestDto } from "../../shared/types/api/checkout";
 import { PaymentMethod } from "../../ticket-sales/types/enums/TicketSales";
 import { useAuth } from "../contexts/AuthContext";
 
+const getPaymentMethodName = (method: PaymentMethod): string => {
+  switch (method) {
+    case PaymentMethod.CreditCard: return 'Credit Card';
+    case PaymentMethod.DebitCard: return 'Debit Card';
+    case PaymentMethod.PayPal: return 'PayPal';
+    case PaymentMethod.BankTransfer: return 'Bank Transfer';
+    case PaymentMethod.Cash: return 'Cash';
+    case PaymentMethod.ApplePay: return 'Apple Pay';
+    case PaymentMethod.GooglePay: return 'Google Pay';
+    case PaymentMethod.Cryptocurrency: return 'Cryptocurrency';
+    default: return 'Credit Card';
+  }
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
-  const { userId, isAuthenticated } = useAuth(); // Replace with actual user ID from auth context
+  const { userId } = useAuth();
   const [step, setStep] = useState<'billing' | 'payment' | 'review' | 'complete'>('billing');
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<CartDto | null>(null);
   const [cartLoading, setCartLoading] = useState(true);
   const [orderId, setOrderId] = useState<number | null>(null);
 
-  // Form data
+  // Form data (samo za UI - ne šalje se backend-u)
   const [billingInfo, setBillingInfo] = useState({
     firstName: '',
     lastName: '',
@@ -30,64 +44,67 @@ const Checkout = () => {
     country: 'Serbia'
   });
 
-  const [paymentInfo, setPaymentInfo] = useState({
+  const [paymentInfo, setPaymentInfo] = useState<{
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+    cardholderName: string;
+    paymentMethod: PaymentMethod;
+  }>({
     cardNumber: '',
     expiryDate: '',
     cvv: '',
     cardholderName: '',
-    saveCard: false
+    paymentMethod: PaymentMethod.CreditCard
   });
 
   useEffect(() => {
     fetchCart();
   }, []);
 
-  const fetchCart = async () => {
-    try {
-      setCartLoading(true);
-      const cartData = await CartService.getCart(userId);
-      setCart(cartData);
-      
-      // Redirect if cart is empty
-      if (!cartData.items || cartData.items.length === 0) {
-        navigate("/client/cart");
-      }
-    } catch (error) {
-      console.error("Error fetching cart:", error);
+const fetchCart = async () => {
+  try {
+    setCartLoading(true);
+    const cartData = await CartService.getCart(userId);
+    setCart(cartData);
+    
+    // DODAJTE PROVERU
+    if (!cartData.items || cartData.items.length === 0) {
+      console.log('🛒 Cart is empty, redirecting to cart page');
       navigate("/client/cart");
-    } finally {
-      setCartLoading(false);
+      return;
     }
-  };
+    
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    navigate("/client/cart");
+  } finally {
+    setCartLoading(false);
+  }
+};
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoading(true);
   
   try {
+    console.log('🛒 Cart items before checkout:', cart?.items);
+    
+    // OVO JE KLJUČNO - morate dodati cartItems
     const checkoutRequest: CheckoutRequestDto = {
       applicationUserId: userId,
-      paymentMethod: PaymentMethod.CreditCard,
-      billingInfo: {
-        firstName: billingInfo.firstName,
-        lastName: billingInfo.lastName,
-        email: billingInfo.email,
-        phone: billingInfo.phone,
-        address: billingInfo.address,
-        city: billingInfo.city,
-        postalCode: billingInfo.postalCode,
-        country: billingInfo.country
-      },
-      paymentInfo: {
-        cardNumber: paymentInfo.cardNumber.replace(/\s/g, ''), // Uklonite razmake
-        expiryDate: paymentInfo.expiryDate,
-        cvv: paymentInfo.cvv,
-        cardholderName: paymentInfo.cardholderName
-      }
+      paymentMethod: paymentInfo.paymentMethod,
+      promoCode: undefined,
+      cartItems: cart?.items || [] // DODAJTE OVO
     };
 
-    console.log('🛒 Cart items before checkout:', cart?.items);
     console.log('📦 Checkout request payload:', JSON.stringify(checkoutRequest, null, 2));
+    console.log('🎫 Sending cart items:', checkoutRequest.cartItems.length);
+
+    // Proverite da li cartItems nije prazan
+    if (!checkoutRequest.cartItems || checkoutRequest.cartItems.length === 0) {
+      throw new Error("Cart is empty - cannot proceed with checkout");
+    }
 
     const response = await OrdersService.checkout(userId, checkoutRequest);
     console.log('✅ Checkout successful:', response);
@@ -95,21 +112,25 @@ const handleSubmit = async (e: React.FormEvent) => {
     setOrderId(response.orderId);
     setStep('complete');
     
+    await CartService.clearCart(userId);
+    
   } catch (error: any) {
     console.error("❌ Error processing checkout:", error);
     
     if (error.response?.status === 400) {
-      const errorDetails = error.response.data;
-      console.error('🔍 Validation error details:', errorDetails);
+      const errorMessage = error.response?.data?.message || error.response?.data || "Invalid request";
+      console.error('🔍 Error details:', errorMessage);
       
-      // Proverite da li je greška vezana za ticket availability
-      if (errorDetails.message?.includes('recorded sale') || errorDetails.message?.includes('ticket') || errorDetails.message?.includes('available')) {
+      if (typeof errorMessage === 'string' && 
+          (errorMessage.includes('ticket') || errorMessage.includes('available') || errorMessage.includes('Cart'))) {
         alert("Some tickets in your cart are no longer available. Please review your cart and try again.");
-        // Refresh cart da dobijete ažurirano stanje
-        await fetchCart();
+        await fetchCart(); // Osvežite korpu
       } else {
-        alert(`Error: ${errorDetails.message || "Invalid request data"}`);
+        alert(`Error: ${errorMessage}`);
       }
+    } else if (error.message.includes("Cart is empty")) {
+      alert("Your cart is empty. Please add tickets before checkout.");
+      navigate("/client/cart");
     } else {
       alert("Failed to process your order. Please try again.");
     }
@@ -147,7 +168,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     }).format(amount);
   };
 
-  // Calculations
   const subtotal = cart?.subtotal || 0;
   const discount = cart?.totalDiscount || 0;
   const serviceFee = subtotal > 0 ? Math.max((subtotal - discount) * 0.08, 5) : 0;
@@ -169,7 +189,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="bg-neutral-800/30 rounded-xl p-6 mb-8 border border-neutral-700">
                 <p className="text-white mb-2 text-lg">
                   Order #: <span className="text-orange-400 font-bold">
-                    {orderId ? `ORD-${orderId}` : 'Processing...'}
+                    {orderId ? `ORD-${String(orderId).padStart(8, '0')}` : 'Processing...'}
                   </span>
                 </p>
                 <p className="text-neutral-400">
@@ -217,7 +237,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="text-white h-full flex flex-col p-4 m-1 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between gap-6 mb-6">
-          {/* Left side - Back button and title */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/client/cart")}
@@ -227,15 +246,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               Back to Cart
             </button>
             
-            {/* <div className="h-8 w-px bg-neutral-700" /> */}
-            
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">Secure Checkout</h1>
               <p className="text-neutral-400 text-sm">Complete your ticket purchase</p>
             </div>
           </div>
 
-          {/* Right side - Progress steps */}
+          {/* Progress Steps */}
           <div className="flex justify-end">
             <div className="flex w-200">
               {[
@@ -249,7 +266,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 
                 return (
                   <div key={stepItem.name} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center" >
+                    <div className="flex flex-col items-center">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
                         isCurrent 
                           ? 'bg-orange-400 text-black shadow-lg' 
@@ -385,7 +402,33 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold text-white">Payment Method</h2>
-                      <p className="text-neutral-400 text-sm">Enter your card details</p>
+                      <p className="text-neutral-400 text-sm">Select payment method and enter card details</p>
+                    </div>
+                  </div>
+
+                  {/* Payment Method Selection */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-neutral-300 mb-3">Payment Method *</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: PaymentMethod.CreditCard, label: 'Credit Card' },
+                        { value: PaymentMethod.DebitCard, label: 'Debit Card' },
+                        { value: PaymentMethod.PayPal, label: 'PayPal' },
+                        { value: PaymentMethod.BankTransfer, label: 'Bank Transfer' }
+                      ].map((method) => (
+                        <button
+                          key={method.value}
+                          type="button"
+                          onClick={() => setPaymentInfo({...paymentInfo, paymentMethod: method.value})}
+                          className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                            paymentInfo.paymentMethod === method.value
+                              ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                              : 'border-neutral-700 bg-neutral-800/30 text-neutral-300 hover:border-neutral-600'
+                          }`}
+                        >
+                          <span className="font-medium">{method.label}</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                   
@@ -477,9 +520,19 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <h3 className="text-neutral-300 text-lg font-medium mb-3">Payment Method</h3>
                       <Card className="p-4 bg-neutral-800/30 border border-neutral-700">
                         <div className="space-y-2 text-sm">
-                          <p className="text-white font-medium">Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
-                          <p className="text-neutral-400">Expires {paymentInfo.expiryDate}</p>
-                          <p className="text-neutral-400">{paymentInfo.cardholderName}</p>
+                          <p className="text-white font-medium">
+                            {getPaymentMethodName(paymentInfo.paymentMethod)}
+                          </p>
+                          {paymentInfo.paymentMethod === PaymentMethod.CreditCard || 
+                          paymentInfo.paymentMethod === PaymentMethod.DebitCard ? (
+                            <>
+                              <p className="text-white font-medium">Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
+                              <p className="text-neutral-400">Expires {paymentInfo.expiryDate}</p>
+                              <p className="text-neutral-400">{paymentInfo.cardholderName}</p>
+                            </>
+                          ) : (
+                            <p className="text-neutral-400">You will be redirected to complete payment</p>
+                          )}
                         </div>
                       </Card>
                     </div>

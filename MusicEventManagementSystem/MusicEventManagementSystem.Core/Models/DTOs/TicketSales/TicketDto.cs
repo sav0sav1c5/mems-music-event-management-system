@@ -53,6 +53,9 @@ namespace MusicEventManagementSystem.Core.Models.Entities.TicketSales
         public decimal? FinalPrice { get; set; }
 
         public TicketStatus? Status { get; set; }
+
+        public int? TicketTypeId { get; set; }
+
         public int? RecordedSaleId { get; set; }
     }
 }

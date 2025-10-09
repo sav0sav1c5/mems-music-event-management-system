@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.Core.Enums.TicketSales;
+using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Interfaces.Services.ITicketSales;
 using MusicEventManagementSystem.Core.Models.DTOs.TicketSales;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
@@ -13,11 +14,13 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
     public class RecordedSaleController : ControllerBase
     {
         private readonly IRecordedSaleService _recordedSaleService;
+        private readonly ITicketService _ticketService;
         private readonly ILogger<RecordedSaleController> _logger;
 
-        public RecordedSaleController(IRecordedSaleService recordedSaleService, ILogger<RecordedSaleController> logger)
+        public RecordedSaleController(IRecordedSaleService recordedSaleService, ITicketService ticketService, ILogger<RecordedSaleController> logger)
         {
             _recordedSaleService = recordedSaleService;
+            _ticketService = ticketService;
             _logger = logger;
         }
 
@@ -66,6 +69,16 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                foreach (var ticketId in createRecordedSaleDto.TicketIds)
+                {
+                    var ticket = await _ticketService.GetTicketByIdAsync(ticketId);
+                    if (ticket == null)
+                    {
+                        Console.WriteLine($"❌ Ticket with ID {ticketId} not found");
+                        return BadRequest($"Ticket with ID {ticketId} not found");
+                    }
                 }
 
                 var createdRecordedSale = await _recordedSaleService.CreateRecordedSaleAsync(createRecordedSaleDto);

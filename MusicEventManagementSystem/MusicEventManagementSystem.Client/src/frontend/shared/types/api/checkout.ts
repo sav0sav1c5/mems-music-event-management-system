@@ -1,4 +1,5 @@
 import type { PaymentMethod } from '../../../ticket-sales/types/enums/TicketSales';
+import type { CartItemDto } from './cart';
 import type { OrderTicketDto } from './order';
 
 export interface BillingInfoDto {
@@ -23,8 +24,9 @@ export interface CheckoutRequestDto {
   applicationUserId: string;
   paymentMethod: PaymentMethod;
   promoCode?: string;
-  billingInfo: BillingInfoDto;
-  paymentInfo: PaymentInfoDto;
+  cartItems: CartItemDto[];
+  // billingInfo: BillingInfoDto;
+  // paymentInfo: PaymentInfoDto;
 }
 
 export interface CheckoutResponseDto {
@@ -36,4 +38,14 @@ export interface CheckoutResponseDto {
   orderDate?: string;
   status?: string;
   tickets?: OrderTicketDto[];
+}
+
+export interface CheckoutFormData {
+  paymentMethod: PaymentMethod;
+  promoCode?: string;
+  // Ovo je samo za prikaz u formi:
+  cardholderName?: string;
+  cardNumber?: string;
+  expiryDate?: string;
+  cvv?: string;
 }
