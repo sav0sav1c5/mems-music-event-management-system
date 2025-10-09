@@ -354,12 +354,20 @@ const MyOrders = () => {
 
                                   <div className="flex flex-col items-center gap-3">
                                     {/* QR Code Placeholder */}
-                                    <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center border-2 border-orange-400">
-                                      <div className="text-center">
-                                        <QrCode className="w-8 h-8 text-black mx-auto mb-1" />
-                                        <span className="text-black text-xs font-medium">QR CODE</span>
+                                      <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center border-2 border-orange-400 overflow-hidden">
+                                        {ticket.qrCode ? (
+                                          <img 
+                                            src={`data:image/png;base64,${ticket.qrCode}`} 
+                                            alt="QR Code" 
+                                            className="w-full h-full object-contain"
+                                          />
+                                        ) : (
+                                          <div className="text-center">
+                                            <QrCode className="w-8 h-8 text-black mx-auto mb-1" />
+                                            <span className="text-black text-xs font-medium">QR CODE</span>
+                                          </div>
+                                        )}
                                       </div>
-                                    </div>
                                     <button 
                                       onClick={() => handleDownloadTicket(ticket.ticketId)}
                                       className="text-orange-400 hover:text-orange-300 text-sm transition-colors flex items-center gap-1 font-medium"

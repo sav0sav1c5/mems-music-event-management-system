@@ -154,11 +154,12 @@ namespace MusicEventManagementSystem.API.Controllers
                 {
                     return Forbid("You are not authorized to perform this action.");
                 }
-
+                Console.WriteLine($"🔍 Generating PDF for ticket {ticketId}, user {userId}");
                 var pdfBytes = await _orderService.GenerateTicketPdfAsync(ticketId, userId);
-
+                Console.WriteLine($"📄 PDF generated: {pdfBytes?.Length ?? 0} bytes");
                 if (pdfBytes == null || pdfBytes.Length == 0)
                 {
+                    Console.WriteLine("❌ PDF bytes are empty");
                     return NotFound("Ticket PDF could not be generated");
                 }
 
@@ -166,10 +167,13 @@ namespace MusicEventManagementSystem.API.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                Console.WriteLine($"❌ Invalid operation: {ex.Message}");
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Server error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

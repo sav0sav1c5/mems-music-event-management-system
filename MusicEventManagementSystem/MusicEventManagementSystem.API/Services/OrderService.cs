@@ -5,8 +5,13 @@ using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata;
+using Document = QuestPDF.Fluent.Document;
 
 namespace MusicEventManagementSystem.API.Services
 {
@@ -64,7 +69,7 @@ namespace MusicEventManagementSystem.API.Services
                     Console.WriteLine($"✅ Reserved {item.Quantity}x TicketType {item.TicketTypeId}");
                 }
 
-                // Step 2: CREATE ACTUAL TICKETS - OVO FALI!
+                // Step 2: CREATE ACTUAL TICKETS
                 Console.WriteLine("=== STEP 2: Creating actual tickets ===");
                 foreach (var item in checkoutRequest.CartItems)
                 {
@@ -189,211 +194,6 @@ namespace MusicEventManagementSystem.API.Services
                 throw;
             }
         }
-
-        //public async Task<CheckoutResponseDto> CheckoutAsync(string userId, CheckoutRequestDto checkoutRequest)
-        //{
-        //    _logger.LogInformation($"=== CHECKOUT START === User: {userId}");
-
-        //    try
-        //    {
-        //        // Step 1: Get and validate cart
-        //        var cart = await _cartService.GetCartAsync(userId);
-        //        _logger.LogInformation($"Cart retrieved: {cart.Items.Count} items, Total: {cart.Total}");
-
-        //        if (!cart.Items.Any())
-        //        {
-        //            throw new InvalidOperationException("Cart is empty");
-        //        }
-
-        //        var isValid = await _cartService.ValidateCartAsync(userId);
-        //        if (!isValid)
-        //        {
-        //            throw new InvalidOperationException("Cart contains invalid items");
-        //        }
-
-        //        var createdTickets = new List<OrderTicketDto>();
-        //        var ticketIds = new List<int>();
-        //        int? recordedSaleId = null;
-
-        //        // Step 2: Reserve tickets
-        //        _logger.LogInformation("=== STEP 1: Reserving tickets ===");
-        //        foreach (var item in cart.Items)
-        //        {
-        //            _logger.LogInformation($"Attempting to reserve {item.Quantity}x TicketType {item.TicketTypeId} ({item.TicketTypeName})");
-
-        //            var reserved = await _ticketTypeService.ReserveTicketsAsync(item.TicketTypeId, item.Quantity);
-
-        //            if (!reserved)
-        //            {
-        //                _logger.LogError($"Failed to reserve {item.Quantity}x TicketType {item.TicketTypeId}");
-        //                throw new InvalidOperationException($"Failed to reserve {item.Quantity} tickets for {item.TicketTypeName}");
-        //            }
-
-        //            _logger.LogInformation($"✅ Reserved {item.Quantity}x TicketType {item.TicketTypeId}");
-        //        }
-
-        //        // Step 3: Create RecordedSale
-        //        _logger.LogInformation("=== STEP 2: Creating RecordedSale ===");
-
-        //        var recordedSaleDto = new RecordedSaleCreateDto
-        //        {
-        //            TotalAmount = cart.Total,
-        //            SaleDate = DateTime.UtcNow,
-        //            TransactionStatus = TransactionStatus.Pending,
-        //            PaymentMethod = checkoutRequest.PaymentMethod,
-        //            ApplicationUserId = checkoutRequest.ApplicationUserId,
-        //            TicketIds = new List<int>() // Empty initially
-        //        };
-
-        //        _logger.LogInformation($"RecordedSaleDto prepared:");
-        //        _logger.LogInformation($"  - TotalAmount: {recordedSaleDto.TotalAmount}");
-        //        _logger.LogInformation($"  - SaleDate: {recordedSaleDto.SaleDate}");
-        //        _logger.LogInformation($"  - Status: {recordedSaleDto.TransactionStatus}");
-        //        _logger.LogInformation($"  - PaymentMethod: {recordedSaleDto.PaymentMethod}");
-        //        _logger.LogInformation($"  - UserId: {recordedSaleDto.ApplicationUserId}");
-        //        _logger.LogInformation($"  - TicketIds count: {recordedSaleDto.TicketIds?.Count ?? 0}");
-
-        //        RecordedSaleResponseDto recordedSale;
-        //        try
-        //        {
-        //            _logger.LogInformation("Calling RecordedSaleService.CreateRecordedSaleAsync...");
-        //            recordedSale = await _recordedSaleService.CreateRecordedSaleAsync(recordedSaleDto);
-        //            recordedSaleId = recordedSale.RecordedSaleId;
-        //            _logger.LogInformation($"✅ RecordedSale created with ID: {recordedSaleId}");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError(ex, $"❌ Failed to create RecordedSale: {ex.Message}");
-        //            _logger.LogError($"Exception type: {ex.GetType().Name}");
-        //            _logger.LogError($"Stack trace: {ex.StackTrace}");
-
-        //            if (ex.InnerException != null)
-        //            {
-        //                _logger.LogError($"Inner exception: {ex.InnerException.Message}");
-        //            }
-
-        //            throw;
-        //        }
-
-        //        // Step 4: Create tickets
-        //        _logger.LogInformation($"=== STEP 3: Creating tickets for RecordedSale {recordedSaleId} ===");
-
-        //        foreach (var item in cart.Items)
-        //        {
-        //            _logger.LogInformation($"Processing {item.Quantity}x {item.TicketTypeName}");
-
-        //            // Pre-fetch data
-        //            var ticketType = await _ticketTypeService.GetTicketTypeByIdAsync(item.TicketTypeId);
-        //            var zone = await _zoneService.GetZoneByIdAsync(ticketType!.ZoneId);
-        //            var evt = await _eventService.GetEventByIdAsync(ticketType.EventId);
-
-        //            for (int i = 0; i < item.Quantity; i++)
-        //            {
-        //                var ticketDto = new TicketCreateDto
-        //                {
-        //                    IssueDate = DateTime.UtcNow,
-        //                    FinalPrice = item.UnitPrice,
-        //                    Status = TicketStatus.Sold,
-        //                    TicketTypeId = item.TicketTypeId,
-        //                    RecordedSaleId = recordedSaleId
-        //                };
-
-        //                _logger.LogInformation($"Creating ticket {i + 1}/{item.Quantity} for TicketType {item.TicketTypeId}");
-
-        //                try
-        //                {
-        //                    var ticket = await _ticketService.CreateTicketAsync(ticketDto);
-        //                    ticketIds.Add(ticket.TicketId);
-
-        //                    _logger.LogInformation($"✅ Created ticket {ticket.TicketId} with code {ticket.UniqueCode}");
-
-        //                    createdTickets.Add(new OrderTicketDto
-        //                    {
-        //                        TicketId = ticket.TicketId,
-        //                        UniqueCode = ticket.UniqueCode,
-        //                        QrCode = ticket.QrCode,
-        //                        EventName = evt?.Name,
-        //                        TicketTypeName = ticketType.Name,
-        //                        ZoneName = zone?.Name,
-        //                        EventStartDate = evt?.StartDate ?? DateTime.MinValue,
-        //                        Price = ticket.FinalPrice,
-        //                        Status = ticket.Status.ToString()
-        //                    });
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    _logger.LogError(ex, $"❌ Failed to create ticket {i + 1}: {ex.Message}");
-        //                    throw;
-        //                }
-        //            }
-        //        }
-
-        //        _logger.LogInformation($"✅ Created total of {ticketIds.Count} tickets");
-
-        //        // Step 5: Update RecordedSale
-        //        _logger.LogInformation($"=== STEP 4: Updating RecordedSale {recordedSaleId} ===");
-
-        //        try
-        //        {
-        //            await _recordedSaleService.UpdateRecordedSaleAsync(
-        //                recordedSaleId.Value,
-        //                new RecordedSaleUpdateDto
-        //                {
-        //                    TicketIds = ticketIds,
-        //                    TransactionStatus = TransactionStatus.Completed
-        //                });
-
-        //            _logger.LogInformation($"✅ RecordedSale {recordedSaleId} updated with {ticketIds.Count} tickets and marked as Completed");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError(ex, $"❌ Failed to update RecordedSale: {ex.Message}");
-        //            throw;
-        //        }
-
-        //        // Step 6: Clear cart
-        //        await _cartService.ClearCartAsync(userId);
-        //        _logger.LogInformation($"✅ Cart cleared for user {userId}");
-
-        //        _logger.LogInformation($"=== CHECKOUT COMPLETED SUCCESSFULLY ===");
-
-        //        return new CheckoutResponseDto
-        //        {
-        //            OrderId = recordedSale.RecordedSaleId,
-        //            OrderNumber = $"ORD-{recordedSale.RecordedSaleId:D8}",
-        //            TotalAmount = recordedSale.TotalAmount,
-        //            OrderDate = recordedSale.SaleDate,
-        //            Status = TransactionStatus.Completed.ToString(),
-        //            Tickets = createdTickets
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"❌❌❌ CHECKOUT FAILED for user {userId}: {ex.Message}");
-        //        _logger.LogError($"Exception type: {ex.GetType().Name}");
-
-        //        // Rollback logic
-        //        _logger.LogInformation("=== STARTING ROLLBACK ===");
-
-        //        var cart = await _cartService.GetCartAsync(userId);
-
-        //        foreach (var item in cart.Items)
-        //        {
-        //            try
-        //            {
-        //                await _ticketTypeService.ReleaseTicketsAsync(item.TicketTypeId, item.Quantity);
-        //                _logger.LogInformation($"✅ Released {item.Quantity} tickets for TicketType {item.TicketTypeId}");
-        //            }
-        //            catch (Exception releaseEx)
-        //            {
-        //                _logger.LogError(releaseEx, $"❌ Failed to release tickets for TicketType {item.TicketTypeId}");
-        //            }
-        //        }
-
-        //        _logger.LogInformation($"=== ROLLBACK COMPLETED ===");
-        //        throw;
-        //    }
-        //}
 
         public async Task<IEnumerable<OrderDto>> GetUserOrdersAsync(string userId)
         {
@@ -590,7 +390,6 @@ namespace MusicEventManagementSystem.API.Services
 
         public async Task<byte[]> GenerateTicketPdfAsync(int ticketId, string userId)
         {
-            // This is a placeholder - implement actual PDF generation
             var ticket = await GetTicketDetailsAsync(ticketId, userId);
 
             if (ticket == null)
@@ -598,9 +397,251 @@ namespace MusicEventManagementSystem.API.Services
                 throw new InvalidOperationException("Ticket not found");
             }
 
-            // TODO: Implement PDF generation using a library like QuestPDF or iTextSharp
-            // For now, return empty byte array
-            return Array.Empty<byte>();
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            byte[] logoBytes;
+            try
+            {
+                var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "TicketLogo.png");
+                logoBytes = await File.ReadAllBytesAsync(logoPath);
+            }
+            catch
+            {
+                logoBytes = null;
+            }
+
+            var limeGreen = "#9ACD32";
+            var darkBg = "#1a1a1a";
+            var lightGray = "#e5e5e5";
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A6);
+                    page.Margin(0);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Black));
+
+                    // HEADER
+                    page.Header()
+                        .Height(70)
+                        .Background(darkBg)
+                        .Padding(10)
+                        .Row(row =>
+                        {
+                            // Leva strana - MEMS branding
+                            row.RelativeItem()
+                                .AlignLeft()
+                                .AlignMiddle()
+                                .Column(column =>
+                                {
+                                    column.Item().Text("MEMS")
+                                        .FontSize(16)
+                                        .Bold()
+                                        .FontColor(limeGreen);
+                                    column.Item().Text("Event Ticket")
+                                        .FontSize(8)
+                                        .FontColor(Colors.Grey.Lighten2);
+                                });
+
+                            // Desna strana - Logo
+                            if (logoBytes != null)
+                            {
+                                row.ConstantItem(45)
+                                    .AlignRight()
+                                    .AlignMiddle()
+                                    .Width(40)
+                                    .Height(40)
+                                    .Image(logoBytes);
+                            }
+                            else
+                            {
+                                // Fallback placeholder
+                                row.ConstantItem(45)
+                                    .AlignRight()
+                                    .AlignMiddle()
+                                    .Width(40)
+                                    .Height(40)
+                                    .Background(limeGreen)
+                                    .AlignCenter()
+                                    .AlignMiddle()
+                                    .Text("MEMS")
+                                    .FontSize(7)
+                                    .Bold()
+                                    .FontColor(Colors.White);
+                            }
+                        });
+
+                    page.Content()
+                        .Padding(15)
+                        .Column(column =>
+                        {
+                            column.Spacing(5);
+
+                            // Event Name
+                            column.Item()
+                                .BorderBottom(1.5f)
+                                .BorderColor(limeGreen)
+                                .PaddingBottom(5)
+                                .Column(col =>
+                                {
+                                    col.Item().Text("Event Name:")
+                                        .FontSize(7)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.EventName}")
+                                        .FontSize(11)
+                                        .Bold()
+                                        .FontColor(Colors.Black);
+                                });
+
+                            // Ticket Type i Zone
+                            column.Item().Row(row =>
+                            {
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().Text("Ticket Type:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.TicketTypeName}")
+                                        .FontSize(8)
+                                        .SemiBold();
+                                });
+
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().Text("Zone:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.ZoneName}")
+                                        .FontSize(8)
+                                        .SemiBold();
+                                });
+                            });
+
+                            // Start Date i Start Time
+                            column.Item().Row(row =>
+                            {
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().Text("Start Date:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.EventStartDate:dd.MM.yyyy}")
+                                        .FontSize(8)
+                                        .SemiBold();
+                                });
+
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().Text("Start Time:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.EventStartDate:HH:mm}")
+                                        .FontSize(8)
+                                        .SemiBold();
+                                });
+                            });
+
+                            // Separator
+                            column.Item().PaddingVertical(5).LineHorizontal(1).LineColor(lightGray);
+
+                            // Ticket ID and Unique Code
+                            column.Item().Row(row =>
+                            {
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().Text("Ticket ID:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"#{ticket.TicketId}")
+                                        .FontSize(8)
+                                        .SemiBold();
+                                });
+
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().Text("Unique Code:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.UniqueCode}")
+                                        .FontSize(7)
+                                        .FontFamily("Courier New");
+                                });
+                            });
+
+                            // Ticket Price
+                            column.Item()
+                                .PaddingTop(5)
+                                .AlignCenter()
+                                .Column(col =>
+                                {
+                                    col.Item().Text("Ticket Price:")
+                                        .FontSize(6)
+                                        .FontColor(Colors.Grey.Darken1);
+                                    col.Item().Text($"{ticket.Price:C}")
+                                        .FontSize(14)
+                                        .Bold()
+                                        .FontColor(limeGreen);
+                                });
+
+                            // QR Code
+                            column.Item().PaddingTop(8).AlignCenter().Element(qrContainer =>
+                            {
+                                if (!string.IsNullOrEmpty(ticket.QrCode))
+                                {
+                                    try
+                                    {
+                                        var qrBytes = Convert.FromBase64String(ticket.QrCode);
+                                        qrContainer.Width(90).Height(90).Image(qrBytes);
+                                    }
+                                    catch
+                                    {
+                                        qrContainer.Width(90).Height(90)
+                                            .Border(1)
+                                            .BorderColor(Colors.Grey.Lighten1)
+                                            .AlignCenter()
+                                            .AlignMiddle()
+                                            .Text("QR CODE")
+                                            .FontSize(8);
+                                    }
+                                }
+                                else
+                                {
+                                    qrContainer.Width(90).Height(90)
+                                        .Border(1)
+                                        .BorderColor(Colors.Grey.Lighten1)
+                                        .AlignCenter()
+                                        .AlignMiddle()
+                                        .Text("QR CODE")
+                                        .FontSize(8);
+                                }
+                            });
+                        });
+
+                    // FOOTER
+                    page.Footer()
+                        .Height(35)
+                        .Background(darkBg)
+                        .Padding(6)
+                        .AlignCenter()
+                        .AlignMiddle()
+                        .Column(column =>
+                        {
+                            column.Spacing(2);
+
+                            column.Item().AlignCenter().Text("Generated:")
+                                .FontSize(6)
+                                .FontColor(Colors.Grey.Lighten2);
+
+                            column.Item().AlignCenter().Text($"{DateTime.Now:dd.MM.yyyy HH:mm}")
+                                .FontSize(6)
+                                .FontColor(limeGreen);
+                        });
+                });
+            });
+
+            return document.GeneratePdf();
         }
     }
 }

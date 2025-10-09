@@ -2,6 +2,7 @@
 using MusicEventManagementSystem.Core.Interfaces.Repositories.ITicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using QRCoder;
 
 namespace MusicEventManagementSystem.TicketSales.API.Services
 {
@@ -36,6 +37,11 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
         public async Task<TicketResponseDto> CreateTicketAsync(TicketCreateDto createTicketDto)
         {
+            // Validation, if final price isnt calculated ticket cant be created
+            if (createTicketDto.FinalPrice <= 0)
+            {
+                throw new ArgumentException("Final price cannot be negative.");
+            }
             var ticket = MapToEntity(createTicketDto);
 
             // Generate unique code if not provided
@@ -305,9 +311,13 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         private static string GenerateQrCode(string uniqueCode)
         {
             // Method for generating QR code from unique code
-            // Until implemented, return a base64 representation of the unique code
-            byte[] encodedBytes = System.Text.Encoding.UTF8.GetBytes(uniqueCode);
-            return Convert.ToBase64String(encodedBytes);
+            using (var qrGenerator = new QRCodeGenerator())
+            using (var qrCodeData = qrGenerator.CreateQrCode(uniqueCode, QRCodeGenerator.ECCLevel.Q))
+            using (var qrCode = new PngByteQRCode(qrCodeData))
+            {
+                var qrCodeImage = qrCode.GetGraphic(20);
+                return Convert.ToBase64String(qrCodeImage);
+            }
         }
     }
 }
