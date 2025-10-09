@@ -71,7 +71,7 @@ export function CustomDatePicker({
 
   const handleDateClick = (day: number) => {
     const { year, month } = getDaysInMonth(currentMonth);
-    const selectedDate = new Date(year, month, day);
+    const selectedDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
     
     if (isDateDisabled(selectedDate)) return;
     

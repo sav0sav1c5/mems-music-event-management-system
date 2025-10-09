@@ -37,7 +37,6 @@ export const AnalyticsHeader = ({
         
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 max-w-50">
-            <label className="text-neutral-400 text-xs mb-1 block">Start Date</label>
             <CustomDatePicker
               value={formatDateForPicker(dateRange.from)}
               onChange={(value) => {
@@ -50,7 +49,6 @@ export const AnalyticsHeader = ({
           </div>
 
           <div className="min-w-0 flex-1 max-w-50">
-            <label className="text-neutral-400 text-xs mb-1 block">End Date</label>
             <CustomDatePicker
               value={formatDateForPicker(dateRange.to)}
               onChange={(value) => {

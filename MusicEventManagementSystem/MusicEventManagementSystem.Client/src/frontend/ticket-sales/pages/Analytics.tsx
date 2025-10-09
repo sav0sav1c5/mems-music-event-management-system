@@ -170,15 +170,14 @@ const Analytics = () => {
       // Create copies of dates to avoid mutation
       const fromDate = new Date(dateRange.from);
       const toDate = new Date(dateRange.to);
-      toDate.setUTCDate(toDate.getUTCDate() + 1);
       
-      console.log('📅 Analytics API Request:', {
-        userSelectedFrom: dateRange.from.toISOString().split('T')[0],
-        userSelectedTo: dateRange.to.toISOString().split('T')[0],
-        apiFromDate: fromDate.toISOString(),
-        apiToDate: toDate.toISOString(),
-        explanation: `Backend will query: [${fromDate.toISOString().split('T')[0]} 00:00 UTC, ${toDate.toISOString().split('T')[0]} 00:00 UTC)`
-      });
+      // console.log('📅 Analytics API Request:', {
+      //   userSelectedFrom: dateRange.from.toISOString().split('T')[0],
+      //   userSelectedTo: dateRange.to.toISOString().split('T')[0],
+      //   apiFromDate: fromDate.toISOString(),
+      //   apiToDate: toDate.toISOString(),
+      //   explanation: `Backend will query: [${fromDate.toISOString().split('T')[0]} 00:00 UTC, ${toDate.toISOString().split('T')[0]} 00:00 UTC)`
+      // });
 
       const analysis = await RecordedSaleService.getComprehensiveAnalysis(
         undefined,
@@ -186,7 +185,7 @@ const Analytics = () => {
         toDate     // e.g., 2025-10-10 00:00:00 UTC (not 10-09!)
       );
 
-      processBackendAnalysis(analysis);
+  processBackendAnalysis(analysis);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 
                           err.message || 

@@ -421,13 +421,13 @@ namespace MusicEventManagementSystem.API.Services
                     page.Size(PageSizes.A6);
                     page.Margin(0);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Black));
+                    page.DefaultTextStyle(x => x.FontSize(9).FontColor(Colors.Black));
 
                     // HEADER
                     page.Header()
-                        .Height(70)
+                        .Height(90)
                         .Background(darkBg)
-                        .Padding(10)
+                        .Padding(15)
                         .Row(row =>
                         {
                             // Leva strana - MEMS branding
@@ -437,60 +437,62 @@ namespace MusicEventManagementSystem.API.Services
                                 .Column(column =>
                                 {
                                     column.Item().Text("MEMS")
-                                        .FontSize(16)
+                                        .FontSize(24) // 16pt → 28pt
                                         .Bold()
                                         .FontColor(limeGreen);
                                     column.Item().Text("Event Ticket")
-                                        .FontSize(8)
+                                        .FontSize(12) // 8pt → 14pt
                                         .FontColor(Colors.Grey.Lighten2);
                                 });
 
                             // Desna strana - Logo
                             if (logoBytes != null)
                             {
-                                row.ConstantItem(45)
+                                row.ConstantItem(60)
                                     .AlignRight()
                                     .AlignMiddle()
-                                    .Width(40)
-                                    .Height(40)
+                                    .Width(50)
+                                    .Height(50)
                                     .Image(logoBytes);
                             }
                             else
                             {
                                 // Fallback placeholder
-                                row.ConstantItem(45)
+                                row.ConstantItem(70)
                                     .AlignRight()
                                     .AlignMiddle()
-                                    .Width(40)
-                                    .Height(40)
+                                    .Width(60)
+                                    .Height(60)
                                     .Background(limeGreen)
                                     .AlignCenter()
                                     .AlignMiddle()
                                     .Text("MEMS")
-                                    .FontSize(7)
+                                    .FontSize(10)
                                     .Bold()
                                     .FontColor(Colors.White);
                             }
                         });
 
+                    // CONTENT
                     page.Content()
-                        .Padding(15)
+                        .PaddingHorizontal(35)
+                        .PaddingVertical(10)
                         .Column(column =>
                         {
-                            column.Spacing(5);
+                            column.Spacing(6);
 
                             // Event Name
                             column.Item()
-                                .BorderBottom(1.5f)
+                                .BorderBottom(1f)
                                 .BorderColor(limeGreen)
-                                .PaddingBottom(5)
+                                .PaddingBottom(6)
                                 .Column(col =>
                                 {
                                     col.Item().Text("Event Name:")
-                                        .FontSize(7)
+                                        .FontSize(8)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"{ticket.EventName}")
-                                        .FontSize(11)
+                                        .FontSize(13)
                                         .Bold()
                                         .FontColor(Colors.Black);
                                 });
@@ -501,20 +503,20 @@ namespace MusicEventManagementSystem.API.Services
                                 row.RelativeItem().Column(col =>
                                 {
                                     col.Item().Text("Ticket Type:")
-                                        .FontSize(6)
+                                        .FontSize(7)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"{ticket.TicketTypeName}")
-                                        .FontSize(8)
+                                        .FontSize(9)
                                         .SemiBold();
                                 });
 
                                 row.RelativeItem().Column(col =>
                                 {
                                     col.Item().Text("Zone:")
-                                        .FontSize(6)
+                                        .FontSize(7)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"{ticket.ZoneName}")
-                                        .FontSize(8)
+                                        .FontSize(9)
                                         .SemiBold();
                                 });
                             });
@@ -525,26 +527,26 @@ namespace MusicEventManagementSystem.API.Services
                                 row.RelativeItem().Column(col =>
                                 {
                                     col.Item().Text("Start Date:")
-                                        .FontSize(6)
+                                        .FontSize(7)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"{ticket.EventStartDate:dd.MM.yyyy}")
-                                        .FontSize(8)
+                                        .FontSize(9)
                                         .SemiBold();
                                 });
 
                                 row.RelativeItem().Column(col =>
                                 {
                                     col.Item().Text("Start Time:")
-                                        .FontSize(6)
+                                        .FontSize(7)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"{ticket.EventStartDate:HH:mm}")
-                                        .FontSize(8)
+                                        .FontSize(9)
                                         .SemiBold();
                                 });
                             });
 
                             // Separator
-                            column.Item().PaddingVertical(5).LineHorizontal(1).LineColor(lightGray);
+                            column.Item().PaddingVertical(6).LineHorizontal(1).LineColor(lightGray);
 
                             // Ticket ID and Unique Code
                             column.Item().Row(row =>
@@ -552,52 +554,55 @@ namespace MusicEventManagementSystem.API.Services
                                 row.RelativeItem().Column(col =>
                                 {
                                     col.Item().Text("Ticket ID:")
-                                        .FontSize(6)
+                                        .FontSize(7)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"#{ticket.TicketId}")
-                                        .FontSize(8)
+                                        .FontSize(9)
                                         .SemiBold();
                                 });
 
                                 row.RelativeItem().Column(col =>
                                 {
                                     col.Item().Text("Unique Code:")
-                                        .FontSize(6)
+                                        .FontSize(7)
                                         .FontColor(Colors.Grey.Darken1);
                                     col.Item().Text($"{ticket.UniqueCode}")
-                                        .FontSize(7)
+                                        .FontSize(8)
                                         .FontFamily("Courier New");
                                 });
                             });
 
                             // Ticket Price
                             column.Item()
-                                .PaddingTop(5)
+                                .PaddingTop(4)
                                 .AlignCenter()
-                                .Column(col =>
+                                .Row(row =>
                                 {
-                                    col.Item().Text("Ticket Price:")
-                                        .FontSize(6)
+                                    row.AutoItem().AlignRight().AlignMiddle().Text("Ticket Price:")
+                                        .FontSize(9)
                                         .FontColor(Colors.Grey.Darken1);
-                                    col.Item().Text($"{ticket.Price:C}")
-                                        .FontSize(14)
+
+                                    row.ConstantItem(10); // Razmak između teksta i cene
+
+                                    row.AutoItem().AlignLeft().AlignMiddle().Text($"{ticket.Price:C}")
+                                        .FontSize(16)
                                         .Bold()
                                         .FontColor(limeGreen);
                                 });
 
-                            // QR Code
-                            column.Item().PaddingTop(8).AlignCenter().Element(qrContainer =>
+                            // QR Code - malo smanjen da stane sa novim paddingom
+                            column.Item().PaddingTop(5).AlignCenter().Element(qrContainer =>
                             {
                                 if (!string.IsNullOrEmpty(ticket.QrCode))
                                 {
                                     try
                                     {
                                         var qrBytes = Convert.FromBase64String(ticket.QrCode);
-                                        qrContainer.Width(90).Height(90).Image(qrBytes);
+                                        qrContainer.Width(100).Height(100).Image(qrBytes);
                                     }
                                     catch
                                     {
-                                        qrContainer.Width(90).Height(90)
+                                        qrContainer.Width(85).Height(85)
                                             .Border(1)
                                             .BorderColor(Colors.Grey.Lighten1)
                                             .AlignCenter()
@@ -608,7 +613,7 @@ namespace MusicEventManagementSystem.API.Services
                                 }
                                 else
                                 {
-                                    qrContainer.Width(90).Height(90)
+                                    qrContainer.Width(85).Height(85)
                                         .Border(1)
                                         .BorderColor(Colors.Grey.Lighten1)
                                         .AlignCenter()
@@ -621,21 +626,21 @@ namespace MusicEventManagementSystem.API.Services
 
                     // FOOTER
                     page.Footer()
-                        .Height(35)
+                        .Height(40)
                         .Background(darkBg)
-                        .Padding(6)
+                        .Padding(8)
                         .AlignCenter()
                         .AlignMiddle()
                         .Column(column =>
                         {
-                            column.Spacing(2);
+                            column.Spacing(3);
 
                             column.Item().AlignCenter().Text("Generated:")
-                                .FontSize(6)
+                                .FontSize(7)
                                 .FontColor(Colors.Grey.Lighten2);
 
                             column.Item().AlignCenter().Text($"{DateTime.Now:dd.MM.yyyy HH:mm}")
-                                .FontSize(6)
+                                .FontSize(7)
                                 .FontColor(limeGreen);
                         });
                 });

@@ -9,102 +9,178 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 {
     public class PdfGeneratorService : IPdfGeneratorService
     {
-        private static class Colors
-        {
-            public static readonly string Primary = "#84cc16"; // Lime green
-            public static readonly string Secondary = "#22c55e"; // Green
-            public static readonly string Success = "#16a34a"; // Green 600
-            public static readonly string Warning = "#f59e0b"; // Amber 500
-            public static readonly string Danger = "#dc2626"; // Red 600
-            public static readonly string Info = "#0891b2"; // Cyan 600
-            public static readonly string Light = "#f3f4f6"; // Gray 100
-            public static readonly string LightBorder = "#e5e7eb"; // Gray 200
-            public static readonly string TextPrimary = "#1f2937"; // Gray 800
-            public static readonly string TextSecondary = "#6b7280"; // Gray 500
-        }
+        private readonly string _limeGreen = "#9ACD32";
+        private readonly string _darkBg = "#1a1a1a";
+        private readonly string _lightGray = "#e5e5e5";
+        private readonly string _mediumGray = "#6b7280";
 
         public byte[] GenerateSalesAnalysisPdf(AnalysisReport report)
         {
             QuestPDF.Settings.License = LicenseType.Community;
+
+            byte[] logoBytes;
+            try
+            {
+                var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "TicketLogo.png");
+                logoBytes = File.ReadAllBytes(logoPath);
+            }
+            catch
+            {
+                logoBytes = null;
+            }
 
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(1.5f, Unit.Centimetre);
-                    page.PageColor(QuestPDF.Helpers.Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Calibri").FontColor(Colors.TextPrimary));
+                    page.Margin(0);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(9).FontColor(Colors.Black));
 
-                    page.Header().Element(ComposeHeader);
+                    page.Header().Element(c => ComposeHeader(c, logoBytes));
                     page.Content().Element(content => ComposeContent(content, report));
-                    page.Footer().AlignCenter().Text(text =>
-                    {
-                        text.CurrentPageNumber();
-                        text.Span(" / ");
-                        text.TotalPages();
-                    });
+                    page.Footer().Element(ComposeFooter);
                 });
             });
 
             return document.GeneratePdf();
         }
 
-        private void ComposeHeader(IContainer container)
+        private void ComposeHeader(IContainer container, byte[] logoBytes)
         {
-            container.Background(Colors.Primary).Padding(15).Row(row =>
-            {
-                row.RelativeItem().Column(column =>
+            container.Height(100)
+                .Background(_darkBg)
+                .Padding(15)
+                .Row(row =>
                 {
-                    column.Item().Text("TICKET SALES REPORT")
-                        .FontSize(20)
-                        .Bold()
-                        .FontColor(QuestPDF.Helpers.Colors.Black);
+                    row.RelativeItem()
+                        .AlignLeft()
+                        .AlignMiddle()
+                        .Column(column =>
+                        {
+                            column.Item().Text("MEMS")
+                                .FontSize(28)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                            column.Item().Text("Sales Analysis Report")
+                                .FontSize(14)
+                                .FontColor(Colors.Grey.Lighten2);
+                        });
 
-                    column.Item().PaddingTop(3).Text("Music Event Management System")
-                        .FontSize(11)
-                        .FontColor(QuestPDF.Helpers.Colors.Grey.Lighten3);
+                    if (logoBytes != null)
+                    {
+                        row.ConstantItem(65)
+                            .AlignRight()
+                            .AlignMiddle()
+                            .Width(60)
+                            .Height(60)
+                            .Image(logoBytes);
+                    }
+                    else
+                    {
+                        row.ConstantItem(65)
+                            .AlignRight()
+                            .AlignMiddle()
+                            .Width(60)
+                            .Height(60)
+                            .Background(_limeGreen)
+                            .AlignCenter()
+                            .AlignMiddle()
+                            .Text("MEMS")
+                            .FontSize(14)
+                            .Bold()
+                            .FontColor(Colors.White);
+                    }
                 });
-            });
+        }
+
+        private void ComposeFooter(IContainer container)
+        {
+            container.Height(40)
+                .Background(_darkBg)
+                .Padding(10)
+                .AlignCenter()
+                .AlignMiddle()
+                .Column(column =>
+                {
+                    column.Spacing(3);
+
+                    column.Item().AlignCenter().Text("Generated:")
+                        .FontSize(7)
+                        .FontColor(Colors.Grey.Lighten2);
+
+                    column.Item().AlignCenter().Text($"{DateTime.Now:dd.MM.yyyy HH:mm}")
+                        .FontSize(7)
+                        .FontColor(_limeGreen);
+                });
         }
 
         private void ComposeContent(IContainer container, AnalysisReport report)
         {
-            container.PaddingVertical(10).Column(column =>
-            {
-                column.Spacing(12);
-
-                column.Item().Element(c => ComposeReportInfo(c, report));
-                column.Item().Element(c => ComposeSummary(c, report)); // Promenjeno ovde
-
-                foreach (var section in report.Sections.OrderBy(s => GetSectionOrder(s.Key)))
+            container.PaddingVertical(20)
+                .PaddingHorizontal(25)
+                .Column(column =>
                 {
-                    column.Item().Element(c => ComposeSection(c, section.Key, section.Value));
-                }
+                    column.Spacing(15);
 
-                if (report.Summary.Recommendations?.Any() == true)
-                {
-                    column.Item().Element(c => ComposeRecommendations(c, report.Summary.Recommendations));
-                }
-            });
+                    column.Item().Element(c => ComposeReportInfo(c, report));
+                    column.Item().Element(c => ComposeSummary(c, report));
+
+                    foreach (var section in report.Sections.OrderBy(s => GetSectionOrder(s.Key)))
+                    {
+                        column.Item().Element(c => ComposeSection(c, section.Key, section.Value));
+                    }
+
+                    if (report.Summary.Recommendations?.Any() == true)
+                    {
+                        column.Item().Element(c => ComposeRecommendations(c, report.Summary.Recommendations));
+                    }
+                });
         }
 
         private void ComposeReportInfo(IContainer container, AnalysisReport report)
         {
-            container.Background(Colors.Light).Border(1).BorderColor(Colors.LightBorder)
-                .Padding(12).Row(row =>
+            container.BorderBottom(2)
+                .BorderColor(_limeGreen)
+                .PaddingBottom(10)
+                .Column(column =>
                 {
-                    row.RelativeItem().Text($"Generated: {report.GeneratedAt:MM/dd/yyyy HH:mm}")
-                        .FontSize(9).FontColor(Colors.TextPrimary);
-
-                    row.RelativeItem().Text($"Period: {report.StartDate:MM/dd/yyyy} - {report.EndDate:MM/dd/yyyy}")
-                        .FontSize(9).FontColor(Colors.TextPrimary).AlignCenter();
-
-                    if (report.EventId.HasValue)
+                    column.Item().Row(row =>
                     {
-                        row.RelativeItem().Text($"Event ID: {report.EventId.Value}")
-                            .FontSize(9).FontColor(Colors.TextPrimary).AlignRight();
-                    }
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().Text("Report Period:")
+                                .FontSize(8)
+                                .FontColor(_mediumGray);
+                            col.Item().Text($"{report.StartDate:dd.MM.yyyy} - {report.EndDate:dd.MM.yyyy}")
+                                .FontSize(10)
+                                .SemiBold();
+                        });
+
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().Text("Generated:")
+                                .FontSize(8)
+                                .FontColor(_mediumGray);
+                            col.Item().Text($"{report.GeneratedAt:dd.MM.yyyy HH:mm}")
+                                .FontSize(10)
+                                .SemiBold();
+                        });
+
+                        if (report.EventId.HasValue)
+                        {
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text("Event ID:")
+                                    .FontSize(8)
+                                    .FontColor(_mediumGray);
+                                col.Item().Text($"{report.EventId.Value}")
+                                    .FontSize(10)
+                                    .SemiBold();
+                            });
+                        }
+                    });
                 });
         }
 
@@ -115,14 +191,13 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
             container.Column(column =>
             {
-                column.Spacing(8);
+                column.Spacing(10);
 
-                column.Item().Text("SUMMARY OVERVIEW")
-                    .FontSize(15)
+                column.Item().Text("Summary Overview")
+                    .FontSize(14)
                     .Bold()
-                    .FontColor(Colors.Primary);
+                    .FontColor(_limeGreen);
 
-                // Get basic metrics from sections instead of summary
                 var basicMetrics = sections.ContainsKey("BASIC_METRICS")
                     ? sections["BASIC_METRICS"]
                     : new List<SalesAnalysisResult>();
@@ -131,74 +206,96 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
                 var ticketsSoldMetric = basicMetrics.FirstOrDefault(m => m.MetricName == "Total Tickets Sold");
                 var avgPriceMetric = basicMetrics.FirstOrDefault(m => m.MetricName == "Average Ticket Price");
 
-                column.Item().PaddingTop(5).Row(row =>
+                column.Item().PaddingTop(8).Row(row =>
                 {
                     row.Spacing(10);
 
-                    row.RelativeItem().Element(c => CreateSummaryCard(c,
-                        "Total Revenue",
-                        $"{(totalRevenueMetric?.MetricValue ?? 0):N2}",
-                        "RSD",
-                        Colors.Success));
+                    row.RelativeItem().Border(1)
+                        .BorderColor(_lightGray)
+                        .Padding(12)
+                        .Column(col =>
+                        {
+                            col.Item().Text("Total Revenue")
+                                .FontSize(8)
+                                .FontColor(_mediumGray);
+                            col.Item().PaddingTop(5).Text($"{(totalRevenueMetric?.MetricValue ?? 0):N2} RSD")
+                                .FontSize(14)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
 
-                    row.RelativeItem().Element(c => CreateSummaryCard(c,
-                        "Tickets Sold",
-                        $"{(ticketsSoldMetric?.MetricValue ?? 0):N0}",
-                        "pcs",
-                        Colors.Secondary));
+                    row.RelativeItem().Border(1)
+                        .BorderColor(_lightGray)
+                        .Padding(12)
+                        .Column(col =>
+                        {
+                            col.Item().Text("Tickets Sold")
+                                .FontSize(8)
+                                .FontColor(_mediumGray);
+                            col.Item().PaddingTop(5).Text($"{(ticketsSoldMetric?.MetricValue ?? 0):N0}")
+                                .FontSize(14)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
 
-                    row.RelativeItem().Element(c => CreateSummaryCard(c,
-                        "Average Price",
-                        $"{(avgPriceMetric?.MetricValue ?? 0):N2}",
-                        "RSD",
-                        Colors.Warning));
+                    row.RelativeItem().Border(1)
+                        .BorderColor(_lightGray)
+                        .Padding(12)
+                        .Column(col =>
+                        {
+                            col.Item().Text("Average Price")
+                                .FontSize(8)
+                                .FontColor(_mediumGray);
+                            col.Item().PaddingTop(5).Text($"{(avgPriceMetric?.MetricValue ?? 0):N2} RSD")
+                                .FontSize(14)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
                 });
 
                 if (!string.IsNullOrEmpty(summary.TopPerformingZone) || !string.IsNullOrEmpty(summary.TopPerformingOffer))
                 {
-                    column.Item().PaddingTop(8).Row(row =>
+                    column.Item().PaddingTop(10).Row(row =>
                     {
                         row.Spacing(10);
 
                         if (!string.IsNullOrEmpty(summary.TopPerformingZone))
                         {
-                            row.RelativeItem().Element(c => CreateHighlightCard(c,
-                                "Top Zone",
-                                summary.TopPerformingZone,
-                                Colors.Info));
+                            row.RelativeItem().Border(1)
+                                .BorderColor(_limeGreen)
+                                .Background(_lightGray)
+                                .Padding(10)
+                                .Column(col =>
+                                {
+                                    col.Item().Text("Top Performing Zone")
+                                        .FontSize(7)
+                                        .FontColor(_mediumGray);
+                                    col.Item().PaddingTop(3).Text(summary.TopPerformingZone)
+                                        .FontSize(10)
+                                        .SemiBold()
+                                        .FontColor(_limeGreen);
+                                });
                         }
 
                         if (!string.IsNullOrEmpty(summary.TopPerformingOffer))
                         {
-                            row.RelativeItem().Element(c => CreateHighlightCard(c,
-                                "Top Offer",
-                                summary.TopPerformingOffer,
-                                Colors.Info));
+                            row.RelativeItem().Border(1)
+                                .BorderColor(_limeGreen)
+                                .Background(_lightGray)
+                                .Padding(10)
+                                .Column(col =>
+                                {
+                                    col.Item().Text("Top Performing Offer")
+                                        .FontSize(7)
+                                        .FontColor(_mediumGray);
+                                    col.Item().PaddingTop(3).Text(summary.TopPerformingOffer)
+                                        .FontSize(10)
+                                        .SemiBold()
+                                        .FontColor(_limeGreen);
+                                });
                         }
                     });
                 }
-            });
-        }
-
-        private void CreateSummaryCard(IContainer container, string label, string value, string unit, string color)
-        {
-            container.Border(1).BorderColor(Colors.LightBorder).Padding(12).Column(col =>
-            {
-                col.Item().Text(label).FontSize(9).FontColor(Colors.TextSecondary);
-                col.Item().PaddingTop(5).Row(row =>
-                {
-                    row.AutoItem().Text(value).FontSize(16).Bold().FontColor(color);
-                    row.AutoItem().PaddingLeft(5).Text(unit).FontSize(10).FontColor(Colors.TextSecondary);
-                });
-            });
-        }
-
-        private void CreateHighlightCard(IContainer container, string label, string value, string color)
-        {
-            container.Border(1).BorderColor(color).Background(Colors.Light).Padding(10).Column(col =>
-            {
-                col.Item().Text(label).FontSize(8).FontColor(Colors.TextSecondary);
-                col.Item().PaddingTop(3).Text(value).FontSize(10).SemiBold().FontColor(color);
             });
         }
 
@@ -208,13 +305,16 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
             container.Column(column =>
             {
-                column.Spacing(8);
+                column.Spacing(10);
 
-                column.Item().Border(1).BorderColor(Colors.Primary).Background(Colors.Primary)
-                    .Padding(8).Text(FormatSectionName(sectionName))
-                    .FontSize(12)
+                column.Item()
+                    .BorderBottom(1.5f)
+                    .BorderColor(_limeGreen)
+                    .PaddingBottom(8)
+                    .Text(FormatSectionName(sectionName))
+                    .FontSize(13)
                     .Bold()
-                    .FontColor(QuestPDF.Helpers.Colors.Black);
+                    .FontColor(Colors.Black);
 
                 switch (sectionName)
                 {
@@ -251,253 +351,207 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
         private void ComposeBasicMetricsSection(ColumnDescriptor column, List<SalesAnalysisResult> results)
         {
-            column.Item().Table(table =>
+            foreach (var result in results)
             {
-                table.ColumnsDefinition(columns =>
+                column.Item().PaddingVertical(3).Row(row =>
                 {
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(1);
+                    row.RelativeItem().Text(result.MetricName)
+                        .FontSize(9)
+                        .FontColor(_mediumGray);
+
+                    row.RelativeItem().AlignRight().Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                        .FontSize(9)
+                        .SemiBold();
                 });
 
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Metric").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Value").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Unit").SemiBold();
-                });
-
-                foreach (var result in results)
-                {
-                    table.Cell().Element(CellStyle).Text(result.MetricName);
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{result.MetricValue:N2}").SemiBold();
-                    table.Cell().Element(CellStyle).Text(result.MetricUnit);
-                }
-            });
+                column.Item().LineHorizontal(0.5f).LineColor(_lightGray);
+            }
         }
 
         private void ComposeZonesSection(ColumnDescriptor column, List<SalesAnalysisResult> results)
         {
-            column.Item().Table(table =>
+            foreach (var result in results)
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Zone").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Revenue").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Unit").SemiBold();
-                });
-
-                foreach (var result in results)
-                {
-                    table.Cell().Element(CellStyle).Text(result.MetricName.Replace("Zone: ", ""));
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{result.MetricValue:N2}").SemiBold().FontColor(Colors.Success);
-                    table.Cell().Element(CellStyle).Text(result.MetricUnit);
-                }
-            });
-
-            var topZones = results.Take(3).ToList();
-            if (topZones.Any())
-            {
-                column.Item().PaddingTop(6).Text("Top 3 Zones - Details").FontSize(10).SemiBold().FontColor(QuestPDF.Helpers.Colors.Black);
-
-                foreach (var zone in topZones)
-                {
-                    if (zone.AdditionalInfo != null)
+                column.Item().Border(1)
+                    .BorderColor(_lightGray)
+                    .Padding(10)
+                    .Column(col =>
                     {
-                        var info = ParseJsonInfo(zone.AdditionalInfo);
-                        column.Item().PaddingTop(4).Border(1).BorderColor(Colors.LightBorder)
-                            .Background(Colors.Light).Padding(8).Column(col =>
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeItem().Text(result.MetricName.Replace("Zone: ", ""))
+                                .FontSize(10)
+                                .SemiBold();
+
+                            row.AutoItem().Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                                .FontSize(10)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
+
+                        if (result.AdditionalInfo != null)
+                        {
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(8).Row(row =>
                             {
-                                col.Item().Text(zone.MetricName.Replace("Zone: ", "")).FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.Black);
-                                col.Item().PaddingTop(3).Row(row =>
+                                row.RelativeItem().Column(c =>
                                 {
-                                    row.RelativeItem().Column(c =>
+                                    c.Item().Text(t =>
                                     {
-                                        c.Item().Text(t =>
-                                        {
-                                            t.Span("Sold: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                            t.Span(GetValue(info, "tickets_sold")).FontSize(9).SemiBold();
-                                        });
-                                        c.Item().Text(t =>
-                                        {
-                                            t.Span("Avg. Price: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                            t.Span($"{GetValue(info, "avg_price")} RSD").FontSize(9).SemiBold();
-                                        });
+                                        t.Span("Tickets Sold: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "tickets_sold")).FontSize(8).SemiBold();
                                     });
-                                    row.RelativeItem().Column(c =>
+                                    c.Item().Text(t =>
                                     {
-                                        c.Item().Text(t =>
-                                        {
-                                            t.Span("Base Price: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                            t.Span($"{GetValue(info, "base_price")} RSD").FontSize(9).SemiBold();
-                                        });
-                                        c.Item().Text(t =>
-                                        {
-                                            t.Span("Occupancy: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                            t.Span($"{GetValue(info, "occupancy_rate")}%").FontSize(9).SemiBold();
-                                        });
+                                        t.Span("Avg. Price: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "avg_price")} RSD").FontSize(8).SemiBold();
+                                    });
+                                });
+
+                                row.RelativeItem().Column(c =>
+                                {
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Base Price: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "base_price")} RSD").FontSize(8).SemiBold();
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Occupancy: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "occupancy_rate")}%").FontSize(8).SemiBold();
                                     });
                                 });
                             });
-                    }
-                }
+                        }
+                    });
             }
         }
 
         private void ComposePricingRulesSection(ColumnDescriptor column, List<SalesAnalysisResult> results)
         {
-            column.Item().Table(table =>
+            foreach (var result in results)
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Rule").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Revenue").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Unit").SemiBold();
-                });
-
-                foreach (var result in results)
-                {
-                    table.Cell().Element(CellStyle).Text(result.MetricName.Replace("Rule: ", ""));
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{result.MetricValue:N2}").SemiBold().FontColor(Colors.Success);
-                    table.Cell().Element(CellStyle).Text(result.MetricUnit);
-                }
-            });
-
-            column.Item().PaddingTop(6).Text("Detailed Rules Analysis").FontSize(10).SemiBold().FontColor(QuestPDF.Helpers.Colors.Black);
-
-            foreach (var rule in results)
-            {
-                if (rule.AdditionalInfo != null)
-                {
-                    var info = ParseJsonInfo(rule.AdditionalInfo);
-                    column.Item().PaddingTop(4).Border(1).BorderColor(Colors.LightBorder)
-                        .Background(Colors.Light).Padding(8).Column(col =>
+                column.Item().Border(1)
+                    .BorderColor(_lightGray)
+                    .Padding(10)
+                    .Column(col =>
+                    {
+                        col.Item().Row(row =>
                         {
-                            col.Item().Text(rule.MetricName.Replace("Rule: ", "")).FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.Black);
-                            col.Item().PaddingTop(3).Row(row =>
+                            row.RelativeItem().Text(result.MetricName.Replace("Rule: ", ""))
+                                .FontSize(10)
+                                .SemiBold();
+
+                            row.AutoItem().Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                                .FontSize(10)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
+
+                        if (result.AdditionalInfo != null)
+                        {
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(8).Row(row =>
                             {
                                 row.RelativeItem().Column(c =>
                                 {
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Tickets: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span(GetValue(info, "tickets_affected")).FontSize(9).SemiBold();
+                                        t.Span("Tickets: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "tickets_affected")).FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Revenue per Ticket: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "revenue_per_ticket")} RSD").FontSize(9).SemiBold();
+                                        t.Span("Rev/Ticket: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "revenue_per_ticket")} RSD").FontSize(8).SemiBold();
                                     });
                                 });
+
                                 row.RelativeItem().Column(c =>
                                 {
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Avg. Price Change: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "avg_price_change_pct")}%").FontSize(9).SemiBold();
+                                        t.Span("Avg. Change: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "avg_price_change_pct")}%").FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Rank: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"#{GetValue(info, "rule_rank")}").FontSize(9).SemiBold().FontColor(Colors.Warning);
+                                        t.Span("Rank: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"#{GetValue(info, "rule_rank")}").FontSize(8).SemiBold();
                                     });
                                 });
                             });
-                        });
-                }
+                        }
+                    });
             }
         }
 
         private void ComposeSpecialOffersSection(ColumnDescriptor column, List<SalesAnalysisResult> results)
         {
-            column.Item().Table(table =>
+            foreach (var result in results)
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Offer").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Revenue").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Unit").SemiBold();
-                });
-
-                foreach (var result in results)
-                {
-                    table.Cell().Element(CellStyle).Text(result.MetricName.Replace("Offer: ", ""));
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{result.MetricValue:N2}").SemiBold().FontColor(Colors.Success);
-                    table.Cell().Element(CellStyle).Text(result.MetricUnit);
-                }
-            });
-
-            foreach (var offer in results)
-            {
-                if (offer.AdditionalInfo != null)
-                {
-                    var info = ParseJsonInfo(offer.AdditionalInfo);
-                    column.Item().PaddingTop(4).Border(1).BorderColor(Colors.LightBorder)
-                        .Background(Colors.Light).Padding(8).Column(col =>
+                column.Item().Border(1)
+                    .BorderColor(_lightGray)
+                    .Padding(10)
+                    .Column(col =>
+                    {
+                        col.Item().Row(row =>
                         {
-                            col.Item().Text(offer.MetricName.Replace("Offer: ", "")).FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.Black);
-                            col.Item().PaddingTop(3).Row(row =>
+                            row.RelativeItem().Text(result.MetricName.Replace("Offer: ", ""))
+                                .FontSize(10)
+                                .SemiBold();
+
+                            row.AutoItem().Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                                .FontSize(10)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
+
+                        if (result.AdditionalInfo != null)
+                        {
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(8).Row(row =>
                             {
                                 row.RelativeItem().Column(c =>
                                 {
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Tickets Sold: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span(GetValue(info, "tickets_sold")).FontSize(9).SemiBold();
+                                        t.Span("Tickets: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "tickets_sold")).FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Discount: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "discount_value")}%").FontSize(9).SemiBold().FontColor(Colors.Danger);
+                                        t.Span("Discount: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "discount_value")}%").FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Avg. Price: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "avg_ticket_price")} RSD").FontSize(9).SemiBold();
+                                        t.Span("Avg. Price: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "avg_ticket_price")} RSD").FontSize(8).SemiBold();
                                     });
                                 });
+
                                 row.RelativeItem().Column(c =>
                                 {
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Sales Count: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span(GetValue(info, "sales_count")).FontSize(9).SemiBold();
+                                        t.Span("Sales: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "sales_count")).FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Total Discount: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "total_discount_given")} RSD").FontSize(9).SemiBold();
+                                        t.Span("Total Discount: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "total_discount_given")} RSD").FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("ROI: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "roi")}%").FontSize(9).SemiBold().FontColor(Colors.Success);
+                                        t.Span("ROI: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "roi")}%").FontSize(8).SemiBold();
                                     });
                                 });
                             });
-                        });
-                }
+                        }
+                    });
             }
         }
 
@@ -505,118 +559,114 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         {
             foreach (var result in results)
             {
-                column.Item().Border(1).BorderColor(Colors.LightBorder).Padding(10).Column(col =>
-                {
-                    col.Item().Text(result.MetricName).FontSize(10).SemiBold().FontColor(Colors.Primary);
-                    col.Item().PaddingTop(5).Row(row =>
+                column.Item().Border(1)
+                    .BorderColor(_lightGray)
+                    .Padding(10)
+                    .Column(col =>
                     {
-                        row.AutoItem().Text($"{result.MetricValue:N2}").FontSize(14).Bold().FontColor(Colors.Secondary);
-                        row.AutoItem().PaddingLeft(5).Text(result.MetricUnit).FontSize(10).FontColor(Colors.TextSecondary);
-                    });
+                        col.Item().Text(result.MetricName)
+                            .FontSize(10)
+                            .SemiBold();
 
-                    if (result.AdditionalInfo != null)
-                    {
-                        var info = ParseJsonInfo(result.AdditionalInfo);
-                        col.Item().PaddingTop(8).Row(row =>
+                        col.Item().PaddingTop(5).Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                            .FontSize(13)
+                            .Bold()
+                            .FontColor(_limeGreen);
+
+                        if (result.AdditionalInfo != null)
                         {
-                            row.RelativeItem().Column(c =>
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(8).Row(row =>
                             {
-                                c.Item().Text(t =>
+                                row.RelativeItem().Column(c =>
                                 {
-                                    t.Span("Std. Dev: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span(GetValue(info, "stddev")).FontSize(9).SemiBold();
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Std. Dev: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "stddev")).FontSize(8).SemiBold();
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Peak: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "peak")).FontSize(8).SemiBold();
+                                    });
                                 });
-                                c.Item().Text(t =>
+
+                                row.RelativeItem().Column(c =>
                                 {
-                                    t.Span("Peak: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span(GetValue(info, "peak")).FontSize(9).SemiBold().FontColor(Colors.Success);
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Min: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "min")).FontSize(8).SemiBold();
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Avg. Daily: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "avg_revenue_per_day")} RSD").FontSize(8).SemiBold();
+                                    });
                                 });
                             });
-                            row.RelativeItem().Column(c =>
-                            {
-                                c.Item().Text(t =>
-                                {
-                                    t.Span("Min: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span(GetValue(info, "min")).FontSize(9).SemiBold();
-                                });
-                                c.Item().Text(t =>
-                                {
-                                    t.Span("Avg. Daily Revenue: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span($"{GetValue(info, "avg_revenue_per_day")} RSD").FontSize(9).SemiBold();
-                                });
-                            });
-                        });
-                    }
-                });
+                        }
+                    });
             }
         }
 
         private void ComposeEventsSection(ColumnDescriptor column, List<SalesAnalysisResult> results)
         {
-            column.Item().Table(table =>
+            foreach (var result in results)
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Event").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Revenue").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Unit").SemiBold();
-                });
-
-                foreach (var result in results)
-                {
-                    table.Cell().Element(CellStyle).Text(result.MetricName.Replace("Event: ", ""));
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{result.MetricValue:N2}").SemiBold().FontColor(Colors.Success);
-                    table.Cell().Element(CellStyle).Text(result.MetricUnit);
-                }
-            });
-
-            foreach (var evt in results)
-            {
-                if (evt.AdditionalInfo != null)
-                {
-                    var info = ParseJsonInfo(evt.AdditionalInfo);
-                    column.Item().PaddingTop(4).Border(1).BorderColor(Colors.LightBorder)
-                        .Background(Colors.Light).Padding(8).Column(col =>
+                column.Item().Border(1)
+                    .BorderColor(_lightGray)
+                    .Padding(10)
+                    .Column(col =>
+                    {
+                        col.Item().Row(row =>
                         {
-                            col.Item().Text(evt.MetricName.Replace("Event: ", "")).FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.Black);
-                            col.Item().PaddingTop(3).Row(row =>
+                            row.RelativeItem().Text(result.MetricName.Replace("Event: ", ""))
+                                .FontSize(10)
+                                .SemiBold();
+
+                            row.AutoItem().Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                                .FontSize(10)
+                                .Bold()
+                                .FontColor(_limeGreen);
+                        });
+
+                        if (result.AdditionalInfo != null)
+                        {
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(8).Row(row =>
                             {
                                 row.RelativeItem().Column(c =>
                                 {
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Tickets Sold: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span(GetValue(info, "tickets_sold")).FontSize(9).SemiBold();
+                                        t.Span("Tickets: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "tickets_sold")).FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Revenue per Ticket: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "revenue_per_ticket")} RSD").FontSize(9).SemiBold();
+                                        t.Span("Rev/Ticket: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "revenue_per_ticket")} RSD").FontSize(8).SemiBold();
                                     });
                                 });
+
                                 row.RelativeItem().Column(c =>
                                 {
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Occupancy: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span($"{GetValue(info, "occupancy_rate")}%").FontSize(9).SemiBold();
+                                        t.Span("Occupancy: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "occupancy_rate")}%").FontSize(8).SemiBold();
                                     });
                                     c.Item().Text(t =>
                                     {
-                                        t.Span("Capacity: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                        t.Span(GetValue(info, "total_capacity")).FontSize(9).SemiBold();
+                                        t.Span("Capacity: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "total_capacity")).FontSize(8).SemiBold();
                                     });
                                 });
                             });
-                        });
-                }
+                        }
+                    });
             }
         }
 
@@ -624,65 +674,73 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         {
             foreach (var result in results)
             {
-                column.Item().Border(1).BorderColor(Colors.Warning).Background("#fef3c7").Padding(12).Column(col =>
-                {
-                    col.Item().Text(result.MetricName).FontSize(10).SemiBold().FontColor(Colors.Primary);
-                    col.Item().PaddingTop(5).Row(row =>
+                column.Item().Border(1)
+                    .BorderColor(_limeGreen)
+                    .Background(_lightGray)
+                    .Padding(12)
+                    .Column(col =>
                     {
-                        row.AutoItem().Text($"{result.MetricValue:N2}").FontSize(16).Bold().FontColor(Colors.Danger);
-                        row.AutoItem().PaddingLeft(5).Text(result.MetricUnit).FontSize(11).FontColor(Colors.TextSecondary);
-                    });
+                        col.Item().Text(result.MetricName)
+                            .FontSize(10)
+                            .SemiBold();
 
-                    if (result.AdditionalInfo != null)
-                    {
-                        var info = ParseJsonInfo(result.AdditionalInfo);
-                        col.Item().PaddingTop(8).Row(row =>
+                        col.Item().PaddingTop(5).Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                            .FontSize(14)
+                            .Bold()
+                            .FontColor(_limeGreen);
+
+                        if (result.AdditionalInfo != null)
                         {
-                            row.RelativeItem().Column(c =>
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(8).Row(row =>
                             {
-                                c.Item().Text(t =>
+                                row.RelativeItem().Column(c =>
                                 {
-                                    t.Span("Available Tickets: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span(GetValue(info, "available_tickets")).FontSize(9).SemiBold();
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Available: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "available_tickets")).FontSize(8).SemiBold();
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Sold: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "sold_tickets")).FontSize(8).SemiBold();
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Sell-through: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "sell_through_rate")}%").FontSize(8).SemiBold();
+                                    });
                                 });
-                                c.Item().Text(t =>
+
+                                row.RelativeItem().Column(c =>
                                 {
-                                    t.Span("Sold: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span(GetValue(info, "sold_tickets")).FontSize(9).SemiBold();
-                                });
-                                c.Item().Text(t =>
-                                {
-                                    t.Span("Sell-through: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span($"{GetValue(info, "sell_through_rate")}%").FontSize(9).SemiBold().FontColor(Colors.Info);
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Discounted: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span(GetValue(info, "discounted_tickets")).FontSize(8).SemiBold();
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Avg. Discount Price: ").FontSize(7).FontColor(_mediumGray);
+                                        t.Span($"{GetValue(info, "avg_discount_price")} RSD").FontSize(8).SemiBold();
+                                    });
                                 });
                             });
-                            row.RelativeItem().Column(c =>
-                            {
-                                c.Item().Text(t =>
-                                {
-                                    t.Span("Discounted: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span(GetValue(info, "discounted_tickets")).FontSize(9).SemiBold();
-                                });
-                                c.Item().Text(t =>
-                                {
-                                    t.Span("Avg. Discount Price: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                    t.Span($"{GetValue(info, "avg_discount_price")} RSD").FontSize(9).SemiBold();
-                                });
-                            });
-                        });
 
-                        var recommendation = GetValue(info, "recommendation");
-                        if (!string.IsNullOrEmpty(recommendation))
-                        {
-                            col.Item().PaddingTop(8).Border(1).BorderColor(Colors.Warning)
-                                .Background(QuestPDF.Helpers.Colors.White).Padding(8).Text(text =>
-                                {
-                                    text.Span("Recommendation: ").FontSize(9).SemiBold().FontColor(Colors.Warning);
-                                    text.Span(recommendation).FontSize(9).FontColor(Colors.TextPrimary);
-                                });
+                            var recommendation = GetValue(info, "recommendation");
+                            if (!string.IsNullOrEmpty(recommendation) && recommendation != "N/A")
+                            {
+                                col.Item().PaddingTop(8).Border(1)
+                                    .BorderColor(_limeGreen)
+                                    .Background(Colors.White)
+                                    .Padding(8)
+                                    .Text(recommendation)
+                                    .FontSize(8)
+                                    .FontColor(Colors.Black);
+                            }
                         }
-                    }
-                });
+                    });
             }
         }
 
@@ -690,92 +748,100 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         {
             foreach (var result in results)
             {
-                column.Item().Border(1).BorderColor(Colors.Info).Background("#cffafe").Padding(10).Column(col =>
-                {
-                    col.Item().Text(result.MetricName).FontSize(10).SemiBold().FontColor(Colors.Primary);
-                    col.Item().PaddingTop(5).Row(row =>
+                column.Item().Border(1)
+                    .BorderColor(_lightGray)
+                    .Padding(10)
+                    .Column(col =>
                     {
-                        row.AutoItem().Text($"{result.MetricValue:N0}").FontSize(14).Bold().FontColor(Colors.Info);
-                        row.AutoItem().PaddingLeft(5).Text(result.MetricUnit).FontSize(10).FontColor(Colors.TextSecondary);
-                    });
+                        col.Item().Text(result.MetricName)
+                            .FontSize(10)
+                            .SemiBold();
 
-                    if (result.AdditionalInfo != null)
-                    {
-                        var info = ParseJsonInfo(result.AdditionalInfo);
-                        col.Item().PaddingTop(6).Row(row =>
+                        col.Item().PaddingTop(5).Text($"{result.MetricValue:N0} {result.MetricUnit}")
+                            .FontSize(12)
+                            .Bold()
+                            .FontColor(_limeGreen);
+
+                        if (result.AdditionalInfo != null)
                         {
-                            row.RelativeItem().Text(t =>
+                            var info = ParseJsonInfo(result.AdditionalInfo);
+                            col.Item().PaddingTop(6).Row(row =>
                             {
-                                t.Span("Zones Processed: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                t.Span(GetValue(info, "zones_processed")).FontSize(9).SemiBold();
+                                row.RelativeItem().Text(t =>
+                                {
+                                    t.Span("Zones: ").FontSize(7).FontColor(_mediumGray);
+                                    t.Span(GetValue(info, "zones_processed")).FontSize(8).SemiBold();
+                                });
+
+                                row.RelativeItem().Text(t =>
+                                {
+                                    t.Span("Rules: ").FontSize(7).FontColor(_mediumGray);
+                                    t.Span(GetValue(info, "pricing_rules_processed")).FontSize(8).SemiBold();
+                                });
                             });
-                            row.RelativeItem().Text(t =>
+
+                            col.Item().PaddingTop(3).Text(t =>
                             {
-                                t.Span("Pricing Rules: ").FontSize(8).FontColor(Colors.TextSecondary);
-                                t.Span(GetValue(info, "pricing_rules_processed")).FontSize(9).SemiBold();
+                                t.Span("Method: ").FontSize(7).FontColor(_mediumGray);
+                                t.Span(GetValue(info, "cursor_method")).FontSize(8).Italic();
                             });
-                        });
-                        col.Item().PaddingTop(3).Text(t =>
-                        {
-                            t.Span("Method: ").FontSize(8).FontColor(Colors.TextSecondary);
-                            t.Span(GetValue(info, "cursor_method")).FontSize(9).Italic();
-                        });
-                    }
-                });
+                        }
+                    });
             }
         }
 
         private void ComposeGenericTable(ColumnDescriptor column, List<SalesAnalysisResult> results)
         {
-            column.Item().Table(table =>
+            foreach (var result in results)
             {
-                table.ColumnsDefinition(columns =>
+                column.Item().PaddingVertical(3).Row(row =>
                 {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(1);
+                    row.RelativeItem().Text(result.MetricName)
+                        .FontSize(9)
+                        .FontColor(_mediumGray);
+
+                    row.RelativeItem().AlignRight().Text($"{result.MetricValue:N2} {result.MetricUnit}")
+                        .FontSize(9)
+                        .SemiBold();
                 });
 
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Metric").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Value").SemiBold();
-                    header.Cell().Element(HeaderCellStyle).Text("Unit").SemiBold();
-                });
-
-                foreach (var result in results)
-                {
-                    table.Cell().Element(CellStyle).Text(result.MetricName);
-                    table.Cell().Element(CellStyle).AlignRight().Text($"{result.MetricValue:N2}");
-                    table.Cell().Element(CellStyle).Text(result.MetricUnit);
-                }
-            });
+                column.Item().LineHorizontal(0.5f).LineColor(_lightGray);
+            }
         }
 
         private void ComposeRecommendations(IContainer container, List<string> recommendations)
         {
             container.Column(column =>
             {
-                column.Spacing(6);
+                column.Spacing(8);
 
-                column.Item().Border(1).BorderColor(Colors.Warning).Background(Colors.Light)
-                    .Padding(8).Text("RECOMMENDATIONS")
-                    .FontSize(12)
+                column.Item()
+                    .BorderBottom(1.5f)
+                    .BorderColor(_limeGreen)
+                    .PaddingBottom(8)
+                    .Text("Recommendations")
+                    .FontSize(13)
                     .Bold()
-                    .FontColor(Colors.Warning);
+                    .FontColor(Colors.Black);
 
-                column.Item().Border(1).BorderColor(Colors.Warning)
-                    .Background("#fef3c7")
-                    .Padding(10)
+                column.Item().Border(1)
+                    .BorderColor(_limeGreen)
+                    .Background(_lightGray)
+                    .Padding(12)
                     .Column(recColumn =>
                     {
-                        recColumn.Spacing(5);
+                        recColumn.Spacing(6);
                         foreach (var recommendation in recommendations)
                         {
                             recColumn.Item().Row(row =>
                             {
-                                row.ConstantItem(12).Text("•").FontColor(Colors.Warning).FontSize(12).Bold();
-                                row.RelativeItem().PaddingLeft(5).Text(recommendation).FontSize(9).FontColor(Colors.TextPrimary);
+                                row.ConstantItem(12).Text("•")
+                                    .FontColor(_limeGreen)
+                                    .FontSize(11)
+                                    .Bold();
+                                row.RelativeItem().PaddingLeft(5).Text(recommendation)
+                                    .FontSize(9)
+                                    .FontColor(Colors.Black);
                             });
                         }
                     });
@@ -783,25 +849,6 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
         }
 
         // Helper Methods
-        private IContainer HeaderCellStyle(IContainer container)
-        {
-            return container
-                .Border(1)
-                .BorderColor(Colors.Primary)
-                .Background(Colors.Primary)
-                .Padding(6)
-                .DefaultTextStyle(x => x.FontColor(QuestPDF.Helpers.Colors.White).FontSize(9));
-        }
-
-        private IContainer CellStyle(IContainer container)
-        {
-            return container
-                .Border(1)
-                .BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten1)
-                .Background(Colors.LightBorder)
-                .Padding(6);
-        }
-
         private Dictionary<string, string> ParseJsonInfo(JsonDocument jsonDoc)
         {
             var result = new Dictionary<string, string>();
