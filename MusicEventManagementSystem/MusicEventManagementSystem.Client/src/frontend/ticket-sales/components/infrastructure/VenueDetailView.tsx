@@ -10,19 +10,18 @@ import SegmentEditor from './SegmentEditor';
 import ZoneEditor from './ZoneEditor';
 import SegmentCreateForm from './SegmentCreateForm';
 import ZoneCreateForm from './ZoneCreateForm';
-import LayoutViewModal from './LayoutViewModal';
 import { getVenueTypeName } from '../../utils/venueUtils';
 
 interface VenueDetailViewProps {
   venue: VenueResponse;
   onBack: () => void;
+  onViewLayout: () => void;
 }
 
-const VenueDetailView = ({ venue, onBack }: VenueDetailViewProps) => {
+const VenueDetailView = ({ venue, onBack, onViewLayout }: VenueDetailViewProps) => {
   const [segments, setSegments] = useState<SegmentResponse[]>([]);
   const [zones, setZones] = useState<ZoneResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showLayoutView, setShowLayoutView] = useState(false);
   const [activeTab, setActiveTab] = useState('segments');
 
   useEffect(() => {
@@ -78,7 +77,7 @@ const VenueDetailView = ({ venue, onBack }: VenueDetailViewProps) => {
           </div>
           <div className="flex items-center space-x-3">
             <button 
-              onClick={() => setShowLayoutView(true)}
+              onClick={onViewLayout}
               className="bg-lime-500 hover:bg-lime-600 text-black font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-200"
             >
               <Eye size={18} />
@@ -168,7 +167,7 @@ const VenueDetailView = ({ venue, onBack }: VenueDetailViewProps) => {
         </div>
       </div>
 
-      {/* View Layout Modal */}
+      {/* View Layout Modal
       {showLayoutView && (
         <LayoutViewModal 
           venue={venue}
@@ -176,7 +175,7 @@ const VenueDetailView = ({ venue, onBack }: VenueDetailViewProps) => {
           zones={zones}
           onClose={() => setShowLayoutView(false)}
         />
-      )}
+      )} */}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Eye, Edit } from 'lucide-react';
 import { Card } from '../ui/card';
 import { CustomSelect } from '../ui/customSelect';
 import VenueService from '../../services/venueService';
@@ -13,18 +13,24 @@ interface VenueFormProps {
   venue?: VenueResponse | null;
   events: EventResponse[];
   isEdit?: boolean;
-  onVenueCreated: (venue: VenueResponse) => void;
-  onVenueUpdated: (venue: VenueResponse) => void;
+  isView?: boolean;
+  onVenueCreated?: (venue: VenueResponse) => void;
+  onVenueUpdated?: (venue: VenueResponse) => void;
   onCancel: () => void;
+  onEdit?: () => void;
+  onConfigure?: () => void;
 }
 
 const VenueForm = ({ 
   venue, 
   events, 
   isEdit = false, 
+  isView = false,
   onVenueCreated, 
   onVenueUpdated, 
-  onCancel 
+  onCancel,
+  onEdit,
+  onConfigure
 }: VenueFormProps) => {
   const [venueForm, setVenueForm] = useState<VenueCreateForm | VenueUpdateForm>({
     name: '',
@@ -36,7 +42,7 @@ const VenueForm = ({
   });
 
   useEffect(() => {
-    if (isEdit && venue) {
+    if ((isEdit || isView) && venue) {
       setVenueForm({
         name: venue.name || '',
         address: venue.address || '',
@@ -45,7 +51,7 @@ const VenueForm = ({
         eventId: venue.eventId || 0,
         venueType: venue.venueType || VenueType.Indoor
       });
-    } else {
+    } else if (!isEdit && !isView) {
       setVenueForm({
         name: '',
         address: '',
@@ -55,17 +61,17 @@ const VenueForm = ({
         venueType: VenueType.Indoor
       });
     }
-  }, [isEdit, venue, events]);
+  }, [isEdit, isView, venue, events]);
 
   const handleSubmit = async () => {
     try {
       if (isEdit && venue) {
         const updated = await VenueService.updateVenue(venue.venueId, venueForm);
-        onVenueUpdated(updated);
+        onVenueUpdated?.(updated);
         showToast.success('Venue updated successfully');
-      } else {
+      } else if (!isView) {
         const created = await VenueService.createVenue(venueForm as VenueCreateForm);
-        onVenueCreated(created);
+        onVenueCreated?.(created);
         showToast.success('Venue created successfully');
       }
     } catch (error) {
@@ -78,11 +84,17 @@ const VenueForm = ({
     ? !!venueForm.name
     : !!venueForm.name && !!venueForm.address && !!venueForm.city && venueForm.eventId !== 0;
 
+  const getFormTitle = () => {
+    if (isView) return 'Venue Details';
+    if (isEdit) return 'Edit Venue';
+    return 'Create New Venue';
+  };
+
   return (
-    <Card className="overflow-hidden border border-neutral-800 shadow-xl bg-neutral-900/60 backdrop-blur-sm">
+    <Card className="overflow-hidden border border-neutral-800 shadow-xl bg-neutral-900/60 backdrop-blur-sm h-full">
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-neutral-800">
         <h2 className="text-xl font-bold text-lime-400">
-          {isEdit ? 'Edit Venue' : 'Create New Venue'}
+          {getFormTitle()}
         </h2>
         <button
           onClick={onCancel}
@@ -98,9 +110,11 @@ const VenueForm = ({
           <input
             type="text"
             value={venueForm.name || ''}
-            onChange={(e) => setVenueForm(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) => !isView && setVenueForm(prev => ({ ...prev, name: e.target.value }))}
             className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
             placeholder="Enter venue name"
+            readOnly={isView}
+            disabled={isView}
           />
         </div>
 
@@ -109,9 +123,11 @@ const VenueForm = ({
           <input
             type="text"
             value={venueForm.address || ''}
-            onChange={(e) => setVenueForm(prev => ({ ...prev, address: e.target.value }))}
+            onChange={(e) => !isView && setVenueForm(prev => ({ ...prev, address: e.target.value }))}
             className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
             placeholder="Enter venue address"
+            readOnly={isView}
+            disabled={isView}
           />
         </div>
 
@@ -120,9 +136,11 @@ const VenueForm = ({
           <input
             type="text"
             value={venueForm.city || ''}
-            onChange={(e) => setVenueForm(prev => ({ ...prev, city: e.target.value }))}
+            onChange={(e) => !isView && setVenueForm(prev => ({ ...prev, city: e.target.value }))}
             className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
             placeholder="Enter city"
+            readOnly={isView}
+            disabled={isView}
           />
         </div>
 
@@ -131,10 +149,12 @@ const VenueForm = ({
           <input
             type="number"
             value={venueForm.capacity || 0}
-            onChange={(e) => setVenueForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
+            onChange={(e) => !isView && setVenueForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
             className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
             placeholder="Enter capacity"
             min="0"
+            readOnly={isView}
+            disabled={isView}
           />
         </div>
 
@@ -143,7 +163,7 @@ const VenueForm = ({
             <label className="block text-sm font-medium mb-2 text-neutral-300">Event</label>
             <CustomSelect
               value={venueForm.eventId?.toString() || '0'}
-              onChange={(value) => setVenueForm(prev => ({ ...prev, eventId: parseInt(value) }))}
+              onChange={(value) => !isView && setVenueForm(prev => ({ ...prev, eventId: parseInt(value) }))}
               options={[
                 { value: '0', label: 'Select Event' },
                 ...events.map(event => ({
@@ -153,6 +173,7 @@ const VenueForm = ({
               ]}
               placeholder="Select Event"
               className='w-full'
+              disabled={isView}
             />
           </div>
 
@@ -160,7 +181,7 @@ const VenueForm = ({
             <label className="block text-sm font-medium mb-2 text-neutral-300">Venue Type</label>
             <CustomSelect
               value={venueForm.venueType?.toString() || VenueType.Indoor.toString()}
-              onChange={(value) => setVenueForm(prev => ({ ...prev, venueType: parseInt(value) as VenueType }))}
+              onChange={(value) => !isView && setVenueForm(prev => ({ ...prev, venueType: parseInt(value) as VenueType }))}
               options={[
                 { value: VenueType.Indoor.toString(), label: 'Indoor' },
                 { value: VenueType.Outdoor.toString(), label: 'Outdoor' },
@@ -172,26 +193,58 @@ const VenueForm = ({
               ]}
               placeholder="Select Venue Type"
               className='w-full'
+              disabled={isView}
             />
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex gap-3 pt-4 border-t border-neutral-800">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!isFormValid}
-            className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-black font-semibold"
-          >
-            {isEdit ? 'Update Venue' : 'Create Venue'}
-          </button>
+          {isView ? (
+            <>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500 font-medium"
+              >
+                Back to List
+              </button>
+              <button
+                type="button"
+                onClick={onConfigure}
+                className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                Configure Layout
+              </button>
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 rounded-xl transition-all duration-200 text-white font-semibold flex items-center justify-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Venue
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!isFormValid}
+                className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed rounded-xl transition-all duration-200 text-black font-semibold"
+              >
+                {isEdit ? 'Update Venue' : 'Create Venue'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </Card>

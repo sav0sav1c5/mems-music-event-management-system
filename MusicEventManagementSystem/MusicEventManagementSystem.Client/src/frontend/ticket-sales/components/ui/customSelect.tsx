@@ -13,6 +13,7 @@ export interface CustomSelectProps {
   placeholder?: string;
   className?: string;
   icon?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export function CustomSelect({ 
@@ -21,7 +22,8 @@ export function CustomSelect({
   options, 
   placeholder = 'Select...', 
   className = '',
-  icon
+  icon,
+  disabled = false
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
@@ -47,12 +49,14 @@ export function CustomSelect({
     const buttonRect = buttonRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - buttonRect.bottom;
     const spaceAbove = buttonRect.top;
-    const estimatedDropdownHeight = Math.min(options.length * 48, 300); // ~48px po opciji, max 300px
+    const estimatedDropdownHeight = Math.min(options.length * 48, 300);
     
     return spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow ? 'up' : 'down';
   };
 
   const handleToggle = () => {
+    if (disabled) return;
+    
     if (!isOpen) {
       setDropdownDirection(calculateDropdownDirection());
     }
@@ -60,6 +64,8 @@ export function CustomSelect({
   };
 
   const handleOptionClick = (optionValue: string) => {
+    if (disabled) return;
+    
     onChange(optionValue);
     setIsOpen(false);
   };
@@ -70,18 +76,23 @@ export function CustomSelect({
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
-        className="flex items-center justify-between w-full px-4 py-3 bg-neutral-800 text-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500 border border-neutral-700 focus:border-lime-500 transition-all duration-200 hover:bg-neutral-750 text-sm"
+        disabled={disabled}
+        className={`flex items-center justify-between w-full px-4 py-3 bg-neutral-800 text-neutral-300 rounded-xl focus:outline-none border border-neutral-700 transition-all duration-200 text-sm ${
+          disabled 
+            ? 'opacity-60 cursor-not-allowed' 
+            : 'focus:ring-2 focus:ring-lime-500 focus:border-lime-500 hover:bg-neutral-750 cursor-pointer'
+        }`}
       >
         <div className="flex items-center gap-2">
           {icon && <span className="flex-shrink-0">{icon}</span>}
           <span className="truncate">{selectedOption?.label || placeholder}</span>
         </div>
         <ChevronDown 
-          className={`w-4 h-4 text-lime-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-lime-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${disabled ? 'opacity-50' : ''}`}
         />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div 
           className={`
             absolute z-50 w-full overflow-hidden bg-neutral-800 border border-neutral-700 rounded-xl shadow-xl

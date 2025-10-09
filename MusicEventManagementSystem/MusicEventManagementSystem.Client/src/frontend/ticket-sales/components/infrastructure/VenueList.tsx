@@ -1,4 +1,4 @@
-import { MapPin, Users, Settings, Edit, Calendar, AlertCircle } from 'lucide-react';
+import { MapPin, Users, Settings, Edit, Calendar, AlertCircle, Trash2 } from 'lucide-react';
 import { Card } from '../ui/card';
 import type { VenueResponse } from '../../types/api/venue';
 import type { EventResponse } from '../../../event-organization/types/api/event';
@@ -10,6 +10,8 @@ interface VenueListProps {
   selectedEventFilter: number;
   onVenueSelect: (venue: VenueResponse) => void;
   onVenueEdit: (venue: VenueResponse) => void;
+  onVenueConfigure: (venue: VenueResponse) => void;
+  onVenueDelete: (venueId: number, venueName?: string) => void;
 }
 
 const VenueList = ({ 
@@ -17,7 +19,9 @@ const VenueList = ({
   events, 
   selectedEventFilter, 
   onVenueSelect, 
-  onVenueEdit 
+  onVenueEdit,
+  onVenueConfigure,
+  onVenueDelete
 }: VenueListProps) => {
   return (
     <Card className="overflow-hidden">
@@ -41,7 +45,7 @@ const VenueList = ({
             return (
               <Card
                 key={venue.venueId}
-                className="group p-6 relative border border-neutral-800 hover:border-lime-500/50 transition-all duration-200"
+                className="group p-6 relative border border-neutral-800 hover:border-lime-500/50 transition-all duration-200 cursor-pointer"
                 onClick={() => onVenueSelect(venue)}
               >
                 {/* Action Buttons - Always Visible */}
@@ -49,7 +53,7 @@ const VenueList = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onVenueSelect(venue);
+                      onVenueConfigure(venue);
                     }}
                     className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
                     title="Configure seat layout"
@@ -65,6 +69,16 @@ const VenueList = ({
                     title="Edit venue"
                   >
                     <Edit className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onVenueDelete(venue.venueId, venue.name);
+                    }}
+                    className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
+                    title="Delete venue"
+                  >
+                    <Trash2 className="w-5 h-5 text-neutral-400 hover:text-red-400 transition-colors" />
                   </button>
                 </div>
 

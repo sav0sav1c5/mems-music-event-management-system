@@ -14,18 +14,31 @@ import { CustomSelect } from '../components/ui/customSelect';
 import VenueList from '../components/infrastructure/VenueList';
 import VenueForm from '../components/infrastructure/VenueForm';
 import VenueDetailView from '../components/infrastructure/VenueDetailView';
+import VenueLayoutPreview from '../components/infrastructure/VenueLayoutPreview';
+import DeleteConfirmationModal from '../components/ui/DeleteConfirmationModal';
+import { showToast } from '../components/ui/toast';
 
 const Infrastructure = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedVenue, setSelectedVenue] = useState<VenueResponse | null>(null);
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [venues, setVenues] = useState<VenueResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEventFilter, setSelectedEventFilter] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  
+  // Novi state-ovi za različite mode-ove
   const [showVenueForm, setShowVenueForm] = useState(false);
+  const [venueFormMode, setVenueFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [editingVenue, setEditingVenue] = useState<VenueResponse | null>(null);
-  const [showEditForm, setShowEditForm] = useState(false);
+  const [viewingVenue, setViewingVenue] = useState<VenueResponse | null>(null);
+  const [showLayoutConfig, setShowLayoutConfig] = useState(false);
+  const [showLayoutView, setShowLayoutView] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [venueToDelete, setVenueToDelete] = useState<number | null>(null);
+  const [venueName, setVenueName] = useState<string>('');
 
   // Učitavanje podataka
   useEffect(() => {
@@ -65,27 +78,112 @@ const Infrastructure = () => {
     return matchesSearch && matchesEvent;
   });
 
+  // Novi handler-i za različite akcije
+  const handleViewVenue = (venue: VenueResponse) => {
+    setViewingVenue(venue);
+    setVenueFormMode('view');
+    setShowVenueForm(true);
+    setShowLayoutConfig(false);
+    setShowLayoutView(false);
+  };
+
   const handleEditVenue = (venue: VenueResponse) => {
     setEditingVenue(venue);
-    setShowEditForm(true);
+    setVenueFormMode('edit');
+    setShowVenueForm(true);
+    setShowLayoutConfig(false);
+    setShowLayoutView(false);
+  };
+
+  const handleConfigureVenue = (venue: VenueResponse) => {
+    setSelectedVenue(venue);
+    setShowLayoutConfig(true);
     setShowVenueForm(false);
+    setShowLayoutView(false);
+  };
+
+  const handleViewLayout = (venue: VenueResponse) => {
+    setSelectedVenue(venue);
+    setShowLayoutView(true);
+    setShowVenueForm(false);
+    setShowLayoutConfig(false);
+  };
+
+  const handleCreateVenue = () => {
+    setEditingVenue(null);
+    setViewingVenue(null);
+    setVenueFormMode('create');
+    setShowVenueForm(true);
+    setShowLayoutConfig(false);
+    setShowLayoutView(false);
   };
 
   const handleVenueCreated = (newVenue: VenueResponse) => {
     setVenues([...venues, newVenue]);
     setShowVenueForm(false);
+    setVenueFormMode('create');
   };
 
   const handleVenueUpdated = (updatedVenue: VenueResponse) => {
     setVenues(venues.map(v => v.venueId === updatedVenue.venueId ? updatedVenue : v));
-    setShowEditForm(false);
+    setShowVenueForm(false);
+    setVenueFormMode('create');
     setEditingVenue(null);
+  };
+
+  const handleDeleteVenue = async (venueId: number, venueName?: string) => {
+    const venue = venues.find(o => o.venueId === venueId);
+    if (venue) {
+      setVenueToDelete(venueId);
+      setVenueName(venueName || 'Unnamed Venue');
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!venueToDelete) return;
+
+    try {
+      await VenueService.deleteVenue(venueToDelete);
+      setVenues(prev => prev.filter(v => v.venueId !== venueToDelete));
+      
+      showToast.success('Venue deleted successfully!');
+    }
+    catch (err: any) {
+      setError(err.message || 'Failed to delete venue');
+      showToast.error(err.message || 'Failed to delete venue');
+    }
+    finally {
+      setDeleteModalOpen(false);
+      setVenueToDelete(null);
+      setVenueName('');
+    }
   };
 
   const handleCancelForm = () => {
     setShowVenueForm(false);
-    setShowEditForm(false);
+    setShowLayoutConfig(false);
+    setShowLayoutView(false);
     setEditingVenue(null);
+    setViewingVenue(null);
+    setSelectedVenue(null);
+    setVenueFormMode('create');
+  };
+
+  const handleEditFromView = () => {
+    if (viewingVenue) {
+      setEditingVenue(viewingVenue);
+      setVenueFormMode('edit');
+    }
+  };
+
+  const handleConfigureFromView = () => {
+    if (viewingVenue) {
+      setSelectedVenue(viewingVenue);
+      setShowLayoutConfig(true);
+      setShowVenueForm(false);
+      setShowLayoutView(false);
+    }
   };
 
   if (loading) {
@@ -104,12 +202,24 @@ const Infrastructure = () => {
       <div className="text-white h-full flex flex-col p-4 m-1">
         <div className="flex gap-3 h-full">
           {/* Glavni sadržaj */}
-          <div className={`flex-1 transition-all duration-300 ${(showVenueForm || showEditForm) ? 'w-3/4' : 'w-full'}`}>
+          <div className={`flex-1 transition-all duration-300 ${(showVenueForm || showLayoutConfig || showLayoutView) ? 'w-3/4' : 'w-full'}`}>
             <div className="h-full flex flex-col">
-              {selectedVenue ? (
+              {showLayoutView && selectedVenue ? (
+                <VenueLayoutPreview 
+                  venue={selectedVenue}
+                  onBack={() => {
+                    setShowLayoutView(false);
+                    setSelectedVenue(null);
+                  }}
+                />
+              ) : showLayoutConfig && selectedVenue ? (
                 <VenueDetailView 
                   venue={selectedVenue}
-                  onBack={() => setSelectedVenue(null)}
+                  onBack={() => {
+                    setShowLayoutConfig(false);
+                    setSelectedVenue(null);
+                  }}
+                  onViewLayout={() => handleViewLayout(selectedVenue)}
                 />
               ) : (
                 <div className="space-y-4 flex-1 flex flex-col">
@@ -129,7 +239,7 @@ const Infrastructure = () => {
                           Refresh
                         </button>
                         <button 
-                          onClick={() => setShowVenueForm(!showVenueForm)}
+                          onClick={handleCreateVenue}
                           className="px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-base bg-lime-500 text-black hover:bg-lime-400"
                         >
                           <Plus size={20} />
@@ -174,8 +284,10 @@ const Infrastructure = () => {
                       venues={filteredVenues}
                       events={events}
                       selectedEventFilter={selectedEventFilter}
-                      onVenueSelect={setSelectedVenue}
+                      onVenueSelect={handleViewVenue}
                       onVenueEdit={handleEditVenue}
+                      onVenueConfigure={handleConfigureVenue}
+                      onVenueDelete={handleDeleteVenue}
                     />
                   </div>
                 </div>
@@ -183,21 +295,40 @@ const Infrastructure = () => {
             </div>
           </div>
 
-          {/* Forma za kreiranje/edit venue */}
-          {(showVenueForm || showEditForm) && (
+          {/* Forma za kreiranje/edit/view venue */}
+          {showVenueForm && (
             <div className="w-2/5 transition-all duration-300">
               <VenueForm
-                venue={editingVenue}
+                venue={venueFormMode === 'edit' ? editingVenue : viewingVenue}
                 events={events}
-                isEdit={showEditForm}
+                isEdit={venueFormMode === 'edit'}
+                isView={venueFormMode === 'view'}
                 onVenueCreated={handleVenueCreated}
                 onVenueUpdated={handleVenueUpdated}
                 onCancel={handleCancelForm}
+                onEdit={handleEditFromView}
+                onConfigure={handleConfigureFromView}
               />
             </div>
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setVenueToDelete(null);
+          setVenueName('');
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Venue"
+        message="Are you sure you want to delete this venue? This will also delete all segments and zones associated with it."
+        itemName={venueName}
+        confirmText="Delete Venue"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

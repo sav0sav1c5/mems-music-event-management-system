@@ -57,3 +57,17 @@ export const getEventStatusName = (status: EventStatus): string => {
     default: return 'Unknown';
   }
 };
+
+export const getSegmentTypeColor = (segmentType: number): string => {
+  const colors = [
+    'bg-blue-500/20',    // VIP
+    'bg-green-500/20',   // Premium
+    'bg-yellow-500/20',  // Standard
+    'bg-purple-500/20',  // Balcony
+    'bg-orange-500/20',  // Floor
+    'bg-pink-500/20',    // Box
+    'bg-indigo-500/20',  // Terrace
+    'bg-red-500/20',     // Standing
+  ];
+  return colors[segmentType] || 'bg-gray-500/20';
+};
