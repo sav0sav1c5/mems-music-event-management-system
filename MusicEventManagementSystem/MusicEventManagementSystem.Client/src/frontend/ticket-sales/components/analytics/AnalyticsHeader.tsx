@@ -6,7 +6,7 @@ interface AnalyticsHeaderProps {
     from: Date;
     to: Date;
   };
-  setDateRange: (range: { from: Date; to: Date }) => void;
+  setDateRange: (field: 'from' | 'to', value: string) => void;
   isLoading: boolean;
   exportToPdf: () => void;
   exportToExcel: () => void;
@@ -19,6 +19,14 @@ export const AnalyticsHeader = ({
   exportToPdf,
   exportToExcel
 }: AnalyticsHeaderProps) => {
+
+  const formatDateForPicker = (date: Date): string => {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   return (
     <div className="mb-4">
       <div className="flex items-center justify-between">
@@ -29,18 +37,26 @@ export const AnalyticsHeader = ({
         
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 max-w-50">
+            <label className="text-neutral-400 text-xs mb-1 block">Start Date</label>
             <CustomDatePicker
-              value={dateRange.from.toISOString().split('T')[0]}
-              onChange={(value) => setDateRange({...dateRange, from: new Date(value)})}
+              value={formatDateForPicker(dateRange.from)}
+              onChange={(value) => {
+                console.log('📅 Start date changed:', value);
+                setDateRange('from', value);
+              }}
               placeholder="Start date"
               className="w-50"
             />
           </div>
 
           <div className="min-w-0 flex-1 max-w-50">
+            <label className="text-neutral-400 text-xs mb-1 block">End Date</label>
             <CustomDatePicker
-              value={dateRange.to.toISOString().split('T')[0]}
-              onChange={(value) => setDateRange({...dateRange, to: new Date(value)})}
+              value={formatDateForPicker(dateRange.to)}
+              onChange={(value) => {
+                console.log('📅 End date changed:', value);
+                setDateRange('to', value);
+              }}
               placeholder="End date"
               className="w-50"
             />

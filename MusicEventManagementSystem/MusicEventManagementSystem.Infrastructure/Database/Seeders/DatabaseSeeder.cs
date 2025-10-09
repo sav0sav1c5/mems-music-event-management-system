@@ -822,11 +822,16 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
                         var totalAmount = saleTickets.Sum(t => t.FinalPrice);
                         var appliedOffers = new List<SpecialOffer>();
 
+                        // The discount should already be reflected in Ticket.FinalPrice
                         if (_random.Next(100) < 40)
                         {
                             var offer = specialOffers[_random.Next(specialOffers.Count)];
                             appliedOffers.Add(offer);
-                            totalAmount -= totalAmount * (offer.DiscountValue / 100m);
+
+                            // NOTE: In a real system, you would:
+                            // 1. Apply offer discount when creating Tickets.FinalPrice
+                            // 2. OR store original price separately and calculate discount here
+                            // For now, we just link the offer without modifying TotalAmount
                         }
 
                         TransactionStatus status;
@@ -837,7 +842,7 @@ namespace MusicEventManagementSystem.Infrastructure.Database.Seeders
 
                         var sale = new RecordedSale
                         {
-                            TotalAmount = Math.Round(Math.Max(totalAmount, 0), 2),
+                            TotalAmount = Math.Round(totalAmount, 2),
                             SaleDate = saleDate,
                             TransactionStatus = status,
                             PaymentMethod = paymentMethods[_random.Next(paymentMethods.Length)],

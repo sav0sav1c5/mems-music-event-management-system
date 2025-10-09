@@ -85,6 +85,14 @@ ON "Tickets"("Status");
 CREATE INDEX IF NOT EXISTS idx_specialoffers_dates
 ON "SpecialOffers"("StartDate", "EndDate");
 
+-- Index for TransactionStatus (CRITICAL - missing in original)
+CREATE INDEX IF NOT EXISTS idx_recordedsales_status
+ON "RecordedSales"("TransactionStatus");
+
+-- Index for ApplicationUserId (for user-specific queries)
+CREATE INDEX IF NOT EXISTS idx_recordedsales_userid
+ON "RecordedSales"("ApplicationUserId");
+
 -- ============================================
 -- INDEX PERFORMANCE DEMONSTRATION
 -- ============================================
@@ -102,63 +110,73 @@ DECLARE
     v_end_time TIMESTAMP;
     v_row_count BIGINT;
 BEGIN
-    -- Test 1: Query WITH index
+    -- Test 1: Date range query (uses idx_recordedsales_saledate)
     v_start_time := clock_timestamp();
     
     SELECT COUNT(*) INTO v_row_count
     FROM "RecordedSales" rs
-    WHERE rs."SaleDate" >= CURRENT_DATE - INTERVAL '30 days';
+    WHERE rs."SaleDate" >= CURRENT_DATE - INTERVAL '7 days'
+        AND rs."TransactionStatus" = 1;
     
     v_end_time := clock_timestamp();
     
     RETURN QUERY
     SELECT 
-        'Test 1: Date filtering (WITH index)'::VARCHAR(100),
+        'Date Range Query (Last 7 Days)'::VARCHAR(100),
         EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
         v_row_count,
         TRUE;
-    
-    -- Test 2: Complex JOIN with indexes
+
+    -- Test 2: Status query (uses idx_recordedsales_status)
     v_start_time := clock_timestamp();
     
     SELECT COUNT(*) INTO v_row_count
-    FROM "Tickets" t
-    JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
-    JOIN "TicketTypes" tt ON t."TicketTypeId" = tt."TicketTypeId"
-    WHERE rs."SaleDate" >= CURRENT_DATE - INTERVAL '30 days'
-        AND t."RecordedSaleId" IS NOT NULL;
+    FROM "RecordedSales" rs
+    WHERE rs."TransactionStatus" = 1;
     
     v_end_time := clock_timestamp();
     
     RETURN QUERY
     SELECT 
-        'Test 2: Complex JOIN (WITH indexes)'::VARCHAR(100),
+        'Transaction Status Query'::VARCHAR(100),
         EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
         v_row_count,
         TRUE;
-    
-    -- Test 3: Aggregation with GROUP BY
+
+    -- Test 3: User sales query
     v_start_time := clock_timestamp();
     
     SELECT COUNT(*) INTO v_row_count
-    FROM (
-        SELECT tt."EventId", COUNT(*)
-        FROM "Tickets" t
-        JOIN "TicketTypes" tt ON t."TicketTypeId" = tt."TicketTypeId"
-        WHERE t."RecordedSaleId" IS NOT NULL
-        GROUP BY tt."EventId"
-    ) subq;
+    FROM "RecordedSales" rs
+    WHERE rs."ApplicationUserId" IS NOT NULL
+        AND rs."TransactionStatus" = 1;
     
     v_end_time := clock_timestamp();
     
     RETURN QUERY
     SELECT 
-        'Test 3: Aggregation by Events (WITH index)'::VARCHAR(100),
+        'User Sales Query'::VARCHAR(100),
         EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
         v_row_count,
         TRUE;
+
+    -- Test 4: Complex join query
+    v_start_time := clock_timestamp();
     
-    RETURN;
+    SELECT COUNT(*) INTO v_row_count
+    FROM "RecordedSales" rs
+    INNER JOIN "Tickets" t ON t."RecordedSaleId" = rs."RecordedSaleId"
+    WHERE rs."TransactionStatus" = 1
+        AND t."Status" IN (2, 3); -- (Sold or Used)
+    
+    v_end_time := clock_timestamp();
+    
+    RETURN QUERY
+    SELECT 
+        'Complex Join Query (Sales + Tickets)'::VARCHAR(100),
+        EXTRACT(MILLISECONDS FROM (v_end_time - v_start_time))::NUMERIC,
+        v_row_count,
+        TRUE;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -281,7 +299,7 @@ CREATE TRIGGER trg_sales_validation_audit
 -- 4. COMPLEX FUNCTION WITH EXPLICIT CURSOR
 -- ============================================
 
-CREATE OR REPLACE FUNCTION sp_comprehensive_sales_analysis_v2(
+CREATE OR REPLACE FUNCTION sp_comprehensive_sales_analysis(
     p_event_id INTEGER DEFAULT NULL,
     p_start_date TIMESTAMP DEFAULT NULL,
     p_end_date TIMESTAMP DEFAULT NULL
@@ -309,8 +327,11 @@ DECLARE
         JOIN "TicketTypes" tt ON z."ZoneId" = tt."ZoneId"
         INNER JOIN "Tickets" t ON tt."TicketTypeId" = t."TicketTypeId" 
         INNER JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
-        WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+        WHERE rs."SaleDate" >= p_start_date 
+            AND rs."SaleDate" < p_end_date
+            AND rs."TransactionStatus" = 1
             AND t."RecordedSaleId" IS NOT NULL
+            AND t."Status" IN (2, 3)
             AND (p_event_id IS NULL OR tt."EventId" = p_event_id)
         GROUP BY z."ZoneId", z."Name", z."BasePrice", z."Position", z."Capacity"
         HAVING COUNT(t."TicketId") > 0
@@ -336,8 +357,11 @@ DECLARE
         JOIN "Zones" z ON tt."ZoneId" = z."ZoneId"
         INNER JOIN "Tickets" t ON tt."TicketTypeId" = t."TicketTypeId"
         INNER JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
-        WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+        WHERE rs."SaleDate" >= p_start_date 
+            AND rs."SaleDate" < p_end_date
+            AND rs."TransactionStatus" = 1
             AND t."RecordedSaleId" IS NOT NULL
+            AND t."Status" IN (2, 3)
             AND (p_event_id IS NULL OR tt."EventId" = p_event_id)
         GROUP BY pr."PricingRuleId", pr."Name"
         HAVING COUNT(DISTINCT t."TicketId") > 0
@@ -362,7 +386,9 @@ BEGIN
     SELECT COALESCE(SUM(rs."TotalAmount"), 0)
     INTO v_total_revenue
     FROM "RecordedSales" rs
-    WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+    WHERE rs."SaleDate" >= p_start_date 
+        AND rs."SaleDate" < p_end_date
+        AND rs."TransactionStatus" = 1
         AND (p_event_id IS NULL OR EXISTS (
             SELECT 1 FROM "Tickets" t
             JOIN "TicketTypes" tt ON t."TicketTypeId" = tt."TicketTypeId"
@@ -378,17 +404,28 @@ BEGIN
         'RSD'::VARCHAR(50),
         jsonb_build_object(
             'period_start', p_start_date,
-            'period_end', p_end_date
+            'period_end', p_end_date,
+            'transaction_status', 'Completed Only'
         )::JSONB;
 
+    -- Chanhed so now we count tickets from Tickets table, not RecordedSales
     SELECT COUNT(DISTINCT t."TicketId")::INTEGER
     INTO v_total_tickets_sold
     FROM "Tickets" t
-    JOIN "TicketTypes" tt ON t."TicketTypeId" = tt."TicketTypeId"
-    JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
-    WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+    INNER JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
+    WHERE rs."SaleDate" >= p_start_date 
+        AND rs."SaleDate" < p_end_date
+        AND rs."TransactionStatus" = 1
         AND t."RecordedSaleId" IS NOT NULL
-        AND (p_event_id IS NULL OR tt."EventId" = p_event_id);
+        AND t."Status" IN (2, 3)
+        AND (
+            p_event_id IS NULL 
+            OR EXISTS (
+                SELECT 1 FROM "TicketTypes" tt 
+                WHERE tt."TicketTypeId" = t."TicketTypeId" 
+                AND tt."EventId" = p_event_id
+            )
+        );
     
     RETURN QUERY
     SELECT 
@@ -396,7 +433,10 @@ BEGIN
         'Total Tickets Sold'::VARCHAR(200),
         v_total_tickets_sold::DECIMAL(18,2),
         'pcs'::VARCHAR(50),
-        NULL::JSONB;
+        jsonb_build_object(
+            'status_filter', 'Sold + Used',
+            'transaction_status', 'Completed Only'
+        )::JSONB;
 
     RETURN QUERY
     SELECT 
@@ -407,7 +447,9 @@ BEGIN
             ELSE 0::DECIMAL(18,2)
         END,
         'RSD'::VARCHAR(50),
-        NULL::JSONB;
+        jsonb_build_object(
+            'calculation', 'Total Revenue / Tickets Sold'
+        )::JSONB;
 
     -- ===========================================
     -- SECTION 2: ZONE ANALYSIS (EXPLICIT CURSOR)
@@ -526,8 +568,11 @@ BEGIN
     JOIN "Zones" z ON tt."ZoneId" = z."ZoneId"
     INNER JOIN "Tickets" t ON tt."TicketTypeId" = t."TicketTypeId"
     INNER JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
-    WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+    WHERE rs."SaleDate" >= p_start_date 
+        AND rs."SaleDate" < p_end_date
+        AND rs."TransactionStatus" = 1  -- Only completed
         AND t."RecordedSaleId" IS NOT NULL
+        AND t."Status" IN (2, 3) -- Sold or Used
         AND so."StartDate" <= p_end_date
         AND so."EndDate" >= p_start_date
         AND (p_event_id IS NULL OR tt."EventId" = p_event_id)
@@ -548,8 +593,11 @@ BEGIN
         FROM "RecordedSales" rs
         JOIN "Tickets" t ON rs."RecordedSaleId" = t."RecordedSaleId"
         JOIN "TicketTypes" tt ON t."TicketTypeId" = tt."TicketTypeId"
-        WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+        WHERE rs."SaleDate" >= p_start_date 
+            AND rs."SaleDate" < p_end_date
+            AND rs."TransactionStatus" = 1 
             AND t."RecordedSaleId" IS NOT NULL
+            AND t."Status" IN (2, 3)
             AND (p_event_id IS NULL OR tt."EventId" = p_event_id)
         GROUP BY DATE(rs."SaleDate")
     )
@@ -602,8 +650,11 @@ BEGIN
         JOIN "TicketTypes" tt ON e."Id" = tt."EventId"
         INNER JOIN "Tickets" t ON tt."TicketTypeId" = t."TicketTypeId" 
         INNER JOIN "RecordedSales" rs ON t."RecordedSaleId" = rs."RecordedSaleId"
-        WHERE rs."SaleDate" BETWEEN p_start_date AND p_end_date
+        WHERE rs."SaleDate" >= p_start_date 
+            AND rs."SaleDate" < p_end_date
+            AND rs."TransactionStatus" = 1  -- Only completed
             AND t."RecordedSaleId" IS NOT NULL
+            AND t."Status" IN (2, 3)  -- Sold or Used
         GROUP BY e."Id", e."Name", e."Status"
         HAVING COUNT(DISTINCT t."TicketId") > 0
         ORDER BY COALESCE(SUM(t."FinalPrice"), 0) DESC;
@@ -617,10 +668,26 @@ BEGIN
     WITH optimization_data AS (
         SELECT 
             COUNT(*) FILTER (WHERE t."Status" = 0 AND t."RecordedSaleId" IS NULL)::INTEGER AS available_tickets,
-            COUNT(*) FILTER (WHERE t."RecordedSaleId" IS NOT NULL)::INTEGER AS sold_tickets,
+            COUNT(*) FILTER (WHERE t."RecordedSaleId" IS NOT NULL AND t."Status" IN (2,3))::INTEGER AS sold_tickets,
             COALESCE(SUM(z."BasePrice") FILTER (WHERE t."Status" = 0 AND t."RecordedSaleId" IS NULL), 0)::DECIMAL(18,2) AS potential_revenue_lost,
-            COALESCE(AVG(t."FinalPrice") FILTER (WHERE t."FinalPrice" < z."BasePrice" AND t."RecordedSaleId" IS NOT NULL), 0)::DECIMAL(18,2) AS avg_discounted_price,
-            COUNT(*) FILTER (WHERE t."FinalPrice" < z."BasePrice" AND t."RecordedSaleId" IS NOT NULL)::INTEGER AS discounted_tickets_count
+            COALESCE(AVG(t."FinalPrice") FILTER (
+                WHERE t."FinalPrice" < z."BasePrice" 
+                AND t."RecordedSaleId" IS NOT NULL 
+                AND EXISTS (
+                    SELECT 1 FROM "RecordedSales" rs2 
+                    WHERE rs2."RecordedSaleId" = t."RecordedSaleId" 
+                    AND rs2."TransactionStatus" = 1
+                )
+            ), 0)::DECIMAL(18,2) AS avg_discounted_price,
+            COUNT(*) FILTER (
+                WHERE t."FinalPrice" < z."BasePrice" 
+                AND t."RecordedSaleId" IS NOT NULL
+                AND EXISTS (
+                    SELECT 1 FROM "RecordedSales" rs2 
+                    WHERE rs2."RecordedSaleId" = t."RecordedSaleId" 
+                    AND rs2."TransactionStatus" = 1
+                )
+            )::INTEGER AS discounted_tickets_count
         FROM "TicketTypes" tt
         JOIN "Zones" z ON tt."ZoneId" = z."ZoneId"
         LEFT JOIN "Tickets" t ON tt."TicketTypeId" = t."TicketTypeId"
@@ -714,14 +781,14 @@ $$ LANGUAGE plpgsql;
 
 /*
 -- Main function call with all parameters:
-SELECT * FROM sp_comprehensive_sales_analysis_v2(
+SELECT * FROM sp_comprehensive_sales_analysis(
     p_event_id := 1,
     p_start_date := '2024-01-01'::TIMESTAMP,
     p_end_date := '2024-12-31'::TIMESTAMP
 );
 
 -- Call without parameters (last 30 days):
-SELECT * FROM sp_comprehensive_sales_analysis_v2();
+SELECT * FROM sp_comprehensive_sales_analysis();
 
 -- Index performance testing:
 SELECT * FROM demonstrate_index_performance();

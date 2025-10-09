@@ -274,8 +274,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Controllers
         {
             try
             {
-                var report = await _recordedSaleService.GenerateComprehensiveAnalysisAsync(
-                    eventId, startDate, endDate);
+                var report = await _recordedSaleService.GenerateComprehensiveAnalysisAsync(eventId, startDate, endDate);
 
                 return Ok(report);
             }

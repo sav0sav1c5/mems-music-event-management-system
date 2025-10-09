@@ -77,10 +77,25 @@ interface PricingRuleData {
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [dateRange, setDateRange] = useState({ 
-    from: new Date(2024, 0, 1),
-    to: new Date() 
+  
+  const [dateRange, setDateRange] = useState(() => {
+    const today = new Date();
+    
+    // Create UTC date for today (start of day)
+    const toUTC = new Date(Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate(),
+      0, 0, 0, 0
+    ));
+    
+    // Create UTC date for start (7 days including today)
+    const fromUTC = new Date(toUTC);
+    fromUTC.setUTCDate(fromUTC.getUTCDate() - 6);
+    
+    return { from: fromUTC, to: toUTC };
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,6 +108,7 @@ const Analytics = () => {
     capacityUtilization: 0,
     revenueGrowth: 0
   });
+
   const [zonePerformance, setZonePerformance] = useState<ZonePerformance[]>([]);
   const [offerPerformance, setOfferPerformance] = useState<OfferPerformance[]>([]);
   const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
@@ -114,20 +130,60 @@ const Analytics = () => {
     }
   }, [activeTab]);
 
+  
+  const parseUTCDate = (dateString: string): Date => {
+    // Input: "2025-10-09" (from date picker)
+    const parts = dateString.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+    const day = parseInt(parts[2]);
+    
+    // Create UTC date at midnight
+    const utcDate = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+    
+    console.log('🔄 Parsed UTC date:', {
+      input: dateString,
+      output: utcDate.toISOString(),
+      year, month: month + 1, day
+    });
+    
+    return utcDate;
+  };
+  
+  const handleDateRangeChange = (field: 'from' | 'to', value: string) => {
+    const newDate = parseUTCDate(value);
+    
+    setError(null);
+    
+    const newRange = {
+      ...dateRange,
+      [field]: newDate
+    };
+    
+    setDateRange(newRange);
+  };
+
   const loadBackendAnalysis = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Create copies of dates to avoid mutation
       const fromDate = new Date(dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
-      
       const toDate = new Date(dateRange.to);
-      toDate.setHours(23, 59, 59, 999);
+      toDate.setUTCDate(toDate.getUTCDate() + 1);
+      
+      console.log('📅 Analytics API Request:', {
+        userSelectedFrom: dateRange.from.toISOString().split('T')[0],
+        userSelectedTo: dateRange.to.toISOString().split('T')[0],
+        apiFromDate: fromDate.toISOString(),
+        apiToDate: toDate.toISOString(),
+        explanation: `Backend will query: [${fromDate.toISOString().split('T')[0]} 00:00 UTC, ${toDate.toISOString().split('T')[0]} 00:00 UTC)`
+      });
 
       const analysis = await RecordedSaleService.getComprehensiveAnalysis(
         undefined,
-        fromDate,
-        toDate
+        fromDate,  // e.g., 2024-01-01 00:00:00 UTC
+        toDate     // e.g., 2025-10-10 00:00:00 UTC (not 10-09!)
       );
 
       processBackendAnalysis(analysis);
@@ -167,7 +223,7 @@ const Analytics = () => {
       setIsLoading(false);
     }
   };
-
+  
   const processBackendAnalysis = (analysis: any) => {
     // Handle both PascalCase and camelCase
     const sections = analysis.Sections || analysis.sections || {};
@@ -565,7 +621,7 @@ const Analytics = () => {
         {/* Header */}
         <AnalyticsHeader
           dateRange={dateRange}
-          setDateRange={setDateRange}
+          setDateRange={handleDateRangeChange}
           isLoading={isLoading}
           exportToPdf={exportToPdf}
           exportToExcel={exportToExcel}

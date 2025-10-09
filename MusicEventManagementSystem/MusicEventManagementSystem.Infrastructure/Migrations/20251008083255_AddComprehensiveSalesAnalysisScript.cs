@@ -22,7 +22,7 @@ namespace MusicEventManagementSystem.Infrastructure.Migrations
         {
             // Cleanup - delete the functions and table created by the script
             migrationBuilder.Sql(@"
-                DROP FUNCTION IF EXISTS sp_comprehensive_sales_analysis_v2(integer, timestamp without time zone, timestamp without time zone);
+                DROP FUNCTION IF EXISTS sp_comprehensive_sales_analysis(integer, timestamp without time zone, timestamp without time zone);
                 DROP FUNCTION IF EXISTS demonstrate_index_performance();
                 DROP FUNCTION IF EXISTS get_sales_audit_log(integer);
                 DROP TABLE IF EXISTS ""SalesAuditLog"";

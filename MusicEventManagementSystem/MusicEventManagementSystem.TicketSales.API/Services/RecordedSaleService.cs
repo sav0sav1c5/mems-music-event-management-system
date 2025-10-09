@@ -229,7 +229,7 @@ namespace MusicEventManagementSystem.TicketSales.API.Services
 
             // Call the stored procedure - PLSQL function
             await using var cmd = new NpgsqlCommand(
-                            "SELECT * FROM sp_comprehensive_sales_analysis_v2(@eventId, @startDate, @endDate)",
+                            "SELECT * FROM sp_comprehensive_sales_analysis(@eventId, @startDate, @endDate)",
                             connection);
 
             cmd.Parameters.AddWithValue("eventId", eventId ?? (object)DBNull.Value);

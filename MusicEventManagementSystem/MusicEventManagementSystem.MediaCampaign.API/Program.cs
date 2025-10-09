@@ -147,7 +147,7 @@ using (var scope = app.Services.CreateScope())
     {
         context.Database.Migrate();
 
-        string[] roles = { "MediaCampaign", "Administrator" };
+        string[] roles = { "MediaCampaign" };
 
         foreach (var role in roles)
         {

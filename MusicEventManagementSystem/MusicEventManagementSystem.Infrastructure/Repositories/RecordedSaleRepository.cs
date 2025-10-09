@@ -33,7 +33,7 @@ namespace MusicEventManagementSystem.Infrastructure.Repositories
             var fromUtc = DateTime.SpecifyKind(from.Date, DateTimeKind.Utc);
             var toUtc = DateTime.SpecifyKind(to.Date, DateTimeKind.Utc);
 
-            var query = _context.RecordedSales.Include(rs => rs.ApplicationUser).Include(rs => rs.Tickets).Include(rs => rs.SpecialOffers).Where(rs => rs.SaleDate.Date >= fromUtc && rs.SaleDate.Date <= toUtc);
+            var query = _context.RecordedSales.Include(rs => rs.ApplicationUser).Include(rs => rs.Tickets).Include(rs => rs.SpecialOffers).Where(rs => rs.SaleDate.Date >= fromUtc && rs.SaleDate.Date < toUtc);
             
             if (statusFilter.HasValue)
             {

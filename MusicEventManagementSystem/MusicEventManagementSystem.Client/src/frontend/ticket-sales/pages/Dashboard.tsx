@@ -52,82 +52,204 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Define date ranges
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      setIsLoading(true);
+      
+      // ===================================================================
+      // FIX #1: Use UTC dates consistently
+      // ===================================================================
+      const now = new Date();
+      
+      // Create UTC "today" (start of day in UTC)
+      const today = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0, 0, 0, 0
+      ));
       
       const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
       const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
 
-      // Get last 7 days for weekly revenue
-      const sevenDaysAgo = new Date(today);
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      console.log('========================================');
+      console.log('📅 DASHBOARD DATE SETUP (UTC):');
+      console.log('========================================');
+      console.log('Current Time (Local):', now.toString());
+      console.log('Current Time (UTC):  ', now.toISOString());
+      console.log('Today (UTC):         ', today.toISOString());
+      console.log('Tomorrow (UTC):      ', tomorrow.toISOString());
+      console.log('Yesterday (UTC):     ', yesterday.toISOString());
+      console.log('========================================\n');
 
-      // Fetch data in parallel
+      // ===================================================================
+      // FIX #2: Fetch data with explicit logging
+      // ===================================================================
+      console.log('🔍 FETCHING DATA...');
+      
       const [
         todaySales,
         yesterdaySales,
-        weekSales,  // NOVO: Dodaj weekly sales
         allTickets,
-        activeSpecialOffers
+        activeSpecialOffers,
+        allSalesForFailedCheck
       ] = await Promise.all([
-        RecordedSaleService.getCompletedSalesByDateRange(today, tomorrow).catch(() => []),
-        RecordedSaleService.getCompletedSalesByDateRange(yesterday, today).catch(() => []),
-        RecordedSaleService.getSalesByDateRange(sevenDaysAgo, tomorrow).catch(() => []), // NOVO
-        TicketService.getAllTickets().catch(() => []),
-        SpecialOfferService.getActiveOffers().catch(() => [])
+        RecordedSaleService.getCompletedSalesByDateRange(today, tomorrow)
+          .then(sales => {
+            console.log(`✅ Today Sales (${today.toISOString().split('T')[0]}):`, {
+              count: sales.length,
+              revenue: sales.reduce((sum, s) => sum + (s.totalAmount || 0), 0),
+              saleIds: sales.map(s => s.recordedSaleId),
+              dates: sales.map(s => s.saleDate)
+            });
+            return sales;
+          }),
+        RecordedSaleService.getCompletedSalesByDateRange(yesterday, today)
+          .then(sales => {
+            console.log(`✅ Yesterday Sales (${yesterday.toISOString().split('T')[0]}):`, {
+              count: sales.length,
+              revenue: sales.reduce((sum, s) => sum + (s.totalAmount || 0), 0)
+            });
+            return sales;
+          }),
+        TicketService.getAllTickets(),
+        SpecialOfferService.getActiveOffers(),
+        RecordedSaleService.getAllRecordedSales()
       ]);
 
-      // Calculate TODAY's revenue (samo danas)
+      // ===================================================================
+      // FIX #3: Calculate Daily Revenue with validation
+      // ===================================================================
       const dailyRevenue = todaySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
       const todaySalesCount = todaySales.length;
 
-      // Calculate WEEKLY revenue (poslednjih 7 dana)
-      const weeklyRevenue = weekSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
-
-      // Calculate YESTERDAY's metrics
       const yesterdayRevenue = yesterdaySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
       const yesterdaySalesCount = yesterdaySales.length;
 
-      // Calculate percentage changes (danas vs juče)
+      console.log('\n========================================');
+      console.log('💰 DAILY METRICS:');
+      console.log('========================================');
+      console.log('Today Revenue:     ', dailyRevenue.toLocaleString(), 'RSD');
+      console.log('Today Sales:       ', todaySalesCount);
+      console.log('Yesterday Revenue: ', yesterdayRevenue.toLocaleString(), 'RSD');
+      console.log('Yesterday Sales:   ', yesterdaySalesCount);
+      console.log('========================================\n');
+
+      // Calculate percentage changes
       const revenueChange = yesterdayRevenue > 0 ? 
         ((dailyRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
       
       const salesChange = yesterdaySalesCount > 0 ? 
         ((todaySalesCount - yesterdaySalesCount) / yesterdaySalesCount) * 100 : 0;
 
-      // Prepare chart data for last 7 days
+      // ===================================================================
+      // FIX #4: Chart Data - Last 7 Days with detailed logging
+      // ===================================================================
+      console.log('📈 GENERATING CHART DATA (Last 7 Days)...\n');
+      
       const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
-        date.setHours(0, 0, 0, 0);
+        const date = new Date(today);
+        date.setUTCDate(date.getUTCDate() - (6 - i));
         return date;
       });
+
+      console.log('Chart Days:', last7Days.map(d => d.toISOString().split('T')[0]));
 
       const revenueChartData = await Promise.all(
         last7Days.map(async (date, index) => {
           const nextDay = new Date(date);
-          nextDay.setDate(nextDay.getDate() + 1);
+          nextDay.setUTCDate(nextDay.getUTCDate() + 1);
           
-          const daySales = await RecordedSaleService.getCompletedSalesByDateRange(date, nextDay).catch(() => []);
+          const dayName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index];
+          
+          console.log(`\n📊 Day ${index + 1} (${dayName} - ${date.toISOString().split('T')[0]}):`);
+          console.log(`   Query: >= ${date.toISOString()} AND < ${nextDay.toISOString()}`);
+          
+          const daySales = await RecordedSaleService.getCompletedSalesByDateRange(
+            date, 
+            nextDay
+          ).catch((err) => {
+            console.error(`   ❌ ERROR:`, err);
+            return [];
+          });
+          
           const dayRevenue = daySales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
           
+          console.log(`   ✅ Results:`, {
+            salesCount: daySales.length,
+            revenue: dayRevenue.toLocaleString() + ' RSD',
+            saleIds: daySales.map(s => s.recordedSaleId).join(', '),
+            firstSale: daySales[0]?.saleDate,
+            lastSale: daySales[daySales.length - 1]?.saleDate
+          });
+          
           return {
-            date: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index],
+            date: dayName,
             revenue: dayRevenue,
             sales: daySales.length
           };
         })
       );
 
-      // IMPORTANT: Weekly revenue treba da bude zbir iz grafika
-      const calculatedWeeklyRevenue = revenueChartData.reduce((sum, day) => sum + day.revenue, 0);
-      setWeeklyRevenue(calculatedWeeklyRevenue);
+      // ===================================================================
+      // FIX #5: Weekly Revenue - Calculate and validate
+      // ===================================================================
+      const calculatedWeeklyRevenue = revenueChartData.reduce(
+        (sum, day) => sum + day.revenue, 
+        0
+      );
+      
+      console.log('\n========================================');
+      console.log('📈 WEEKLY CHART SUMMARY:');
+      console.log('========================================');
+      revenueChartData.forEach((day, i) => {
+        console.log(`${day.date}: ${day.revenue.toLocaleString()} RSD (${day.sales} sales)`);
+      });
+      console.log('----------------------------------------');
+      console.log('Weekly Total:      ', calculatedWeeklyRevenue.toLocaleString(), 'RSD');
+      console.log('Weekly Avg/Day:    ', (calculatedWeeklyRevenue / 7).toLocaleString(), 'RSD');
+      console.log('Total Sales (7d):  ', revenueChartData.reduce((sum, d) => sum + d.sales, 0));
+      console.log('========================================\n');
 
-      // Calculate ticket statistics
+      // ===================================================================
+      // FIX #6: CRITICAL VALIDATION
+      // ===================================================================
+      console.log('🔍 VALIDATION CHECKS:');
+      console.log('----------------------------------------');
+      
+      // Check 1: Weekly >= Daily
+      const weeklyVsDailyValid = calculatedWeeklyRevenue >= dailyRevenue;
+      console.log(`Weekly (${calculatedWeeklyRevenue.toLocaleString()}) >= Daily (${dailyRevenue.toLocaleString()}):`, 
+        weeklyVsDailyValid ? '✅ PASS' : '❌ FAIL');
+      
+      // Check 2: Today's data is included in weekly
+      const todayInWeekly = revenueChartData[revenueChartData.length - 1];
+      const todayMatches = Math.abs(todayInWeekly.revenue - dailyRevenue) < 1;
+      console.log(`Today in chart (${todayInWeekly.revenue.toLocaleString()}) matches Daily (${dailyRevenue.toLocaleString()}):`,
+        todayMatches ? '✅ PASS' : '❌ FAIL');
+      
+      // Check 3: No duplicates
+      const totalChartSales = revenueChartData.reduce((sum, d) => sum + d.sales, 0);
+      console.log(`Chart Sales Count: ${totalChartSales}`);
+      
+      // Check 4: Revenue per sale ratio
+      const avgRevenuePerSale = calculatedWeeklyRevenue / totalChartSales;
+      console.log(`Avg Revenue/Sale: ${avgRevenuePerSale.toLocaleString()} RSD`);
+      
+      if (avgRevenuePerSale < 1000 || avgRevenuePerSale > 50000) {
+        console.warn('⚠️ WARNING: Unusual average revenue per sale!');
+      }
+      
+      console.log('========================================\n');
+
+      // ===================================================================
+      // Set state
+      // ===================================================================
+      setWeeklyRevenue(calculatedWeeklyRevenue);
+      setRevenueData(revenueChartData);
+
+      // Ticket Statistics (unchanged)
       const ticketStatistics = {
         [TicketStatus.Available]: allTickets.filter(t => t.status === TicketStatus.Available).length,
         [TicketStatus.Sold]: allTickets.filter(t => t.status === TicketStatus.Sold).length,
@@ -138,7 +260,6 @@ const Dashboard = () => {
         [TicketStatus.Refunded]: allTickets.filter(t => t.status === TicketStatus.Refunded).length
       };
 
-      // Calculate occupancy
       const totalCapacity = allTickets.length;
       const occupiedTickets = ticketStatistics[TicketStatus.Sold] + 
                             ticketStatistics[TicketStatus.Reserved] + 
@@ -146,25 +267,29 @@ const Dashboard = () => {
       const avgOccupancy = totalCapacity > 0 ? ((occupiedTickets / totalCapacity) * 100) : 0;
 
       const dashboardKPIs: DashboardKPIs = {
-        dailyRevenue: dailyRevenue,  // Samo današnji dan
+        dailyRevenue: dailyRevenue,
         revenueChange: revenueChange,
         totalSales: todaySalesCount,
         salesChange: salesChange,
         avgOccupancy: avgOccupancy,
-        occupancyChange: 2.4, // Mock - treba istorijski podatak
+        occupancyChange: 2.4,
         activePromotions: activeSpecialOffers.length,
         promotionsChange: 1.0
       };
 
-      // Generate alerts
+      console.log('📊 FINAL DASHBOARD KPIs:');
+      console.log(dashboardKPIs);
+      console.log('\n✅ Dashboard data loaded successfully\n');
+
+      // Generate Alerts (unchanged)
       const systemAlerts: Alert[] = [];
       
-      // Alert za nizak Daily Revenue
-      if (dailyRevenue < (weeklyRevenue / 7) * 0.5) {
+      const weeklyAverage = calculatedWeeklyRevenue / 7;
+      if (dailyRevenue < weeklyAverage * 0.5 && weeklyAverage > 0) {
         systemAlerts.push({
           id: '1',
           type: 'warning',
-          message: `Današnji revenue (${formatCurrency(dailyRevenue)}) je ispod proseka`,
+          message: `Today's revenue (${formatCurrency(dailyRevenue)}) is below weekly average (${formatCurrency(weeklyAverage)})`,
           time: '5 mins ago'
         });
       }
@@ -191,13 +316,12 @@ const Dashboard = () => {
         systemAlerts.push({
           id: '4',
           type: 'warning',
-          message: 'No sales recorded today',
+          message: 'No completed sales today',
           time: '15 mins ago'
         });
       }
 
-      const allSales = await RecordedSaleService.getAllRecordedSales().catch(() => []);
-      const failedSales = allSales.filter(sale => 
+      const failedSales = allSalesForFailedCheck.filter(sale => 
         sale.transactionStatus === TransactionStatus.Failed
       );
       
@@ -211,14 +335,29 @@ const Dashboard = () => {
       }
 
       setKpis(dashboardKPIs);
-      setRevenueData(revenueChartData);
       setTicketStats(ticketStatistics);
       setAlerts(systemAlerts);
-      setWeeklyRevenue(calculatedWeeklyRevenue);
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      // Fallback kod...
+      console.error('❌ ERROR FETCHING DASHBOARD DATA:', error);
+      
+      setKpis({
+        dailyRevenue: 0,
+        revenueChange: 0,
+        totalSales: 0,
+        salesChange: 0,
+        avgOccupancy: 0,
+        occupancyChange: 0,
+        activePromotions: 0,
+        promotionsChange: 0
+      });
+      setRevenueData([]);
+      setAlerts([{
+        id: 'error',
+        type: 'error',
+        message: 'Failed to load dashboard data. Please refresh the page.',
+        time: 'Just now'
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -226,6 +365,14 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Optional: Auto-refresh every 5 minutes
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Auto-refreshing dashboard...');
+      fetchDashboardData();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
   if (isLoading) {

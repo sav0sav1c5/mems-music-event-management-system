@@ -186,7 +186,7 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
 
         // Seed roles for the entire system
-        string[] roles = { "TicketSales", "EventOrganization", "ArtistCommunication", "MediaCampaign", "MEMSClient", "Administrator" };
+        string[] roles = { "MEMSClient", "Administrator" };
 
         foreach (var role in roles)
         {
