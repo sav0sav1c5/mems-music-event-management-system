@@ -11,7 +11,7 @@ interface TicketTypeListProps {
   zones: ZoneResponse[];
   eventFilter: string;
   onEdit: (ticketType: TicketTypeResponse) => void;
-  onDelete: (ticketTypeId: number) => void;
+  onDelete: (ticketTypeId: number, ticketTypeName?: string) => void;
 }
 
 const TicketTypeList = ({

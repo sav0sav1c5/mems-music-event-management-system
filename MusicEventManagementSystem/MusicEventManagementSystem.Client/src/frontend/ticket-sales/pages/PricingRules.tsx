@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import PricingRuleHeader from '../components/pricing-rules/PricingRuleHeader';
 import PricingRuleStats from '../components/pricing-rules/PricingRuleStats';
 import PricingRuleList from '../components/pricing-rules/PricingRuleList';
+import DeleteConfirmationModal from '../components/ui/DeleteConfirmationModal';
 
 const PricingRules = () => {
   const navigate = useNavigate();
@@ -22,6 +23,10 @@ const PricingRules = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [conditionFilter, setConditionFilter] = useState('all');
   const [eventFilter, setEventFilter] = useState('all');
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
+  const [ruleName, setRuleName] = useState<string>('');
 
   // Fetch all data
   const fetchData = async () => {
@@ -52,17 +57,30 @@ const PricingRules = () => {
   }, []);
 
   const handleDeleteRule = async (ruleId: number) => {
-    if (!confirm('Are you sure you want to delete this pricing rule?')) return;
+    const rule = pricingRules.find(r => r.pricingRuleId === ruleId);
+    if (rule) {
+      setRuleToDelete(ruleId);
+      setRuleName(rule.name || 'Unnamed Rule');
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!ruleToDelete) return;
     
     try {
       setError(null);
-      await PricingRuleService.deletePricingRule(ruleId);
-      setPricingRules(prev => prev.filter(rule => rule.pricingRuleId !== ruleId));
+      await PricingRuleService.deletePricingRule(ruleToDelete);
+      setPricingRules(prev => prev.filter(rule => rule.pricingRuleId !== ruleToDelete));
       
       toast.success('Pricing rule deleted successfully!');
     } catch (err: any) {
       setError(err.message || 'Failed to delete pricing rule');
       toast.error(err.message || 'Failed to delete pricing rule');
+    } finally {
+      setDeleteModalOpen(false);
+      setRuleToDelete(null);
+      setRuleName('');
     }
   };
 
@@ -134,6 +152,22 @@ const PricingRules = () => {
           />
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setRuleToDelete(null);
+          setRuleName('');
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Pricing Rule"
+        message="Are you sure you want to delete this pricing rule?"
+        itemName={ruleName}
+        confirmText="Delete Rule"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

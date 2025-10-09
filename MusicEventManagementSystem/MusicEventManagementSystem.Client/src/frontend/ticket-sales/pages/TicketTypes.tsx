@@ -11,6 +11,7 @@ import TicketTypeHeader from '../components/ticket-types/TicketTypeHeader';
 import TicketTypeStats from '../components/ticket-types/TicketTypeStats';
 import TicketTypeList from '../components/ticket-types/TicketTypeList';
 import TicketTypeForm from '../components/ticket-types/TicketTypeForm';
+import DeleteConfirmationModal from '../components/ui/DeleteConfirmationModal';
 
 const TicketTypes = () => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,10 @@ const TicketTypes = () => {
   const [zones, setZones] = useState<ZoneResponse[]>([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [eventFilter, setEventFilter] = useState('all');
-  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [ticketTypeToDelete, setTicketTypeToDelete] = useState<number | null>(null);
+  const [ticketTypeName, setTicketTypeName] = useState<string>('');
+
   // Form state
   const [submitting, setSubmitting] = useState(false);
   const [ticketTypeForm, setTicketTypeForm] = useState<TicketTypeCreateForm>({
@@ -141,17 +145,31 @@ const TicketTypes = () => {
   };
 
   const handleDeleteTicketType = async (ticketTypeId: number) => {
-    if (!confirm('Are you sure you want to delete this ticket type?')) return;
+    const ticketType = ticketTypes.find(t => t.ticketTypeId === ticketTypeId);
+
+    if (ticketType) {
+      setTicketTypeToDelete(ticketTypeId);
+      setTicketTypeName(ticketType.name || 'Unnamed Ticket Type');
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!ticketTypeToDelete) return;
     
     try {
       setError(null);
-      await TicketTypeService.deleteTicketType(ticketTypeId);
-      setTicketTypes(prev => prev.filter(type => type.ticketTypeId !== ticketTypeId));
+      await TicketTypeService.deleteTicketType(ticketTypeToDelete);
+      setTicketTypes(prev => prev.filter(type => type.ticketTypeId !== ticketTypeToDelete));
       
       toast.success('Ticket type deleted successfully!');
     } catch (err: any) {
       setError(err.message || 'Failed to delete ticket type');
       toast.error(err.message || 'Failed to delete ticket type');
+    } finally {
+      setDeleteModalOpen(false);
+      setTicketTypeToDelete(null);
+      setTicketTypeName('');
     }
   };
 
@@ -274,6 +292,22 @@ const TicketTypes = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setTicketTypeToDelete(null);
+          setTicketTypeName('');
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Ticket Type"
+        message="Are you sure you want to delete this ticket type?"
+        itemName={ticketTypeName}
+        confirmText="Delete Ticket Type"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

@@ -8,7 +8,7 @@ interface TicketTypeCardProps {
   events: EventResponse[];
   zones: ZoneResponse[];
   onEdit: (ticketType: TicketTypeResponse) => void;
-  onDelete: (ticketTypeId: number) => void;
+  onDelete: (ticketTypeId: number, ticketTypeName?: string) => void;
 }
 
 const formatTicketTypeStatus = (status: number): string => {

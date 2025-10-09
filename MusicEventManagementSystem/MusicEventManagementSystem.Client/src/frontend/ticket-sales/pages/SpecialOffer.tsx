@@ -8,6 +8,7 @@ import SpecialOfferHeader from '../components/special-offers/SpecialOfferHeader'
 import SpecialOfferStats from '../components/special-offers/SpecialOfferStats';
 import SpecialOfferList from '../components/special-offers/SpecialOfferList';
 import SpecialOfferForm from '../components/special-offers/SpecialOfferForm';
+import DeleteConfirmationModal from '../components/ui/DeleteConfirmationModal';
 
 const SpecialOffers = () => {
   const [specialOffers, setSpecialOffers] = useState<SpecialOfferResponse[]>([]);
@@ -22,6 +23,10 @@ const SpecialOffers = () => {
   const [showPanel, setShowPanel] = useState(false);
   const [panelMode, setPanelMode] = useState<'create' | 'edit'>('create');
   const [submitting, setSubmitting] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [offerToDelete, setOfferToDelete] = useState<number | null>(null);
+  const [offerName, setOfferName] = useState<string>('');
 
   // Form state
   const [offerForm, setOfferForm] = useState<SpecialOfferCreateForm>({
@@ -127,17 +132,30 @@ const SpecialOffers = () => {
   };
 
   const handleDeleteOffer = async (offerId: number) => {
-    if (!confirm('Are you sure you want to delete this special offer?')) return;
+    const offer = specialOffers.find(o => o.specialOfferId === offerId);
+    if (offer) {
+      setOfferToDelete(offerId);
+      setOfferName(offer.name || 'Unnamed Offer');
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!offerToDelete) return;
     
     try {
       setError(null);
-      await SpecialOfferService.deleteSpecialOffer(offerId);
-      setSpecialOffers(prev => prev.filter(offer => offer.specialOfferId !== offerId));
+      await SpecialOfferService.deleteSpecialOffer(offerToDelete);
+      setSpecialOffers(prev => prev.filter(offer => offer.specialOfferId !== offerToDelete));
       
       toast.success('Special offer deleted successfully!');
     } catch (err: any) {
       setError(err.message || 'Failed to delete special offer');
       toast.error(err.message || 'Failed to delete special offer');
+    } finally {
+      setDeleteModalOpen(false);
+      setOfferToDelete(null);
+      setOfferName('');
     }
   };
 
@@ -273,6 +291,22 @@ const SpecialOffers = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setOfferToDelete(null);
+          setOfferName('');
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Special Offer"
+        message="Are you sure you want to delete this special offer?"
+        itemName={offerName}
+        confirmText="Delete Offer"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

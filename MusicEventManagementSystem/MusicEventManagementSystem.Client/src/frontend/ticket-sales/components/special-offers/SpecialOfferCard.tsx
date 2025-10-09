@@ -8,7 +8,7 @@ import type { TicketTypeResponse } from '../../types';
 interface SpecialOfferCardProps {
   offer: SpecialOfferResponse;
   onEdit: (offer: SpecialOfferResponse) => void;
-  onDelete: (offerId: number) => void;
+  onDelete: (id: number, name?: string) => void;
   getOfferStatus: (offer: SpecialOfferResponse) => { status: string; color: string };
 }
 
@@ -119,7 +119,7 @@ const SpecialOfferCard = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(offer.specialOfferId);
+            onDelete(offer.specialOfferId, offer.name);
           }}
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
           title="Delete offer"

@@ -8,7 +8,7 @@ interface PricingRuleCardProps {
   events: EventResponse[];
   ticketTypes: TicketTypeResponse[];
   onEdit: (rule: PricingRuleResponse) => void;
-  onDelete: (ruleId: number) => void;
+  onDelete: (id: number, name?: string) => void;
   onView: (rule: PricingRuleResponse) => void;
 }
 
@@ -75,7 +75,7 @@ const PricingRuleCard = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(rule.pricingRuleId);
+            onDelete(rule.pricingRuleId, rule.name);
           }}
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
           title="Delete pricing rule"
