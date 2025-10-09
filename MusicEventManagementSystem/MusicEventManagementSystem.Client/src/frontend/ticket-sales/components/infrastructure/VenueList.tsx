@@ -58,7 +58,7 @@ const VenueList = ({
                     className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
                     title="Configure seat layout"
                   >
-                    <Settings className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+                    <Settings className="w-4 h-4 text-neutral-400 hover:text-lime-400 transition-colors" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -68,7 +68,7 @@ const VenueList = ({
                     className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
                     title="Edit venue"
                   >
-                    <Edit className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+                    <Edit className="w-4 h-4 text-neutral-400 hover:text-lime-400 transition-colors" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -78,7 +78,7 @@ const VenueList = ({
                     className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
                     title="Delete venue"
                   >
-                    <Trash2 className="w-5 h-5 text-neutral-400 hover:text-red-400 transition-colors" />
+                    <Trash2 className="w-4 h-4 text-neutral-400 hover:text-red-400 transition-colors" />
                   </button>
                 </div>
 
@@ -103,47 +103,56 @@ const VenueList = ({
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  {/* Event Information */}
-                  {event && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <span className="text-white text-sm font-medium block">{event.name}</span>
-                        <span className="text-neutral-400 text-xs">
-                          {event.startDate && new Date(event.startDate).toLocaleDateString()} - {event.endDate && new Date(event.endDate).toLocaleDateString()}
-                        </span>
+                <div className="space-y-4">
+                  {/* Event and Capacity in one row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Event Information */}
+                    <div className="space-y-1">
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-white text-sm font-medium block">
+                            {event?.name || 'No Event'}
+                          </span>
+                          <span className="text-neutral-400 text-xs">
+                            {event?.startDate && new Date(event.startDate).toLocaleDateString()} - {event?.endDate && new Date(event.endDate).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Capacity Information */}
-                  <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <span className="text-lime-400 text-sm font-medium block">
-                        {(venue.capacity || 0).toLocaleString()} capacity
-                      </span>
-                      <span className="text-neutral-400 text-xs">Total Capacity</span>
+
+                    {/* Capacity Information */}
+                    <div className="space-y-1">
+                      <div className="flex items-start gap-2">
+                        <Users className="w-4 h-4 text-lime-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-lime-400 text-sm font-medium block">
+                            {(venue.capacity || 0).toLocaleString()} capacity
+                          </span>
+                          <span className="text-neutral-400 text-xs">Total Capacity</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Location Information */}
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
-                    {venue.city && venue.address ? (
-                      <div>
-                        <span className="text-white text-sm font-medium block">
-                          {venue.city}, {venue.address}
-                        </span>
-                        <span className="text-neutral-400 text-xs">Location</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-orange-400" />
-                        <span className="text-orange-400 text-sm font-medium">Location Not Specified</span>
-                      </div>
-                    )}
+                  {/* Location Information - Full width */}
+                  <div className="space-y-1">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-neutral-400 mt-0.5 flex-shrink-0" />
+                      {venue.city && venue.address ? (
+                        <div>
+                          <span className="text-white text-sm font-medium block">
+                            {venue.city}, {venue.address}
+                          </span>
+                          <span className="text-neutral-400 text-xs">Location</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-orange-400" />
+                          <span className="text-orange-400 text-sm font-medium">Location Not Specified</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>

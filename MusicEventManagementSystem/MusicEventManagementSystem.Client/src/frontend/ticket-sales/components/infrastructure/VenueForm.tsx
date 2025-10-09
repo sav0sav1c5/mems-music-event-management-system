@@ -211,19 +211,11 @@ const VenueForm = ({
               </button>
               <button
                 type="button"
-                onClick={onConfigure}
-                className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                Configure Layout
-              </button>
-              <button
-                type="button"
                 onClick={onEdit}
-                className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 rounded-xl transition-all duration-200 text-white font-semibold flex items-center justify-center gap-2"
+                className="flex-1 p-3 bg-lime-400 hover:bg-lime-500 rounded-xl transition-all duration-200 text-black font-semibold flex items-center justify-center gap-2"
               >
                 <Edit className="w-4 h-4" />
-                Edit Venue
+                Update Venue
               </button>
             </>
           ) : (

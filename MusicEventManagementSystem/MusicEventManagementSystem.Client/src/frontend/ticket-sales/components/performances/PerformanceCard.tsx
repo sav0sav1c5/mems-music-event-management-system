@@ -40,7 +40,7 @@ const PerformanceCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all duration-200"
           title="View performer details"
         >
-          <Eye className="w-5 h-5 text-neutral-400 hover:text-blue-400 transition-colors" />
+          <Eye className="w-4 h-4 text-neutral-400 hover:text-blue-400 transition-colors" />
         </button>
         <button
           onClick={(e) => {
@@ -50,7 +50,7 @@ const PerformanceCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
           title="Assign venue"
         >
-          <MapPin className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+          <MapPin className="w-4 h-4 text-neutral-400 hover:text-lime-400 transition-colors" />
         </button>
       </div>
 
@@ -75,38 +75,50 @@ const PerformanceCard = ({
         </div>
       </div>
       
-      <div className="space-y-3">
-        {/* Event Information */}
-        {performance.event && (
-          <div className="flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-            <div>
-              <span className="text-white text-sm font-medium block">{performance.event.name}</span>
-              <span className="text-neutral-400 text-xs">
-                {formatDateTime(performance.startTime)} - {formatDateTime(performance.endTime)}
-              </span>
+      {/* Conditional layout based on venue assignment */}
+      {performance.venue ? (
+        /* Two-column layout when venue is assigned */
+        <div className="grid grid-cols-2 gap-4">
+          {/* Left column - Event Information */}
+          <div className="space-y-3">
+            {performance.event && (
+              <div className="flex items-start gap-3">
+                <Calendar className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">{performance.event.name}</span>
+                  <span className="text-neutral-400 text-xs">
+                    {formatDateTime(performance.startTime)} - {formatDateTime(performance.endTime)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right column - Venue Information */}
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-lime-400 text-sm font-medium block">{performance.venue.name}</span>
+                <span className="text-neutral-400 text-xs">
+                  {performance.venue.city} • {performance.venue.capacity.toLocaleString()} capacity
+                </span>
+              </div>
             </div>
           </div>
-        )}
-        
-        {/* Venue Information */}
-        <div className="flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
-          {performance.venue ? (
-            <div>
-              <span className="text-lime-400 text-sm font-medium block">{performance.venue.name}</span>
-              <span className="text-neutral-400 text-xs">
-                {performance.venue.city} • {performance.venue.capacity.toLocaleString()} capacity
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-orange-400" />
-              <span className="text-orange-400 text-sm font-medium">Venue Not Assigned</span>
-            </div>
-          )}
         </div>
-      </div>
+      ) : (
+        /* Centered unassigned state */
+        <div className="flex flex-col items-center justify-center text-center py-1">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="w-5 h-5 text-orange-400" />
+            <span className="text-orange-400 text-sm font-medium">Venue Not Assigned</span>
+          </div>
+          <span className="text-neutral-400 text-xs">
+            Click the venue icon to assign
+          </span>
+        </div>
+      )}
     </Card>
   );
 };

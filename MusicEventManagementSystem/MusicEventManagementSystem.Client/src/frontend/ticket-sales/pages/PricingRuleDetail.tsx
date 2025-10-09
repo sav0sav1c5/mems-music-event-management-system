@@ -252,8 +252,8 @@ const PricingRuleDetail = () => {
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl shadow-xl h-full">
       <div className="text-white h-full flex flex-col p-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="mb-4">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/pricing-rules')}
               className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400"

@@ -114,7 +114,7 @@ const SpecialOfferCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
           title="Edit offer"
         >
-          <Edit className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+          <Edit className="w-4 h-4 text-neutral-400 hover:text-lime-400 transition-colors" />
         </button>
         <button
           onClick={(e) => {
@@ -124,7 +124,7 @@ const SpecialOfferCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
           title="Delete offer"
         >
-          <Trash2 className="w-5 h-5 text-neutral-400 hover:text-red-400 transition-colors" />
+          <Trash2 className="w-4 h-4 text-neutral-400 hover:text-red-400 transition-colors" />
         </button>
       </div>
 
@@ -149,69 +149,68 @@ const SpecialOfferCard = ({
         </div>
       </div>
       
-      <div className="space-y-3">
-        {offer.description && (
-          <div className="text-neutral-300 text-sm line-clamp-2">
-            {offer.description}
-          </div>
-        )}
-        
+      {/* Description */}
+      {offer.description && (
+        <div className="text-neutral-300 text-sm mb-4">
+          {offer.description}
+        </div>
+      )}
+      
+      {/* Main offer details grid */}
+      <div className="grid grid-cols-3 gap-6 mb-4">
         {/* Discount Value */}
-        <div className="flex items-start gap-3">
-          <Percent className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-lime-400 text-sm font-medium block">{offer.discountValue}% Discount</span>
-            <span className="text-neutral-400 text-xs">Discount Value</span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Percent className="w-4 h-4 text-lime-400 flex-shrink-0" />
+            <span className="text-lime-400 text-sm font-medium">{offer.discountValue}% Discount</span>
           </div>
+          <span className="text-neutral-400 text-xs block">Discount Value</span>
         </div>
         
         {/* Ticket Limit */}
-        <div className="flex items-start gap-3">
-          <Users className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-white text-sm font-medium block">{offer.ticketLimit.toLocaleString()} tickets</span>
-            <span className="text-neutral-400 text-xs">Ticket Limit</span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-400 flex-shrink-0" />
+            <span className="text-white text-sm font-medium">{offer.ticketLimit.toLocaleString()} tickets</span>
           </div>
+          <span className="text-neutral-400 text-xs block">Ticket Limit</span>
         </div>
         
-        {/* Applicable Ticket Types */}
-        <div className="flex items-start gap-3">
-          <Ticket className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <span className="text-white text-sm font-medium block">
-              {getTicketTypesText()}
-            </span>
-            {applicableTicketTypes.length > 0 && (
-              <div className="mt-1 flex flex-wrap gap-1">
-                {applicableTicketTypes.slice(0, 3).map(type => (
-                  <span
-                    key={type.ticketTypeId}
-                    className="inline-block px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs"
-                  >
-                    {type.name || `Type #${type.ticketTypeId}`}
-                  </span>
-                ))}
-                {applicableTicketTypes.length > 3 && (
-                  <span className="inline-block px-2 py-1 bg-neutral-700 text-neutral-300 rounded text-xs">
-                    +{applicableTicketTypes.length - 3} more
-                  </span>
-                )}
-              </div>
-            )}
-            <span className="text-neutral-400 text-xs">Applicable Tickets</span>
-          </div>
-        </div>
-
         {/* Date Range */}
-        <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-white text-sm font-medium block">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+            <span className="text-white text-sm font-medium">
               {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
             </span>
-            <span className="text-neutral-400 text-xs">Valid Period</span>
           </div>
+          <span className="text-neutral-400 text-xs block">Valid Period</span>
         </div>
+      </div>
+
+      {/* Applicable Ticket Types */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Ticket className="w-4 h-4 text-purple-400 flex-shrink-0" />
+          <span className="text-white text-sm font-medium">
+            {getTicketTypesText()}
+          </span>
+        </div>
+        
+        {applicableTicketTypes.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {applicableTicketTypes.map(type => (
+              <span
+                key={type.ticketTypeId}
+                className="inline-block px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs"
+              >
+                {type.name || `Type #${type.ticketTypeId}`}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        <span className="text-neutral-400 text-xs block">Applicable Tickets</span>
       </div>
     </Card>
   );

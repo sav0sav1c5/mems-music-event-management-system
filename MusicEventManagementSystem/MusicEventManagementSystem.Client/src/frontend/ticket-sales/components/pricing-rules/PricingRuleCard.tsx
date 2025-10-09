@@ -1,5 +1,5 @@
 import { Card } from '../ui/card';
-import { Edit, Trash2, Tag, DollarSign, TrendingUp, Target } from 'lucide-react';
+import { Edit, Trash2, Tag, DollarSign, TrendingUp, Target, Calendar, Ticket } from 'lucide-react';
 import type { PricingRuleResponse, TicketTypeResponse } from '../../types';
 import type { EventResponse } from '../../../event-organization/types/api/event';
 
@@ -70,7 +70,7 @@ const PricingRuleCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
           title="Edit pricing rule"
         >
-          <Edit className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+          <Edit className="w-4 h-4 text-neutral-400 hover:text-lime-400 transition-colors" />
         </button>
         <button
           onClick={(e) => {
@@ -80,7 +80,7 @@ const PricingRuleCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
           title="Delete pricing rule"
         >
-          <Trash2 className="w-5 h-5 text-neutral-400 hover:text-red-400 transition-colors" />
+          <Trash2 className="w-4 h-4 text-neutral-400 hover:text-red-400 transition-colors" />
         </button>
       </div>
 
@@ -111,42 +111,58 @@ const PricingRuleCard = ({
         </div>
       </div>
       
-      <div className="space-y-3">
+      <div className="space-y-4">
         {rule.description && (
-          <div className="text-neutral-300 text-sm line-clamp-2">
+          <div className="text-neutral-300 text-sm">
             {rule.description}
           </div>
         )}
         
-        {/* Price Range */}
-        <div className="flex items-start gap-3">
-          <DollarSign className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-lime-400 text-sm font-medium block">
-              ${rule.minimumPrice} - ${rule.maximumPrice}
-            </span>
-            <span className="text-neutral-400 text-xs">Price Range</span>
+        {/* Price Range and Early Bird in one row */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Price Range */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-lime-400 flex-shrink-0" />
+              <span className="text-lime-400 text-sm font-medium">
+                ${rule.minimumPrice} - ${rule.maximumPrice}
+              </span>
+            </div>
+            <span className="text-neutral-400 text-xs block">Price Range</span>
           </div>
-        </div>
-        
-        {/* Early Bird Discount */}
-        <div className="flex items-start gap-3">
-          <TrendingUp className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-white text-sm font-medium block">
-              {rule.earlyBirdPercentage}% Early Bird
-            </span>
+          
+          {/* Early Bird Discount */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-blue-400 flex-shrink-0" />
+              <span className="text-white text-sm font-medium">
+                {rule.earlyBirdPercentage}% Early Bird
+              </span>
+            </div>
+            <span className="text-neutral-400 text-xs block">Early Bird Discount</span>
           </div>
         </div>
 
-        {/* Applied To */}
-        <div className="flex items-start gap-3">
-          <Target className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-white text-sm font-medium block">
-              {relatedEvents.length} event(s), {relatedTicketTypes.length} ticket type(s)
-            </span>
-            <span className="text-neutral-400 text-xs">Applied to</span>
+        {/* Applied To - Events and Ticket Types in separate rows */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Events Row */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+              <span className="text-white text-sm font-medium">
+                Applied to {relatedEvents.length} event(s)
+              </span>
+            </div>
+          </div>
+
+          {/* Ticket Types Row */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-purple-400 flex-shrink-0" />
+              <span className="text-white text-sm font-medium">
+                Applied to {relatedTicketTypes.length} ticket type(s)
+              </span>
+            </div>
           </div>
         </div>
       </div>

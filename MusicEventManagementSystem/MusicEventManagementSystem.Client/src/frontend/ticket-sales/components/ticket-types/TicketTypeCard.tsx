@@ -57,7 +57,7 @@ const TicketTypeCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-lime-500/20 hover:border-lime-500/50 transition-all duration-200"
           title="Edit ticket type"
         >
-          <Edit className="w-5 h-5 text-neutral-400 hover:text-lime-400 transition-colors" />
+          <Edit className="w-4 h-4 text-neutral-400 hover:text-lime-400 transition-colors" />
         </button>
         <button
           onClick={(e) => {
@@ -67,7 +67,7 @@ const TicketTypeCard = ({
           className="p-2 rounded-xl bg-neutral-800/60 border border-neutral-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200"
           title="Delete ticket type"
         >
-          <Trash2 className="w-5 h-5 text-neutral-400 hover:text-red-400 transition-colors" />
+          <Trash2 className="w-4 h-4 text-neutral-400 hover:text-red-400 transition-colors" />
         </button>
       </div>
 
@@ -92,45 +92,48 @@ const TicketTypeCard = ({
         </div>
       </div>
       
-      <div className="space-y-3">
-        {/* Event Information */}
-        {event && (
+      {/* Two-column layout for event and zone information */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Left column - Event Information */}
+        <div className="space-y-3">
           <div className="flex items-start gap-3">
             <Calendar className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
             <div>
-              <span className="text-white text-sm font-medium block">{event.name}</span>
+              <span className="text-white text-sm font-medium block">{event?.name || `Event ${ticketType.eventId}`}</span>
               <span className="text-neutral-400 text-xs">
-                {event.startDate && new Date(event.startDate).toLocaleDateString()} - {event.endDate && new Date(event.endDate).toLocaleDateString()}
+                {event?.startDate && new Date(event.startDate).toLocaleDateString()} - {event?.endDate && new Date(event.endDate).toLocaleDateString()}
               </span>
             </div>
           </div>
-        )}
-        
-        {/* Zone Information */}
-        <div className="flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
-          {zone ? (
+          
+          {/* Available Quantity */}
+          <div className="flex items-start gap-3">
+            <Users className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
             <div>
-              <span className="text-lime-400 text-sm font-medium block">{zone.name}</span>
-              <span className="text-neutral-400 text-xs">
-                Capacity: {zone.capacity}
+              <span className="text-white text-sm font-medium block">
+                {ticketType.availableQuantity.toLocaleString()} tickets available
               </span>
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-orange-400" />
-              <span className="text-orange-400 text-sm font-medium">Zone Not Assigned</span>
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Available Quantity */}
-        <div className="flex items-start gap-3">
-          <Users className="w-5 h-5 text-neutral-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <span className="text-white text-sm font-medium block">
-              {ticketType.availableQuantity.toLocaleString()} tickets available
-            </span>
+        {/* Right column - Zone Information */}
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
+            {zone ? (
+              <div>
+                <span className="text-lime-400 text-sm font-medium block">{zone.name}</span>
+                <span className="text-neutral-400 text-xs">
+                  Capacity: {zone.capacity.toLocaleString()}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-orange-400" />
+                <span className="text-orange-400 text-sm font-medium">Zone Not Assigned</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
