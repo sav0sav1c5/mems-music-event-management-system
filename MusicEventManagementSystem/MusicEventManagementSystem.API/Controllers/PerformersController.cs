@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Services.IServices;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
@@ -16,6 +17,7 @@ namespace MusicEventManagementSystem.API.Controllers
             _performerService = performerService;
         }
 
+        [AllowAnonymous]
         [HttpGet("featured")]
         public async Task<ActionResult<IEnumerable<PerformerInfoDto>>> GetFeaturedPerformers()
         {
@@ -30,6 +32,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<PerformerInfoDto>> GetPerformerDetails(int id)
         {
@@ -48,6 +51,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<PerformerInfoDto>>> SearchPerformers(
             [FromQuery] string? keyword,

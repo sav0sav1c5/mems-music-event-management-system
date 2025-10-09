@@ -3,21 +3,20 @@ import { CreditCard, User, Lock, CheckCircle, ArrowLeft, Loader2, Shield, MapPin
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { CartService } from "../../shared/services/client/cartService";
-import { ordersService } from "../../shared/services/client/ordersService";
+import { OrdersService } from "../../shared/services/client/ordersService";
 import type { CartDto } from "../../shared/types/api/cart";
 import type { CheckoutRequestDto } from "../../shared/types/api/checkout";
 import { PaymentMethod } from "../../ticket-sales/types/enums/TicketSales";
+import { useAuth } from "../contexts/AuthContext";
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const { userId, isAuthenticated } = useAuth(); // Replace with actual user ID from auth context
   const [step, setStep] = useState<'billing' | 'payment' | 'review' | 'complete'>('billing');
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<CartDto | null>(null);
   const [cartLoading, setCartLoading] = useState(true);
   const [orderId, setOrderId] = useState<number | null>(null);
-  
-  // Mock user ID - replace with actual user ID from auth context
-  const userId = "user123";
 
   // Form data
   const [billingInfo, setBillingInfo] = useState({
@@ -61,42 +60,63 @@ const Checkout = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const checkoutRequest: CheckoutRequestDto = {
-        applicationUserId: userId,
-        paymentMethod: PaymentMethod.CreditCard,
-        billingInfo: {
-          firstName: billingInfo.firstName,
-          lastName: billingInfo.lastName,
-          email: billingInfo.email,
-          phone: billingInfo.phone,
-          address: billingInfo.address,
-          city: billingInfo.city,
-          postalCode: billingInfo.postalCode,
-          country: billingInfo.country
-        },
-        paymentInfo: {
-          cardNumber: paymentInfo.cardNumber,
-          expiryDate: paymentInfo.expiryDate,
-          cvv: paymentInfo.cvv,
-          cardholderName: paymentInfo.cardholderName
-        }
-      };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+    const checkoutRequest: CheckoutRequestDto = {
+      applicationUserId: userId,
+      paymentMethod: PaymentMethod.CreditCard,
+      billingInfo: {
+        firstName: billingInfo.firstName,
+        lastName: billingInfo.lastName,
+        email: billingInfo.email,
+        phone: billingInfo.phone,
+        address: billingInfo.address,
+        city: billingInfo.city,
+        postalCode: billingInfo.postalCode,
+        country: billingInfo.country
+      },
+      paymentInfo: {
+        cardNumber: paymentInfo.cardNumber.replace(/\s/g, ''), // Uklonite razmake
+        expiryDate: paymentInfo.expiryDate,
+        cvv: paymentInfo.cvv,
+        cardholderName: paymentInfo.cardholderName
+      }
+    };
 
-      const response = await ordersService.checkout(userId, checkoutRequest);
-      setOrderId(response.orderId);
-      setStep('complete');
-    } catch (error) {
-      console.error("Error processing checkout:", error);
+    console.log('🛒 Cart items before checkout:', cart?.items);
+    console.log('📦 Checkout request payload:', JSON.stringify(checkoutRequest, null, 2));
+
+    const response = await OrdersService.checkout(userId, checkoutRequest);
+    console.log('✅ Checkout successful:', response);
+    
+    setOrderId(response.orderId);
+    setStep('complete');
+    
+  } catch (error: any) {
+    console.error("❌ Error processing checkout:", error);
+    
+    if (error.response?.status === 400) {
+      const errorDetails = error.response.data;
+      console.error('🔍 Validation error details:', errorDetails);
+      
+      // Proverite da li je greška vezana za ticket availability
+      if (errorDetails.message?.includes('recorded sale') || errorDetails.message?.includes('ticket') || errorDetails.message?.includes('available')) {
+        alert("Some tickets in your cart are no longer available. Please review your cart and try again.");
+        // Refresh cart da dobijete ažurirano stanje
+        await fetchCart();
+      } else {
+        alert(`Error: ${errorDetails.message || "Invalid request data"}`);
+      }
+    } else {
       alert("Failed to process your order. Please try again.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const isStepValid = (stepName: string) => {
     switch (stepName) {

@@ -6,8 +6,11 @@ import type { ClientEventDto, EventDetailsDto } from "../../shared/types/api/eve
 import type { AddToCartDto } from "../../shared/types/api/cart";
 import { Card } from "../../ticket-sales/components/ui/card";
 import { CustomSelect } from "../../ticket-sales/components/ui/customSelect";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "react-toastify";
 
 const Events = () => {
+  const { userId, isAuthenticated } = useAuth();
   const [events, setEvents] = useState<ClientEventDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventDetailsDto | null>(null);
@@ -21,9 +24,6 @@ const Events = () => {
     status: "all"
   });
   const [showFilters, setShowFilters] = useState(false);
-
-  // Mock user ID - replace with actual user ID from auth context
-  const userId = "user123";
 
   const fetchEvents = async () => {
     try {
@@ -66,18 +66,24 @@ const Events = () => {
   };
 
   const handleAddToCart = async (ticketTypeId: number) => {
+    if (!isAuthenticated || !userId) {
+      alert("Please log in to add tickets to cart");
+      return;
+    }
+    
     try {
       setAddingToCart(ticketTypeId);
       const addToCartDto: AddToCartDto = {
         ticketTypeId,
         quantity: 1
       };
+
       await CartService.addToCart(userId, addToCartDto);
       // Show success message or update UI
-      alert("Ticket added to cart successfully!");
+      toast.success("Ticket added to cart successfully!");
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("Failed to add ticket to cart. Please try again.");
+      toast.error("Failed to add ticket to cart. Please try again.");
     } finally {
       setAddingToCart(null);
     }

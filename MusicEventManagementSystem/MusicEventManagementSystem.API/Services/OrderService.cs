@@ -4,6 +4,8 @@ using MusicEventManagementSystem.Core.Enums.TicketSales;
 using MusicEventManagementSystem.Core.Interfaces.Services;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
 using MusicEventManagementSystem.Core.Models.Entities.TicketSales;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MusicEventManagementSystem.API.Services
 {
@@ -47,14 +49,15 @@ namespace MusicEventManagementSystem.API.Services
                 throw new InvalidOperationException("Cart contains invalid items");
             }
 
-            // Create RecordedSale
+            // Step 1: Create RecordedSale with Pending status
             var recordedSaleDto = new RecordedSaleCreateDto
             {
                 TotalAmount = cart.Total,
                 SaleDate = DateTime.UtcNow,
                 TransactionStatus = TransactionStatus.Pending,
                 PaymentMethod = checkoutRequest.PaymentMethod,
-                ApplicationUserId = checkoutRequest.ApplicationUserId
+                ApplicationUserId = checkoutRequest.ApplicationUserId,
+                TicketIds = new List<int>()
             };
 
             var recordedSale = await _recordedSaleService.CreateRecordedSaleAsync(recordedSaleDto);
@@ -62,54 +65,66 @@ namespace MusicEventManagementSystem.API.Services
 
             try
             {
-                // Process each cart item
+                // Step 2: Reserve tickets first
                 foreach (var item in cart.Items)
                 {
-                    // Reserve tickets
-                    var reserved = await _ticketTypeService.ReserveTicketsAsync(
-                        item.TicketTypeId, item.Quantity);
-
+                    var reserved = await _ticketTypeService.ReserveTicketsAsync(item.TicketTypeId, item.Quantity);
                     if (!reserved)
                     {
-                        throw new InvalidOperationException(
-                            $"Failed to reserve tickets for {item.TicketTypeName}");
+                        throw new InvalidOperationException($"Failed to reserve tickets for {item.TicketTypeName}");
                     }
+                }
 
-                    // Create individual tickets
+                // Step 3: Create tickets with Reserved status first (without RecordedSaleId)
+                var temporaryTickets = new List<TicketResponseDto>();
+
+                foreach (var item in cart.Items)
+                {
                     for (int i = 0; i < item.Quantity; i++)
                     {
                         var ticketDto = new TicketCreateDto
                         {
                             IssueDate = DateTime.UtcNow,
                             FinalPrice = item.UnitPrice,
-                            Status = TicketStatus.Sold,
+                            Status = TicketStatus.Reserved, // Start with Reserved
                             TicketTypeId = item.TicketTypeId,
-                            RecordedSaleId = recordedSale.RecordedSaleId
+                            RecordedSaleId = null // Don't assign RecordedSaleId yet
                         };
 
                         var ticket = await _ticketService.CreateTicketAsync(ticketDto);
-
-                        // Build ticket response
-                        var ticketType = await _ticketTypeService.GetTicketTypeByIdAsync(item.TicketTypeId);
-                        var zone = await _zoneService.GetZoneByIdAsync(ticketType!.ZoneId);
-                        var evt = await _eventService.GetEventByIdAsync(ticketType.EventId);
-
-                        createdTickets.Add(new OrderTicketDto
-                        {
-                            TicketId = ticket.TicketId,
-                            UniqueCode = ticket.UniqueCode,
-                            QrCode = ticket.QrCode,
-                            EventName = evt?.Name,
-                            TicketTypeName = ticketType.Name,
-                            ZoneName = zone?.Name,
-                            EventStartDate = evt?.StartDate ?? DateTime.MinValue,
-                            Price = ticket.FinalPrice,
-                            Status = ticket.Status.ToString()
-                        });
+                        temporaryTickets.Add(ticket);
                     }
                 }
 
-                // Mark transaction as completed
+                // Step 4: Now update tickets with RecordedSaleId and mark as Sold
+                foreach (var ticket in temporaryTickets)
+                {
+                    var updatedTicket = await _ticketService.UpdateTicketAsync(ticket.TicketId, new TicketUpdateDto
+                    {
+                        RecordedSaleId = recordedSale.RecordedSaleId,
+                        Status = TicketStatus.Sold
+                    });
+
+                    // Build ticket response for final result
+                    var ticketType = await _ticketTypeService.GetTicketTypeByIdAsync(ticket.TicketTypeId);
+                    var zone = await _zoneService.GetZoneByIdAsync(ticketType!.ZoneId);
+                    var evt = await _eventService.GetEventByIdAsync(ticketType.EventId);
+
+                    createdTickets.Add(new OrderTicketDto
+                    {
+                        TicketId = updatedTicket.TicketId,
+                        UniqueCode = updatedTicket.UniqueCode,
+                        QrCode = updatedTicket.QrCode,
+                        EventName = evt?.Name,
+                        TicketTypeName = ticketType.Name,
+                        ZoneName = zone?.Name,
+                        EventStartDate = evt?.StartDate ?? DateTime.MinValue,
+                        Price = updatedTicket.FinalPrice,
+                        Status = updatedTicket.Status.ToString()
+                    });
+                }
+
+                // Step 5: Update RecordedSale status to Completed
                 await _recordedSaleService.UpdateRecordedSaleAsync(
                     recordedSale.RecordedSaleId,
                     new RecordedSaleUpdateDto
@@ -130,9 +145,9 @@ namespace MusicEventManagementSystem.API.Services
                     Tickets = createdTickets
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Rollback: mark as failed
+                // Rollback logic remains the same
                 await _recordedSaleService.UpdateRecordedSaleAsync(
                     recordedSale.RecordedSaleId,
                     new RecordedSaleUpdateDto
@@ -140,11 +155,9 @@ namespace MusicEventManagementSystem.API.Services
                         TransactionStatus = TransactionStatus.Failed
                     });
 
-                // Release reserved tickets
                 foreach (var item in cart.Items)
                 {
-                    await _ticketTypeService.ReleaseTicketsAsync(
-                        item.TicketTypeId, item.Quantity);
+                    await _ticketTypeService.ReleaseTicketsAsync(item.TicketTypeId, item.Quantity);
                 }
 
                 throw;

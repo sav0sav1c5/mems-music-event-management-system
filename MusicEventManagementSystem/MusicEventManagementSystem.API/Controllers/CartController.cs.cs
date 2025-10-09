@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Services.IServices;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
@@ -8,6 +9,7 @@ namespace MusicEventManagementSystem.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -22,6 +24,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var cart = await _cartService.GetCartAsync(userId);
                 return Ok(cart);
             }
@@ -36,6 +45,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var cart = await _cartService.AddToCartAsync(userId, addToCartDto);
                 return Ok(cart);
             }
@@ -50,6 +66,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var cart = await _cartService.UpdateCartItemAsync(userId, updateDto);
                 return Ok(cart);
             }
@@ -64,6 +87,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var cart = await _cartService.RemoveFromCartAsync(userId, ticketTypeId);
                 return Ok(cart);
             }
@@ -78,7 +108,15 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var result = await _cartService.ClearCartAsync(userId);
+                
                 if (result)
                 {
                     return Ok(new { message = "Cart cleared successfully" });
@@ -96,6 +134,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var total = await _cartService.CalculateCartTotalAsync(userId);
                 return Ok(total);
             }
@@ -110,6 +155,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to access this cart.");
+                }
+
                 var isValid = await _cartService.ValidateCartAsync(userId);
                 return Ok(isValid);
             }

@@ -63,7 +63,7 @@ const SideBar = () => {
       case 5: // Client
         return [
           { icon: <Ticket size={20} />, label: "Events", path: "/client/browse-events" },
-          { icon: <ShoppingCart size={20} />, label: "My Cart", path: "/client/cart" },
+          { icon: <ShoppingCart size={20} />, label: "My Cart", path: "/client/my-cart" },
           { icon: <CreditCard size={20} />, label: "Checkout", path: "/client/checkout" },
           { icon: <FileText size={20} />, label: "My Orders", path: "/client/orders" },
         ];

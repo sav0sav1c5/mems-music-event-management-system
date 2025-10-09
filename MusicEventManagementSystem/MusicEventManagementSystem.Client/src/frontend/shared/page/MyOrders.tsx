@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Ticket, Download, QrCode, Clock, CheckCircle, XCircle, ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import { Card } from "../../ticket-sales/components/ui/card";
-import { ordersService } from "../../shared/services/client/ordersService";
+import { OrdersService } from "../../shared/services/client/ordersService";
 import type { OrderDto, OrderDetailsDto } from "../../shared/types/api/order";
 
 const MyOrders = () => {
@@ -21,7 +21,7 @@ const MyOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const ordersData = await ordersService.getUserOrders(userId);
+      const ordersData = await OrdersService.getUserOrders(userId);
       setOrders(ordersData);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -33,7 +33,7 @@ const MyOrders = () => {
   const fetchOrderDetails = async (orderId: number) => {
     try {
       setOrderLoading(true);
-      const orderDetails = await ordersService.getOrderDetails(userId, orderId);
+      const orderDetails = await OrdersService.getOrderDetails(userId, orderId);
       setSelectedOrder(orderDetails);
       setShowOrderDetails(true);
     } catch (error) {
@@ -49,7 +49,7 @@ const MyOrders = () => {
 
   const handleDownloadTicket = async (ticketId: number) => {
     try {
-      const blob = await ordersService.downloadTicketPdf(userId, ticketId);
+      const blob = await OrdersService.downloadTicketPdf(userId, ticketId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -70,7 +70,7 @@ const MyOrders = () => {
     }
 
     try {
-      await ordersService.cancelOrder(userId, orderId);
+      await OrdersService.cancelOrder(userId, orderId);
       alert("Order cancelled successfully");
       await fetchOrders();
       setShowOrderDetails(false);

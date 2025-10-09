@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Services.IServices;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
@@ -16,6 +17,7 @@ namespace MusicEventManagementSystem.API.Controllers
             _venueService = venueService;
         }
 
+        [AllowAnonymous]
         [HttpGet("city/{city}")]
         public async Task<ActionResult<IEnumerable<VenueInfoDto>>> GetVenuesByCity(string city)
         {
@@ -30,6 +32,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<VenueInfoDto>> GetVenueDetails(int id)
         {
@@ -48,6 +51,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{venueId}/events")]
         public async Task<ActionResult<IEnumerable<ClientEventDto>>> GetVenueEvents(int venueId)
         {

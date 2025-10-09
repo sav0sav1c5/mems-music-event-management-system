@@ -3,10 +3,12 @@ import { Trash2, Plus, Minus, ShoppingCart, Ticket, CreditCard, AlertCircle, Loa
 import { Card } from "../../ticket-sales/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { CartService } from "../../shared/services/client/cartService";
+import { useAuth } from "../contexts/AuthContext";
 import type { CartDto, CartItemDto, UpdateCartItemDto } from "../../shared/types/api/cart";
 
 const MyCart = () => {
   const navigate = useNavigate();
+  const { userId, isAuthenticated } = useAuth();
   const [cart, setCart] = useState<CartDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
@@ -14,35 +16,46 @@ const MyCart = () => {
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [applyingPromo, setApplyingPromo] = useState(false);
-
-  // Mock user ID - replace with actual user ID from auth context
-  const userId = "user123";
-
+  const [error, setError] = useState<string | null>(null);
+  
   const fetchCart = async () => {
+    if (!userId) return;
+    
     try {
       setLoading(true);
+      setError(null);
       const cartData = await CartService.getCart(userId);
       setCart(cartData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching cart:", error);
-      // Fallback to empty cart if API fails
-      setCart({
-        items: [],
-        subtotal: 0,
-        totalDiscount: 0,
-        total: 0,
-        totalItems: 0
-      });
+      
+      // Handling specific auth errors
+      if (error.response?.status === 403) {
+        setError("You are not authorized to access this cart");
+      } else if (error.response?.status === 401) {
+        setError("Please log in to view your cart");
+      } else {
+        setError("Failed to load cart. Please try again.");
+        // Fallback to empty cart if API fails (except for auth errors)
+        setCart({
+          items: [],
+          subtotal: 0,
+          totalDiscount: 0,
+          total: 0,
+          totalItems: 0
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const updateQuantity = async (ticketTypeId: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
+    if (newQuantity < 1 || !userId) return;
 
     try {
       setUpdating(ticketTypeId);
+      setError(null);
       const updateDto: UpdateCartItemDto = {
         ticketTypeId,
         quantity: newQuantity
@@ -50,8 +63,15 @@ const MyCart = () => {
       
       const updatedCart = await CartService.updateCartItem(userId, updateDto);
       setCart(updatedCart);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating cart item:", error);
+      
+      if (error.response?.status === 403) {
+        setError("You are not authorized to modify this cart");
+      } else {
+        setError("Failed to update item. Please try again.");
+      }
+      
       // Refresh cart to get current state
       await fetchCart();
     } finally {
@@ -60,12 +80,22 @@ const MyCart = () => {
   };
 
   const removeItem = async (ticketTypeId: number) => {
+    if (!userId) return;
+    
     try {
       setUpdating(ticketTypeId);
+      setError(null);
       const updatedCart = await CartService.removeFromCart(userId, ticketTypeId);
       setCart(updatedCart);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error removing item from cart:", error);
+      
+      if (error.response?.status === 403) {
+        setError("You are not authorized to modify this cart");
+      } else {
+        setError("Failed to remove item. Please try again.");
+      }
+      
       await fetchCart();
     } finally {
       setUpdating(null);
@@ -73,9 +103,10 @@ const MyCart = () => {
   };
 
   const clearCart = async () => {
-    if (!confirm("Are you sure you want to clear your entire cart?")) return;
+    if (!userId || !confirm("Are you sure you want to clear your entire cart?")) return;
     
     try {
+      setError(null);
       await CartService.clearCart(userId);
       setCart({
         items: [],
@@ -84,8 +115,14 @@ const MyCart = () => {
         total: 0,
         totalItems: 0
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error clearing cart:", error);
+      
+      if (error.response?.status === 403) {
+        setError("You are not authorized to clear this cart");
+      } else {
+        setError("Failed to clear cart. Please try again.");
+      }
     }
   };
 
@@ -133,12 +170,20 @@ const MyCart = () => {
   };
 
   const handleCheckout = () => {
+    // Ensure user is authenticated (logged in) before proceeding
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    // If not tell him to fuckin login
     navigate("/client/checkout");
   };
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (isAuthenticated && userId) {
+      fetchCart();
+    }
+  }, [isAuthenticated, userId]);
 
   // Calculations with promo discount
   const subtotal = cart?.subtotal || 0;

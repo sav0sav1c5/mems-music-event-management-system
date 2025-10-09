@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Services.IServices;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
@@ -8,6 +9,7 @@ namespace MusicEventManagementSystem.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -22,6 +24,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to perform this action.");
+                }
+
                 checkoutRequest.ApplicationUserId = userId;
                 var result = await _orderService.CheckoutAsync(userId, checkoutRequest);
                 return Ok(result);
@@ -41,6 +50,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to perform this action.");
+                }
+
                 var orders = await _orderService.GetUserOrdersAsync(userId);
                 return Ok(orders);
             }
@@ -55,6 +71,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to perform this action.");
+                }
+
                 var orderDetails = await _orderService.GetOrderDetailsAsync(orderId, userId);
                 if (orderDetails == null)
                 {
@@ -73,6 +96,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to perform this action.");
+                }
+
                 var result = await _orderService.CancelOrderAsync(orderId, userId);
                 if (result)
                 {
@@ -91,11 +121,20 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to perform this action.");
+                }
+
                 var ticket = await _orderService.GetTicketDetailsAsync(ticketId, userId);
+                
                 if (ticket == null)
                 {
                     return NotFound();
                 }
+                
                 return Ok(ticket);
             }
             catch (Exception ex)
@@ -109,6 +148,13 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (currentUserId != userId)
+                {
+                    return Forbid("You are not authorized to perform this action.");
+                }
+
                 var pdfBytes = await _orderService.GenerateTicketPdfAsync(ticketId, userId);
 
                 if (pdfBytes == null || pdfBytes.Length == 0)

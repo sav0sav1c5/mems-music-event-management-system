@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MusicEventManagementSystem.API.Services.IServices;
 using MusicEventManagementSystem.Core.Models.DTOs.Client;
 
@@ -15,6 +16,7 @@ namespace MusicEventManagementSystem.API.Controllers
             _eventService = eventService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientEventDto>>> GetUpcomingEvents()
         {
@@ -29,6 +31,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<EventDetailsDto>> GetEventDetails(int id)
         {
@@ -47,6 +50,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<ClientEventDto>>> SearchEvents(
             [FromQuery] string? keyword,
@@ -64,6 +68,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("featured")]
         public async Task<ActionResult<IEnumerable<ClientEventDto>>> GetFeaturedEvents()
         {
@@ -78,6 +83,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("performer/{performerId}")]
         public async Task<ActionResult<IEnumerable<ClientEventDto>>> GetEventsByPerformer(int performerId)
         {
@@ -92,6 +98,7 @@ namespace MusicEventManagementSystem.API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("city/{city}")]
         public async Task<ActionResult<IEnumerable<ClientEventDto>>> GetEventsByCity(string city)
         {

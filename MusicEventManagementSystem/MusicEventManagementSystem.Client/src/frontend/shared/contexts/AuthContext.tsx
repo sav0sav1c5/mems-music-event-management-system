@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import type { UserDto } from '../services/apiService';
 
 interface AuthContextType {
@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (user: UserDto, token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  userId: string;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +41,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
   };
+  
+  const userId = useMemo(() => {
+    if (!token) return '';
+    
+    try {
+      // Decoding JWT token to get userId
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub || payload.userId || payload.nameid || user?.id || '';
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return user?.id || '';
+    }
+  }, [token, user]);
 
   return (
     <AuthContext.Provider value={{
@@ -47,7 +61,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       token,
       login,
       logout,
-      isAuthenticated: !!token
+      isAuthenticated: !!token,
+      userId
     }}>
       {children}
     </AuthContext.Provider>

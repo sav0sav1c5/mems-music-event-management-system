@@ -1,3 +1,4 @@
+import apiService from '../../../shared/services/apiService';
 import type { ClientEventDto } from '../../types/api/event';
 import type { EventDetailsDto } from '../../types/api/event';
 
@@ -7,15 +8,13 @@ export class EventsService {
   public static readonly BASE_URL = `${API_BASE_URL}/events`;
 
   static async getUpcomingEvents(): Promise<ClientEventDto[]> {
-    const response = await fetch(`${this.BASE_URL}`);
-    if (!response.ok) throw new Error(`Failed to get upcoming events: ${response.statusText}`);
-    return response.json();
+    const response = await apiService.get(`${this.BASE_URL}`);
+    return response.data;
   }
 
   static async getEventDetails(id: number): Promise<EventDetailsDto> {
-    const response = await fetch(`${this.BASE_URL}/${id}`);
-    if (!response.ok) throw new Error(`Failed to get event details: ${response.statusText}`);
-    return response.json();
+    const response = await apiService.get(`${this.BASE_URL}/${id}`);
+    return response.data;
   }
 
   static async searchEvents(
@@ -28,26 +27,22 @@ export class EventsService {
     if (startDate) params.append('startDate', startDate.toISOString());
     if (endDate) params.append('endDate', endDate.toISOString());
 
-    const response = await fetch(`${this.BASE_URL}/search?${params.toString()}`);
-    if (!response.ok) throw new Error(`Failed to search events: ${response.statusText}`);
-    return response.json();
+    const response = await apiService.get(`${this.BASE_URL}/search?${params.toString()}`);
+    return response.data;
   }
 
   static async getFeaturedEvents(): Promise<ClientEventDto[]> {
-    const response = await fetch(`${this.BASE_URL}/featured`);
-    if (!response.ok) throw new Error(`Failed to get featured events: ${response.statusText}`);
-    return response.json();
+    const response = await apiService.get(`${this.BASE_URL}/featured`);
+    return response.data;
   }
 
   static async getEventsByPerformer(performerId: number): Promise<ClientEventDto[]> {
-    const response = await fetch(`${this.BASE_URL}/performer/${performerId}`);
-    if (!response.ok) throw new Error(`Failed to get events by performer: ${response.statusText}`);
-    return response.json();
+    const response = await apiService.get(`${this.BASE_URL}/performer/${performerId}`);
+    return response.data;
   }
 
   static async getEventsByCity(city: string): Promise<ClientEventDto[]> {
-    const response = await fetch(`${this.BASE_URL}/city/${encodeURIComponent(city)}`);
-    if (!response.ok) throw new Error(`Failed to get events by city: ${response.statusText}`);
-    return response.json();
+    const response = await apiService.get(`${this.BASE_URL}/city/${encodeURIComponent(city)}`);
+    return response.data;
   }
 }
