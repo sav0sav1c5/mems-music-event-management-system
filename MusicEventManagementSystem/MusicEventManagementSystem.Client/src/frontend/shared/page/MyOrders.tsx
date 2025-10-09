@@ -3,6 +3,7 @@ import { Calendar, MapPin, Ticket, Download, QrCode, Clock, CheckCircle, XCircle
 import { Card } from "../../ticket-sales/components/ui/card";
 import { OrdersService } from "../../shared/services/client/ordersService";
 import type { OrderDto, OrderDetailsDto } from "../../shared/types/api/order";
+import { useAuth } from "../contexts/AuthContext";
 
 const MyOrders = () => {
   const [orders, setOrders] = useState<OrderDto[]>([]);
@@ -11,12 +12,13 @@ const MyOrders = () => {
   const [orderLoading, setOrderLoading] = useState(false);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
 
-  // Mock user ID - replace with actual user ID from auth context
-  const userId = "user123";
+  const { userId, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    if (isAuthenticated && userId) {
+      fetchOrders();
+    }
+  }, [isAuthenticated, userId]);
 
   const fetchOrders = async () => {
     try {
@@ -111,9 +113,9 @@ const MyOrders = () => {
 
   const formatDateTime = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('sr-RS', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
-      month: 'short',
+      month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -126,6 +128,26 @@ const MyOrders = () => {
       currency: 'USD'
     }).format(amount);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
+        <div className="text-white h-full flex flex-col p-4 m-1">
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-neutral-400 text-base">Please log in to view your orders</p>
+              <button 
+                onClick={() => window.location.href = "/login"}
+                className="px-6 py-3 rounded-xl bg-orange-400 text-black font-medium hover:bg-orange-500 transition-all duration-200 shadow-lg"
+              >
+                Log In
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

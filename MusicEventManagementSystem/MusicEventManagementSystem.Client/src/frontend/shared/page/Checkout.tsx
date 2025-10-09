@@ -62,82 +62,82 @@ const Checkout = () => {
     fetchCart();
   }, []);
 
-const fetchCart = async () => {
-  try {
-    setCartLoading(true);
-    const cartData = await CartService.getCart(userId);
-    setCart(cartData);
-    
-    // DODAJTE PROVERU
-    if (!cartData.items || cartData.items.length === 0) {
-      console.log('🛒 Cart is empty, redirecting to cart page');
-      navigate("/client/cart");
-      return;
-    }
-    
-  } catch (error) {
-    console.error("Error fetching cart:", error);
-    navigate("/client/cart");
-  } finally {
-    setCartLoading(false);
-  }
-};
-
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  
-  try {
-    console.log('🛒 Cart items before checkout:', cart?.items);
-    
-    // OVO JE KLJUČNO - morate dodati cartItems
-    const checkoutRequest: CheckoutRequestDto = {
-      applicationUserId: userId,
-      paymentMethod: paymentInfo.paymentMethod,
-      promoCode: undefined,
-      cartItems: cart?.items || [] // DODAJTE OVO
-    };
-
-    console.log('📦 Checkout request payload:', JSON.stringify(checkoutRequest, null, 2));
-    console.log('🎫 Sending cart items:', checkoutRequest.cartItems.length);
-
-    // Proverite da li cartItems nije prazan
-    if (!checkoutRequest.cartItems || checkoutRequest.cartItems.length === 0) {
-      throw new Error("Cart is empty - cannot proceed with checkout");
-    }
-
-    const response = await OrdersService.checkout(userId, checkoutRequest);
-    console.log('✅ Checkout successful:', response);
-    
-    setOrderId(response.orderId);
-    setStep('complete');
-    
-    await CartService.clearCart(userId);
-    
-  } catch (error: any) {
-    console.error("❌ Error processing checkout:", error);
-    
-    if (error.response?.status === 400) {
-      const errorMessage = error.response?.data?.message || error.response?.data || "Invalid request";
-      console.error('🔍 Error details:', errorMessage);
+  const fetchCart = async () => {
+    try {
+      setCartLoading(true);
+      const cartData = await CartService.getCart(userId);
+      setCart(cartData);
       
-      if (typeof errorMessage === 'string' && 
-          (errorMessage.includes('ticket') || errorMessage.includes('available') || errorMessage.includes('Cart'))) {
-        alert("Some tickets in your cart are no longer available. Please review your cart and try again.");
-        await fetchCart(); // Osvežite korpu
-      } else {
-        alert(`Error: ${errorMessage}`);
+      // DODAJTE PROVERU
+      if (!cartData.items || cartData.items.length === 0) {
+        console.log('🛒 Cart is empty, redirecting to cart page');
+        navigate("/client/cart");
+        return;
       }
-    } else if (error.message.includes("Cart is empty")) {
-      alert("Your cart is empty. Please add tickets before checkout.");
+      
+    } catch (error) {
+      console.error("Error fetching cart:", error);
       navigate("/client/cart");
-    } else {
-      alert("Failed to process your order. Please try again.");
+    } finally {
+      setCartLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      console.log('🛒 Cart items before checkout:', cart?.items);
+      
+      // OVO JE KLJUČNO - morate dodati cartItems
+      const checkoutRequest: CheckoutRequestDto = {
+        applicationUserId: userId,
+        paymentMethod: paymentInfo.paymentMethod,
+        promoCode: undefined,
+        cartItems: cart?.items || [] // DODAJTE OVO
+      };
+
+      console.log('📦 Checkout request payload:', JSON.stringify(checkoutRequest, null, 2));
+      console.log('🎫 Sending cart items:', checkoutRequest.cartItems.length);
+
+      // Proverite da li cartItems nije prazan
+      if (!checkoutRequest.cartItems || checkoutRequest.cartItems.length === 0) {
+        throw new Error("Cart is empty - cannot proceed with checkout");
+      }
+
+      const response = await OrdersService.checkout(userId, checkoutRequest);
+      console.log('✅ Checkout successful:', response);
+      
+      setOrderId(response.orderId);
+      setStep('complete');
+      
+      await CartService.clearCart(userId);
+      
+    } catch (error: any) {
+      console.error("❌ Error processing checkout:", error);
+      
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || error.response?.data || "Invalid request";
+        console.error('🔍 Error details:', errorMessage);
+        
+        if (typeof errorMessage === 'string' && 
+            (errorMessage.includes('ticket') || errorMessage.includes('available') || errorMessage.includes('Cart'))) {
+          alert("Some tickets in your cart are no longer available. Please review your cart and try again.");
+          await fetchCart(); // Osvežite korpu
+        } else {
+          alert(`Error: ${errorMessage}`);
+        }
+      } else if (error.message.includes("Cart is empty")) {
+        alert("Your cart is empty. Please add tickets before checkout.");
+        navigate("/client/cart");
+      } else {
+        alert("Failed to process your order. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const isStepValid = (stepName: string) => {
     switch (stepName) {
