@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { authAPI } from "../services/apiService";
+import { authAPI } from "../../services/apiService";
 import { 
   LogOut, BarChart3, BarChart2, Music, ChevronLeft, ChevronRight, Ticket, Calendar, PieChart, 
   PlaySquare, ListChecks, FileText, CalendarDays, Briefcase, Building2, ShoppingCart, CreditCard,

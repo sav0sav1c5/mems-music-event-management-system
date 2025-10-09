@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../shared/services/apiService';
 import type { LoginDto } from '../../shared/services/apiService';
 import { LogIn, Mail, Lock, Music, Sparkles } from 'lucide-react';
-import Logo from '../../shared/components/Logo';
+import Logo from '../../shared/components/ui/Logo';
 import { toast } from 'react-toastify'; 
 
 const Login = () => {

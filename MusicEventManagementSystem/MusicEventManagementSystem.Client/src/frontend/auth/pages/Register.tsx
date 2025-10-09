@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../../shared/services/apiService';
 import type { RegisterDto } from '../../shared/services/apiService';
 import { UserPlus, Mail, Lock, User, Building, Music, Sparkles, CheckCircle } from 'lucide-react';
-import Logo from '../../shared/components/Logo'; // Dodato
+import Logo from '../../shared/components/ui/Logo'; // Dodato
 
 const Register = () => {
   const [formData, setFormData] = useState<RegisterDto>({

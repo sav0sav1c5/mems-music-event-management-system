@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from "./frontend/shared/components/Layout";
+import Layout from "./frontend/shared/components/ui/Layout";
 import Login from "./frontend/auth/pages/Login";
 import Register from "./frontend/auth/pages/Register";
-import ProtectedRoute from "./frontend/shared/components/ProtectedRoute";
+import ProtectedRoute from "./frontend/shared/components/ui/ProtectedRoute";
 
 // Ticket Sales imports
 import TicketSalesDashboard from "./frontend/ticket-sales/pages/Dashboard";
@@ -25,6 +25,7 @@ import ArtistCommunicationDashboard from "./frontend/performer-communication/pag
 
 // MEMS Client imports
 import ClientBrowseEvents from "../src/frontend/shared/page/Events";
+import ClientEventDetails from "../src/frontend/shared/page/EventDetails";
 import ClientMyCart from "../src/frontend/shared/page/MyCart";
 import ClientCheckout from "../src/frontend/shared/page/Checkout";
 import ClientOrders from "../src/frontend/shared/page/MyOrders";
@@ -205,6 +206,17 @@ function App() {
             <ProtectedRoute allowedDepartments={[5]}>
               <Layout>
                 <ClientBrowseEvents />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/client/browse-events/:id" 
+          element={
+            <ProtectedRoute allowedDepartments={[5]}>
+              <Layout>
+                <ClientEventDetails />
               </Layout>
             </ProtectedRoute>
           } 
