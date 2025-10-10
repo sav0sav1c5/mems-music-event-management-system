@@ -63,6 +63,17 @@ export interface PerformanceMetric {
   indexUsed: boolean;
 }
 
+export interface SalesAnalysisResult {
+  metricName: string;
+  metricValue: number;
+  metricUnit: string;
+  additionalInfo?: any;
+}
+
+export interface ReportSection {
+  [key: string]: SalesAnalysisResult[];
+}
+
 const API_BASE_URL = 'https://localhost:7011/api';
 
 export class RecordedSaleService {

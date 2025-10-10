@@ -1,4 +1,4 @@
-import { TrendingUp, Database, Activity, DollarSign } from 'lucide-react';
+import { TrendingUp, Database, Activity, DollarSign, FileText } from 'lucide-react';
 
 interface AnalyticsTabsProps {
   activeTab: string;
@@ -10,7 +10,8 @@ export const AnalyticsTabs = ({ activeTab, setActiveTab }: AnalyticsTabsProps) =
     { id: 'overview', label: 'Overview', icon: TrendingUp },
     { id: 'audit', label: 'Audit Log', icon: Database },
     { id: 'performance', label: 'Performance', icon: Activity },
-    { id: 'pricing', label: 'Pricing Rules', icon: DollarSign }
+    { id: 'pricing', label: 'Pricing Rules', icon: DollarSign },
+    { id: 'report', label: 'Comprehensive Report', icon: FileText }
   ];
 
   return (

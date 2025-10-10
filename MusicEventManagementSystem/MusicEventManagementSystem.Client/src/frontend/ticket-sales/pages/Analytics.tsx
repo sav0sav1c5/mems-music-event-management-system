@@ -3,8 +3,6 @@ import { AlertCircle, CheckCircle, AlertTriangle, XCircle, Activity } from 'luci
 
 // Import services
 import { RecordedSaleService } from '../services/recordedSaleService';
-import type { ComprehensiveAnalysisResponse } from '../services/recordedSaleService';
-
 // Import components
 import { AnalyticsHeader } from '../components/analytics/AnalyticsHeader';
 import { AnalyticsTabs } from '../components/analytics/AnalyticsTabs';
@@ -12,6 +10,8 @@ import { OverviewTab } from '../components/analytics/OverviewTab';
 import { AuditTab } from '../components/analytics/AuditTab';
 import { PerformanceTab } from '../components/analytics/PerformanceTab';
 import { PricingRulesTab } from '../components/analytics/PricingRulesTab';
+import { ComprehensiveReport } from '../components/analytics/ComprehensiveReport';
+import type { ReportSection } from '../services/recordedSaleService';
 
 // Type definitions
 interface RevenueDataPoint {
@@ -77,7 +77,8 @@ interface PricingRuleData {
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  
+  const [reportData, setReportData] = useState<ReportSection>({});
+
   const [dateRange, setDateRange] = useState(() => {
     const today = new Date();
     
@@ -185,7 +186,7 @@ const Analytics = () => {
         toDate     // e.g., 2025-10-10 00:00:00 UTC (not 10-09!)
       );
 
-  processBackendAnalysis(analysis);
+      processBackendAnalysis(analysis);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 
                           err.message || 
@@ -227,6 +228,8 @@ const Analytics = () => {
     // Handle both PascalCase and camelCase
     const sections = analysis.Sections || analysis.sections || {};
     const summary = analysis.summary || analysis.Summary || {};
+
+    setReportData(sections);
 
     console.log('🔍 Processing analysis:', { 
       sections: Object.keys(sections), 
@@ -607,6 +610,14 @@ const Analytics = () => {
           <PricingRulesTab
             pricingRules={pricingRules}
             formatCurrency={formatCurrency}
+          />
+        );
+      case 'report':
+        return (
+          <ComprehensiveReport
+            reportData={reportData}
+            formatCurrency={formatCurrency}
+            formatPercentage={formatPercentage}
           />
         );
       default:

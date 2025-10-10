@@ -38,7 +38,7 @@ const TicketTypeList = ({
           </div>
         </div>
         
-        <div className="mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+        <div className="mt-4">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64">
               <RefreshCw className="w-10 h-10 text-lime-400 animate-spin mb-3" />

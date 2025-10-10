@@ -50,6 +50,11 @@ const Dashboard = () => {
   const [ticketStats, setTicketStats] = useState<{[key in TicketStatus]: number}>({} as any);
   const [weeklyRevenue, setWeeklyRevenue] = useState<number>(0);
 
+  // Format currency for display (in RSD) - MOVED TO TOP
+  const formatCurrency = (amount: number) => {
+    return `${amount.toLocaleString('sr-RS', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} RSD`;
+  };
+
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
@@ -386,10 +391,7 @@ const Dashboard = () => {
     );
   }
 
-  // Format currency for display (in RSD)
-  const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('sr-RS', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} RSD`;
-  };
+  // REMOVE the duplicate formatCurrency function from here
 
   return (
     <div className="bg-neutral-900/60 backdrop-blur-sm border border-neutral-800 rounded-xl h-full shadow-xl">
