@@ -88,7 +88,8 @@ export const documentService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching documents by contract:', error);
-      throw error;
+      // Return empty array when API is not available instead of throwing
+      return [];
     }
   },
 
@@ -99,7 +100,8 @@ export const documentService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching documents by negotiation:', error);
-      throw error;
+      // Return empty array when API is not available instead of throwing
+      return [];
     }
   },
 
@@ -122,6 +124,37 @@ export const documentService = {
       return response.data;
     } catch (error) {
       console.error('Error uploading document:', error);
+      throw error;
+    }
+  },
+
+  // Download document
+  downloadDocument: async (documentId: number): Promise<void> => {
+    try {
+      const response = await fetch(`/api${API_ENDPOINT}/${documentId}/download`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      
+      // Try to get filename from response headers
+      const contentDisposition = response.headers.get('content-disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+        : `document_${documentId}`;
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading document:', error);
       throw error;
     }
   },

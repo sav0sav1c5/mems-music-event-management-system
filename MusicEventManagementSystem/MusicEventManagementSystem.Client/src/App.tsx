@@ -25,6 +25,10 @@ import NegotiationWorkflow from "./frontend/performer-negotations/pages/Negotiat
 import Contracts from "./frontend/performer-negotations/pages/Contracts";
 import Documents from "./frontend/performer-negotations/pages/Documents";
 import Communications from "./frontend/performer-negotations/pages/Communications";
+import Analytics from "./frontend/performer-negotations/pages/Analytics.tsx";
+
+// Reports
+import NegotiationReports from "./components/NegotiationReports";
 
 // Event Organization imports
 // ...
@@ -255,6 +259,28 @@ function App() {
             <ProtectedRoute allowedDepartments={[3]}>
               <Layout>
                 <Communications />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/artist-communication/analytics" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <Analytics />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/reports/negotiations" 
+          element={
+            <ProtectedRoute allowedDepartments={[3]}>
+              <Layout>
+                <NegotiationReports />
               </Layout>
             </ProtectedRoute>
           } 

@@ -11,5 +11,9 @@ namespace MusicEventManagementSystem.API.Repositories.IRepositories
         Task<bool> AddUserToNegotiationAsync(int negotiationId, string userId);
         Task<bool> RemoveUserFromNegotiationAsync(int negotiationId, string userId);
         Task<IEnumerable<string>> GetNegotiationUserEmailsAsync(int negotiationId);
+        
+        // Analytics methods
+        Task<IQueryable<Negotiation>> GetAllWithIncludesAsync();
+        Task<IEnumerable<Negotiation>> GetRecentNegotiationsAsync(int count);
     }
 }

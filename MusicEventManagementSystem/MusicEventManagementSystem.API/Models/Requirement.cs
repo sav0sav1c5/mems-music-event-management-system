@@ -10,6 +10,9 @@ namespace MusicEventManagementSystem.API.Models
         public bool IsRequired { get; set; } = true; // Some requirements might be optional
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        
+        // Contract Update Trigger - specifies what contract field to update when this requirement is fulfilled
+        public string? ContractUpdateAction { get; set; } = null;
 
         // Foreign Key
         public int PhaseId { get; set; }

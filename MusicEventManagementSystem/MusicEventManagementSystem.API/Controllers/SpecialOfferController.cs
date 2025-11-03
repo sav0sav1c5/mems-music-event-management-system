@@ -129,7 +129,7 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
-                var checkDate = date ?? DateTime.Now;
+                var checkDate = date ?? DateTime.UtcNow;
                 var activeOffers = await _specialOfferService.GetActiveOffersAsync(checkDate);
                 return Ok(activeOffers);
             }
@@ -202,7 +202,7 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
-                var dateToCheck = checkDate ?? DateTime.Now;
+                var dateToCheck = checkDate ?? DateTime.UtcNow;
                 var isValid = await _specialOfferService.IsOfferValidAsync(id, dateToCheck);
 
                 return Ok(new
@@ -224,7 +224,7 @@ namespace MusicEventManagementSystem.API.Controllers
         {
             try
             {
-                var dateToCheck = checkDate ?? DateTime.Now;
+                var dateToCheck = checkDate ?? DateTime.UtcNow;
                 var hasActiveOffer = await _specialOfferService.HasActiveOfferForTicketTypeAsync(ticketTypeId, dateToCheck);
 
                 return Ok(new

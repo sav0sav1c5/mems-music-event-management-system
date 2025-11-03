@@ -1,340 +1,352 @@
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X, FileText, ArrowUp, ArrowDown, CheckCircle, Clock } from "lucide-react";
-import { documentService } from "../services/documentService";
-import type { DocumentDto } from "../services/documentService";
+﻿import React, { useState, useEffect } from 'react';
+import { 
+  FileText, 
+  Search, 
+  ExternalLink, 
+  ChevronLeft 
+} from 'lucide-react';
+import ContractDocumentWidget from '../components/ContractDocumentWidget';
+import ContractDocumentManager from '../components/ContractDocumentManager';
+import { contractService } from '../services/contractService';
+import type { ContractDto } from '../services/contractService';
 
-const Documents = () => {
-  const [documents, setDocuments] = useState<DocumentDto[]>([]);
+const Documents: React.FC = () => {
+  const [contracts, setContracts] = useState<ContractDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDocument, setEditingDocument] = useState<DocumentDto | null>(null);
-  const [formData, setFormData] = useState<Omit<DocumentDto, 'documentId' | 'updatedAt'>>({
-    title: '',
-    type: '',
-    path: '',
-    version: '',
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [selectedContract, setSelectedContract] = useState<ContractDto | null>(null);
+  const [showDocumentManager, setShowDocumentManager] = useState(false);
 
   useEffect(() => {
-    fetchDocuments();
+    loadContracts();
   }, []);
 
-  const fetchDocuments = async () => {
+  const loadContracts = async () => {
     try {
       setLoading(true);
-      const data = await documentService.getAllDocuments();
-      setDocuments(data);
+      const data = await contractService.getAllContracts();
+      setContracts(data);
+      setError(null);
     } catch (err) {
-      setError('Failed to fetch documents');
+      setError('Failed to load contracts');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (editingDocument) {
-        const updated = await documentService.updateDocument(
-          editingDocument.documentId,
-          { ...formData, documentId: editingDocument.documentId, updatedAt: editingDocument.updatedAt }
-        );
-        setDocuments(prev => 
-          prev.map(item => item.documentId === updated.documentId ? updated : item)
-        );
-      } else {
-        const created = await documentService.createDocument(formData);
-        setDocuments(prev => [...prev, created]);
-      }
-      resetForm();
-    } catch (err) {
-      setError('Failed to save document');
-      console.error(err);
+  const filteredContracts = contracts.filter(contract => {
+    const matchesSearch = 
+      contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.performerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'All' || contract.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const toggleRowExpansion = (contractId: number) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(contractId)) {
+      newExpanded.delete(contractId);
+    } else {
+      newExpanded.add(contractId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'signed':
+        return 'bg-green-900/30 text-green-300';
+      case 'active':
+        return 'bg-purple-900/30 text-purple-300';
+      case 'draft':
+        return 'bg-yellow-900/30 text-yellow-300';
+      case 'pending':
+        return 'bg-blue-900/30 text-blue-300';
+      default:
+        return 'bg-neutral-700 text-neutral-300';
     }
   };
 
-  const handleEdit = (document: DocumentDto) => {
-    setEditingDocument(document);
-    setFormData({
-      title: document.title,
-      type: document.type,
-      path: document.path,
-      version: document.version,
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
-      try {
-        await documentService.deleteDocument(id);
-        setDocuments(prev => prev.filter(item => item.documentId !== id));
-      } catch (err) {
-        setError('Failed to delete document');
-        console.error(err);
-      }
+  const getPhaseForContract = (contract: ContractDto): number => {
+    switch (contract.status?.toLowerCase()) {
+      case 'draft':
+        return 3;
+      case 'pending':
+        return 4;
+      case 'signed':
+      case 'active':
+        return 5;
+      default:
+        return 3;
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      type: '',
-      path: '',
-      version: '',
-    });
-    setEditingDocument(null);
-    setIsModalOpen(false);
+  const handleDocumentUploaded = () => {
+    loadContracts();
   };
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const stats = [
-    {
-      title: "Total Documents",
-      value: documents.length.toString(),
-      change: "+12.5%",
-      trend: "up",
-      icon: <FileText className="w-5 h-5" />,
-      color: "lime"
-    },
-    {
-      title: "Contracts",
-      value: documents.filter(d => d.type === 'Contract').length.toString(),
-      change: "+8.2%",
-      trend: "up",
-      icon: <CheckCircle className="w-5 h-5" />,
-      color: "blue"
-    },
-    {
-      title: "Requirements",
-      value: documents.filter(d => d.type === 'Requirement').length.toString(),
-      change: "+15.3%",
-      trend: "up",
-      icon: <FileText className="w-5 h-5" />,
-      color: "purple"
-    },
-    {
-      title: "Recent Updates",
-      value: documents.filter(d => {
-        const docDate = new Date(d.updatedAt);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return docDate > weekAgo;
-      }).length.toString(),
-      change: "+18.7%",
-      trend: "up",
-      icon: <Clock className="w-5 h-5" />,
-      color: "orange"
-    },
-  ];
-
-  if (loading) return <div className="text-center py-8 text-white">Loading...</div>;
-  if (error) return <div className="text-center py-8 text-red-400">{error}</div>;
-
-  return (
-    <div className="text-white h-full flex flex-col">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white mb-1">Documents</h1>
-        <p className="text-neutral-400 text-sm">
-          Manage documents and track their versions.
-        </p>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-neutral-400">Loading contracts...</p>
+        </div>
       </div>
+    );
+  }
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl p-3 hover:border-lime-400/30 transition-all duration-200 group">
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${stat.color === 'lime' ? 'bg-lime-400/20 text-lime-400' : 
-                                                stat.color === 'blue' ? 'bg-blue-400/20 text-blue-400' :
-                                                stat.color === 'purple' ? 'bg-purple-400/20 text-purple-400' :
-                                                'bg-orange-400/20 text-orange-400'}`}>
-                {stat.icon}
-              </div>
-              <div className={`flex items-center gap-1 text-xs font-medium ${
-                stat.trend === 'up' ? 'text-lime-400' : 'text-red-400'
-              }`}>
-                {stat.trend === 'up' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                {stat.change}
-              </div>
+  if (showDocumentManager && selectedContract) {
+    return (
+      <div className="min-h-screen bg-neutral-900 text-white p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <button
+                onClick={() => setShowDocumentManager(false)}
+                className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors text-neutral-300 hover:text-white"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to Documents
+              </button>
             </div>
-            <div>
-              <p className="text-neutral-400 text-xs mb-1">{stat.title}</p>
-              <h3 className="text-lg font-bold text-white group-hover:text-lime-400 transition-colors">
-                {stat.value}
-              </h3>
+            <h1 className="text-3xl font-bold text-white mb-2">Document Management</h1>
+            <p className="text-neutral-400">
+              Managing documents for: <span className="text-white font-medium">{selectedContract.title}</span>
+            </p>
+            <div className="mt-2 flex items-center gap-4 text-sm text-neutral-400">
+              <span>Contract ID: {selectedContract.contractId}</span>
+              <span>Status: <span className={`px-2 py-1 rounded text-xs ${getStatusColor(selectedContract.status)}`}>{selectedContract.status}</span></span>
+              <span>Phase: {getPhaseForContract(selectedContract)}</span>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Header with Add Button */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-white">All Documents</h2>
-          <p className="text-neutral-400 text-sm">Create and manage documents</p>
+          <ContractDocumentManager
+            contractId={selectedContract.contractId}
+            phaseNumber={getPhaseForContract(selectedContract)}
+            onDocumentUploaded={handleDocumentUploaded}
+          />
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-lime-500 hover:bg-lime-600 px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-200 text-black font-semibold border border-lime-400/30 hover:border-lime-400"
-        >
-          <Plus className="w-4 h-4" />
-          Add Document
-        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-900 text-white p-6">
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Contract Documents</h1>
+            <p className="text-neutral-400">Manage all contract documents and agreements</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search contracts, performers, or events..."
+              value={searchTerm}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white placeholder-neutral-400"
+            />
+          </div>
+          
+          <select
+            value={statusFilter}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white"
+          >
+            <option value="All">All Statuses</option>
+            <option value="Signed">Signed</option>
+            <option value="Draft">Draft</option>
+            <option value="Pending">Pending</option>
+            <option value="Active">Active</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-neutral-800 p-4 rounded-lg border border-neutral-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-neutral-400 text-sm">Total Contracts</p>
+                <p className="text-2xl font-bold text-white">{contracts.length}</p>
+              </div>
+              <FileText className="w-8 h-8 text-purple-400" />
+            </div>
+          </div>
+          
+          <div className="bg-neutral-800 p-4 rounded-lg border border-neutral-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-neutral-400 text-sm">Signed</p>
+                <p className="text-2xl font-bold text-green-400">
+                  {contracts.filter(d => d.status === 'Signed').length}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-green-400" />
+            </div>
+          </div>
+
+          <div className="bg-neutral-800 p-4 rounded-lg border border-neutral-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-neutral-400 text-sm">Active</p>
+                <p className="text-2xl font-bold text-purple-400">
+                  {contracts.filter(d => d.status === 'Active').length}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-purple-400" />
+            </div>
+          </div>
+
+          <div className="bg-neutral-800 p-4 rounded-lg border border-neutral-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-neutral-400 text-sm">Drafts</p>
+                <p className="text-2xl font-bold text-yellow-400">
+                  {contracts.filter(d => d.status === 'Draft').length}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-yellow-400" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Documents Table */}
-      <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl hover:border-lime-400/30 transition-all duration-200 flex-1 min-h-0 flex flex-col">
-        <div className="overflow-x-auto flex-1">
+      {error && (
+        <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-neutral-800 rounded-lg border border-neutral-700 overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="border-b border-neutral-700">
+            <thead className="bg-neutral-700">
               <tr>
-                <th className="text-left p-4 pl-10 text-neutral-300 font-semibold">ID</th>
-                <th className="text-left p-4 text-neutral-300 font-semibold">Title</th>
-                <th className="text-left p-4 text-neutral-300 font-semibold">Type</th>
-                <th className="text-left p-4 text-neutral-300 font-semibold">Version</th>
-                <th className="text-left p-4 text-neutral-300 font-semibold">Path</th>
-                <th className="text-left p-4 text-neutral-300 font-semibold">Updated</th>
-                <th className="text-left p-4 text-neutral-300 font-semibold">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                  Contract
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                  Performer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                  Event
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                  Phase
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody>
-              {documents.map((document) => (
-                <tr key={document.documentId} className="border-b border-neutral-700/50 hover:bg-neutral-700/30 transition-all duration-200">
-                  <td className="p-4 pl-10 text-white font-semibold">{document.documentId}</td>
-                  <td className="p-4 text-white font-medium">{document.title}</td>
-                  <td className="p-4 text-neutral-300">{document.type}</td>
-                  <td className="p-4 text-lime-400 font-semibold">{document.version}</td>
-                  <td className="p-4 text-neutral-300 max-w-xs truncate">{document.path}</td>
-                  <td className="p-4 text-neutral-300">{formatDate(document.updatedAt)}</td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(document)}
-                        className="p-1.5 hover:bg-neutral-600 rounded-lg transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(document.documentId)}
-                        className="p-1.5 hover:bg-red-900/50 rounded-lg transition-all duration-200 text-neutral-400 hover:text-red-400 border border-transparent hover:border-red-400/30"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+            <tbody className="divide-y divide-neutral-700">
+              {filteredContracts.map((contract) => (
+                <React.Fragment key={contract.contractId}>
+                  <tr className="hover:bg-neutral-700/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-white">
+                          {contract.title}
+                        </div>
+                        <div className="text-sm text-neutral-400">
+                          ID: {contract.contractId}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-white">
+                        {contract.performerName || 'N/A'}
+                      </div>
+                      <div className="text-sm text-neutral-400">
+                        ID: {contract.performerId}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-white">
+                        {contract.eventTitle || 'N/A'}
+                      </div>
+                      <div className="text-sm text-neutral-400">
+                        {contract.eventLocation || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contract.status)}`}>
+                        {contract.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-900/30 text-purple-300">
+                        Phase {getPhaseForContract(contract)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleRowExpansion(contract.contractId)}
+                          className="text-purple-400 hover:text-purple-300 transition-colors"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedContract(contract);
+                            setShowDocumentManager(true);
+                          }}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {expandedRows.has(contract.contractId) && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 bg-neutral-800/50">
+                        <div className="border-l-2 border-purple-500 pl-4">
+                          <h4 className="text-white font-medium mb-2">Contract Documents</h4>
+                          <ContractDocumentWidget
+                            contractId={contract.contractId}
+                            phaseNumber={getPhaseForContract(contract)}
+                            onDocumentChange={handleDocumentUploaded}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
         </div>
 
-        {documents.length === 0 && (
-          <div className="text-center py-12 text-neutral-400">
-            <p>No documents found. Create your first document!</p>
+        {filteredContracts.length === 0 && (
+          <div className="text-center py-12">
+            <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-neutral-400 mb-2">No contracts found</h3>
+            <p className="text-neutral-500 mb-6">
+              {searchTerm || statusFilter !== 'All' 
+                ? 'Try adjusting your search or filters.' 
+                : 'Create your first contract to get started.'
+              }
+            </p>
           </div>
         )}
       </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-neutral-900 rounded-2xl p-6 w-full max-w-md border border-neutral-800 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">
-                {editingDocument ? 'Edit Document' : 'Add New Document'}
-              </h2>
-              <button
-                onClick={resetForm}
-                className="p-2 hover:bg-neutral-800 rounded-xl transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Title</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="Enter document title"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Type</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
-                  required
-                >
-                  <option value="">Select document type</option>
-                  <option value="Contract">Contract</option>
-                  <option value="Requirement">Requirement</option>
-                  <option value="Specification">Specification</option>
-                  <option value="Report">Report</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Path</label>
-                <input
-                  type="text"
-                  value={formData.path}
-                  onChange={(e) => setFormData(prev => ({ ...prev, path: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="Enter file path"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-300">Version</label>
-                <input
-                  type="text"
-                  value={formData.version}
-                  onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-                  className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
-                  placeholder="e.g., 1.0"
-                  required
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold border border-lime-400/30 hover:border-lime-400"
-                >
-                  {editingDocument ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

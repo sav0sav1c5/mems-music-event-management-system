@@ -56,6 +56,29 @@ export interface ContractDto {
   status: string;
   createdAt: string;
   signedAt?: string;
+  contractFilePath?: string;
+  finalVersionDate?: string;
+  // Additional fields from backend DTO
+  technicalRequirements?: string;
+  accommodationRequirements?: string;
+  depositAmount?: number;
+  finalPaymentAmount?: number;
+  depositDueDate?: string;
+  finalPaymentDueDate?: string;
+  paymentMethod?: string;
+  isDepositPaid?: boolean;
+  isFinalPaymentPaid?: boolean;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankRoutingNumber?: string;
+  bankAccountHolderName?: string;
+  bankIBAN?: string;
+  bankSWIFT?: string;
+  reviewedByStakeholders?: boolean;
+  stakeholderReviewDate?: string;
+  notes?: string;
+  performerId?: number;
+  eventId?: number;
 }
 
 export interface NegotiationDto {
@@ -269,6 +292,46 @@ export const performerService = {
       });
     } catch (error) {
       console.error('Error performing advanced search:', error);
+      throw error;
+    }
+  },
+
+  // Get performer with contracts and negotiations (enhanced details)
+  getPerformerWithDetails: async (id: number): Promise<PerformerWithDetailsDto> => {
+    try {
+      // Get basic performer data
+      const performer = await performerService.getPerformerById(id);
+      
+      let contracts: ContractDto[] = [];
+      let negotiation: NegotiationDto | undefined;
+      
+      try {
+        // Try to get negotiations for this performer
+        const negotiationsResponse = await api.get<NegotiationDto[]>(`/negotiation/by-performer/${id}`);
+        const negotiations = negotiationsResponse.data;
+        
+        // Use the first active negotiation (most recent)
+        negotiation = negotiations.find(n => n.status === 'active') || negotiations[0];
+        
+        // If we have a negotiation, get the associated contracts
+        if (negotiation) {
+          const contractsResponse = await api.get<ContractDto[]>(`/contract/negotiation/${negotiation.negotiationId}`);
+          contracts = contractsResponse.data;
+        }
+      } catch (error) {
+        console.log('No negotiation or contracts found for performer:', id);
+        // This is expected for performers without active negotiations
+      }
+      
+      const performerWithDetails: PerformerWithDetailsDto = {
+        ...performer,
+        contracts: contracts,
+        negotiation: negotiation
+      };
+      
+      return performerWithDetails;
+    } catch (error) {
+      console.error('Error fetching performer with details:', error);
       throw error;
     }
   },

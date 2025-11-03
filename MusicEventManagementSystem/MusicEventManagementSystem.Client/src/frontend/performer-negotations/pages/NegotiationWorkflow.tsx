@@ -16,6 +16,7 @@ import {
 import { negotiationService } from "../services/negotiationService";
 import { contractService } from "../services/contractService";
 import ContractModal from "../components/ContractModal";
+import ContractDocumentWidget from "../components/ContractDocumentWidget";
 import type { 
   NegotiationWorkflowDto, 
   NegotiationPhaseDto, 
@@ -345,7 +346,7 @@ const NegotiationWorkflow = () => {
                       <input
                         type="number"
                         value={editedFee}
-                        onChange={(e) => setEditedFee(parseFloat(e.target.value) || 0)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditedFee(parseFloat(e.target.value) || 0)}
                         className="w-24 px-2 py-1 text-sm bg-neutral-700 border border-neutral-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                         step="0.01"
                         min="0"
@@ -515,6 +516,8 @@ const NegotiationWorkflow = () => {
                     </div>
                   )}
                 </div>
+                
+
               </div>
             </div>
           </div>
@@ -719,7 +722,7 @@ const NegotiationWorkflow = () => {
                           </label>
                           <select
                             value={communicationType}
-                            onChange={(e) => setCommunicationType(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCommunicationType(e.target.value)}
                             className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           >
                             <option value="Note">Note</option>
@@ -734,7 +737,7 @@ const NegotiationWorkflow = () => {
                           </label>
                           <select
                             value={communicationDirection}
-                            onChange={(e) => setCommunicationDirection(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCommunicationDirection(e.target.value)}
                             className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           >
                             <option value="Internal">Internal</option>
@@ -750,7 +753,7 @@ const NegotiationWorkflow = () => {
                         <div className="relative">
                           <textarea
                             value={communicationInput}
-                            onChange={(e) => setCommunicationInput(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCommunicationInput(e.target.value)}
                             placeholder="Add a note, log a call, or record communication..."
                             rows={3}
                             className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pr-12"
@@ -767,6 +770,25 @@ const NegotiationWorkflow = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Contract Document Section - Show when contract exists */}
+                {contractCreated && (
+                  <div className="bg-neutral-800 rounded-lg border border-neutral-700 mt-6">
+                    <div className="p-6 border-b border-neutral-700">
+                      <h3 className="text-lg font-semibold text-white">Contract Document</h3>
+                    </div>
+                    <div className="p-6">
+                      <ContractDocumentWidget
+                        contractId={contractCreated.contractId}
+                        phaseNumber={workflow?.currentPhase?.phaseId || 1}
+                        onDocumentChange={() => {
+                          console.log('Contract document updated');
+                          // Optionally refresh workflow data if needed
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

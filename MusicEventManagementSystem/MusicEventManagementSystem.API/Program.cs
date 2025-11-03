@@ -98,6 +98,7 @@ builder.Services.AddScoped<INegotiationPhaseRepository, NegotiationPhaseReposito
 builder.Services.AddScoped<INegotiationRequirementFulfillmentRepository, NegotiationRequirementFulfillmentRepository>();
 builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<ICommunicationRepository, CommunicationRepository>();
 
 // 5. Register services
@@ -128,9 +129,13 @@ builder.Services.AddScoped<IPerformanceResourceService, PerformanceResourceServi
 builder.Services.AddScoped<IRequirementService, RequirementService>();
 builder.Services.AddScoped<IPhaseService, PhaseService>();
 builder.Services.AddScoped<INegotiationService, NegotiationService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IPdfReportService, WorkingPdfReportService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
+builder.Services.AddScoped<IFulfillmentService, FulfillmentService>();
+builder.Services.AddScoped<IContractDocumentService, ContractDocumentService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

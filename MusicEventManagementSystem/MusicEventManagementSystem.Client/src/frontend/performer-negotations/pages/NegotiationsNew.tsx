@@ -137,7 +137,7 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
                 min="0"
                 step="0.01"
                 value={formData.proposedFee}
-                onChange={(e) => handleInputChange('proposedFee', parseFloat(e.target.value) || 0)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('proposedFee', parseFloat(e.target.value) || 0)}
                 className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.proposedFee ? 'border-red-500' : 'border-gray-600'
                 }`}
@@ -155,7 +155,7 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange('status', e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="InProgress">In Progress</option>
@@ -173,7 +173,7 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
               </label>
               <select
                 value={formData.eventId}
-                onChange={(e) => handleInputChange('eventId', parseInt(e.target.value) || 0)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange('eventId', parseInt(e.target.value) || 0)}
                 className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.eventId ? 'border-red-500' : 'border-gray-600'
                 }`}
@@ -198,7 +198,7 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
               </label>
               <select
                 value={formData.performerId}
-                onChange={(e) => handleInputChange('performerId', parseInt(e.target.value) || 0)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange('performerId', parseInt(e.target.value) || 0)}
                 className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.performerId ? 'border-red-500' : 'border-gray-600'
                 }`}
@@ -224,7 +224,7 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
               <input
                 type="datetime-local"
                 value={formData.startDate.toISOString().slice(0, 16)}
-                onChange={(e) => handleInputChange('startDate', new Date(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('startDate', new Date(e.target.value))}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -238,7 +238,7 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
               <input
                 type="datetime-local"
                 value={formData.endDate.toISOString().slice(0, 16)}
-                onChange={(e) => handleInputChange('endDate', new Date(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('endDate', new Date(e.target.value))}
                 className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.endDate ? 'border-red-500' : 'border-gray-600'
                 }`}
@@ -251,14 +251,14 @@ const CreateNegotiationModal: React.FC<CreateNegotiationModalProps> = ({
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
             <button
-              type="button"
+              type={"button" as const}
               onClick={onClose}
               className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
-              type="submit"
+              type={"submit" as const}
               disabled={loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
@@ -464,7 +464,7 @@ const NegotiationsNew: React.FC = () => {
                 type="text"
                 placeholder="Search negotiations..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -472,7 +472,7 @@ const NegotiationsNew: React.FC = () => {
               <Filter className="text-gray-400 w-5 h-5" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
                 className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>

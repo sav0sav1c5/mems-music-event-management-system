@@ -204,10 +204,9 @@ const Performers: React.FC = () => {
   const handleViewDetails = async (performer: PerformerDto) => {
     try {
       setDetailLoading(true);
-      // Since backend doesn't provide detailed endpoint, use regular getById
-      const details = await performerService.getPerformerById(performer.performerId);
-      // Cast to PerformerWithDetailsDto since they have same structure for now
-      setSelectedPerformer(details as PerformerWithDetailsDto);
+      // Use the enhanced method to get performer with details
+      const details = await performerService.getPerformerWithDetails(performer.performerId);
+      setSelectedPerformer(details);
       setShowDetailModal(true);
     } catch (err) {
       setError('Failed to load performer details');

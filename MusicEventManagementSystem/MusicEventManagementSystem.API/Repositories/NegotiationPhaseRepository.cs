@@ -96,5 +96,61 @@ namespace MusicEventManagementSystem.API.Repositories
 
             return true;
         }
+
+        // Analytics methods
+        public async Task<IEnumerable<NegotiationPhase>> GetCurrentPhasesForNegotiationsAsync(List<int> negotiationIds)
+        {
+            return await _dbSet
+                .Where(np => negotiationIds.Contains(np.NegotiationId) && np.IsActive)
+                .Include(np => np.Phase)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<NegotiationPhase>> GetPhasesByNegotiationIdsAsync(List<int> negotiationIds)
+        {
+            return await _dbSet
+                .Where(np => negotiationIds.Contains(np.NegotiationId))
+                .Include(np => np.Phase)
+                .Include(np => np.RequirementFulfillments)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<NegotiationRequirementFulfillment>> GetRequirementFulfillmentsByNegotiationIdsAsync(List<int> negotiationIds)
+        {
+            return await _context.NegotiationRequirementFulfillments
+                .Where(nrf => negotiationIds.Contains(nrf.NegotiationId))
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<PhaseTransitionDto>> GetPhaseHistoryAsync(List<int> negotiationIds, DateTime startDate, DateTime endDate)
+        {
+            // This is a simplified implementation - in a real scenario, you would track phase transitions
+            // For now, we'll return mock data based on phase completion dates
+            var phases = await _dbSet
+                .Where(np => negotiationIds.Contains(np.NegotiationId) && 
+                           np.CompletedDate.HasValue &&
+                           np.CompletedDate >= startDate && 
+                           np.CompletedDate <= endDate)
+                .Include(np => np.Phase)
+                .OrderBy(np => np.CompletedDate)
+                .ToListAsync();
+
+            var transitions = new List<PhaseTransitionDto>();
+            
+            foreach (var phase in phases)
+            {
+                // Mock transition from previous phase to current phase
+                transitions.Add(new PhaseTransitionDto
+                {
+                    Date = phase.CompletedDate!.Value,
+                    FromPhaseId = phase.PhaseId - 1 > 0 ? phase.PhaseId - 1 : 1, // Mock previous phase
+                    ToPhaseId = phase.PhaseId,
+                    FromPhaseName = $"Phase {phase.PhaseId - 1}",
+                    ToPhaseName = phase.Phase.PhaseName
+                });
+            }
+
+            return transitions;
+        }
     }
 }

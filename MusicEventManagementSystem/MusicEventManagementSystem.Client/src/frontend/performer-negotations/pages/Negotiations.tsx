@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, X, Handshake, ArrowUp, ArrowDown, CheckCircle, Clock, Eye } from "lucide-react";
+import { 
+  Plus, Edit, Trash2, X, Handshake, ArrowUp, ArrowDown, CheckCircle, 
+  Clock, Eye, Search, Filter 
+} from "lucide-react";
 import { negotiationService } from "../services/negotiationService";
 import type { NegotiationDto, CreateNegotiationDto } from "../services/negotiationService";
 import { performerService } from "../services/performerService";
@@ -17,6 +20,8 @@ const Negotiations = () => {
   const [editingNegotiation, setEditingNegotiation] = useState<NegotiationDto | null>(null);
   const [performers, setPerformers] = useState<PerformerDto[]>([]);
   const [events, setEvents] = useState<EventDto[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formData, setFormData] = useState<CreateNegotiationDto>({
     proposedFee: 0,
     status: '',
@@ -31,6 +36,18 @@ const Negotiations = () => {
     fetchPerformers();
     fetchEvents();
   }, []);
+
+  // Filter negotiations based on search term and status
+  const filteredNegotiations = negotiations.filter(negotiation => {
+    const matchesSearch = searchTerm === "" || 
+      negotiation.negotiationId.toString().includes(searchTerm) ||
+      negotiation.proposedFee.toString().includes(searchTerm) ||
+      (negotiation.status && negotiation.status.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStatus = statusFilter === "all" || negotiation.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const fetchNegotiations = async () => {
     try {
@@ -233,6 +250,45 @@ const Negotiations = () => {
         </button>
       </div>
 
+      {/* Search and Filter Controls */}
+      <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl p-4 mb-4 hover:border-neutral-600/50 transition-all duration-200">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search negotiations by ID, fee, or status..."
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-neutral-700/50 border border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-400 transition-all"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+              <select
+                value={statusFilter}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+                className="pl-10 pr-8 py-2 bg-neutral-700/50 border border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white appearance-none cursor-pointer transition-all"
+              >
+                <option value="all">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Active">Active</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        {(searchTerm || statusFilter !== "all") && (
+          <div className="mt-3 text-sm text-neutral-400">
+            Showing {filteredNegotiations.length} of {negotiations.length} negotiations
+          </div>
+        )}
+      </div>
+
       {/* Negotiations Table */}
       <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl hover:border-lime-400/30 transition-all duration-200 flex-1 min-h-0 flex flex-col">
         <div className="overflow-x-auto flex-1">
@@ -248,7 +304,7 @@ const Negotiations = () => {
               </tr>
             </thead>
             <tbody>
-              {negotiations.map((negotiation) => (
+              {filteredNegotiations.map((negotiation) => (
                 <tr key={negotiation.negotiationId} className="border-b border-neutral-700/50 hover:bg-neutral-700/30 transition-all duration-200">
                   <td className="p-4 pl-10 text-white font-semibold">{negotiation.negotiationId}</td>
                   <td className="p-4 font-semibold text-lime-400">{formatPrice(negotiation.proposedFee)}</td>
@@ -295,6 +351,17 @@ const Negotiations = () => {
           </table>
         </div>
 
+        {filteredNegotiations.length === 0 && negotiations.length > 0 && (
+          <div className="text-center py-12 text-neutral-400">
+            <p>No negotiations match your current filters.</p>
+            <button 
+              onClick={() => { setSearchTerm(""); setStatusFilter("all"); }}
+              className="mt-2 text-lime-400 hover:text-lime-300 text-sm underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
         {negotiations.length === 0 && (
           <div className="text-center py-12 text-neutral-400">
             <p>No negotiations found. Create your first negotiation!</p>
@@ -323,7 +390,7 @@ const Negotiations = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Performer ({performers.length} available)</label>
                 <select
                   value={formData.performerId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, performerId: parseInt(e.target.value) || 0 }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, performerId: parseInt(e.target.value) || 0 }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 >
@@ -340,7 +407,7 @@ const Negotiations = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Event ({events.length} available)</label>
                 <select
                   value={formData.eventId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, eventId: parseInt(e.target.value) || 0 }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, eventId: parseInt(e.target.value) || 0 }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 >
@@ -359,7 +426,7 @@ const Negotiations = () => {
                   type="number"
                   step="0.01"
                   value={formData.proposedFee}
-                  onChange={(e) => setFormData(prev => ({ ...prev, proposedFee: parseFloat(e.target.value) || 0 }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, proposedFee: parseFloat(e.target.value) || 0 }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
                   placeholder="Enter proposed fee"
                   min="0"
@@ -371,7 +438,7 @@ const Negotiations = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Status</label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 >
@@ -388,7 +455,7 @@ const Negotiations = () => {
                 <input
                   type="datetime-local"
                   value={new Date(formData.startDate).toISOString().slice(0, 16)}
-                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: new Date(e.target.value) }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, startDate: new Date(e.target.value) }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 />
@@ -399,7 +466,7 @@ const Negotiations = () => {
                 <input
                   type="datetime-local"
                   value={new Date(formData.endDate).toISOString().slice(0, 16)}
-                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: new Date(e.target.value) }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, endDate: new Date(e.target.value) }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 />
@@ -407,14 +474,14 @@ const Negotiations = () => {
 
               <div className="flex gap-3 pt-4">
                 <button
-                  type="button"
+                  type={"button" as const}
                   onClick={resetForm}
                   className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type={"submit" as const}
                   className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold border border-lime-400/30 hover:border-lime-400"
                 >
                   {editingNegotiation ? 'Update' : 'Create'}

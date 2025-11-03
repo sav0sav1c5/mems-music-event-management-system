@@ -92,5 +92,29 @@ namespace MusicEventManagementSystem.API.Repositories
                 .Select(nu => nu.User.Email ?? string.Empty)
                 .ToListAsync();
         }
+
+        // Analytics methods
+        public Task<IQueryable<Negotiation>> GetAllWithIncludesAsync()
+        {
+            var query = _dbSet
+                .Include(n => n.Event)
+                .Include(n => n.Performer)
+                .Include(n => n.NegotiationPhases)
+                    .ThenInclude(np => np.Phase)
+                .Include(n => n.RequirementFulfillments)
+                .AsQueryable();
+            
+            return Task.FromResult(query);
+        }
+
+        public async Task<IEnumerable<Negotiation>> GetRecentNegotiationsAsync(int count)
+        {
+            return await _dbSet
+                .Include(n => n.Event)
+                .Include(n => n.Performer)
+                .OrderByDescending(n => n.StartDate)
+                .Take(count)
+                .ToListAsync();
+        }
     }
 }

@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X, FileText, ArrowUp, ArrowDown, CheckCircle, Clock } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, X, FileText, ArrowUp, ArrowDown, CheckCircle, Clock, ChevronDown, ChevronRight } from "lucide-react";
 import { contractService } from "../services/contractService";
+import ContractDocumentWidget from "../components/ContractDocumentWidget";
 import type { ContractDto, CreateContractDto } from "../services/contractService";
 
 const Contracts = () => {
@@ -17,6 +18,7 @@ const Contracts = () => {
     status: '',
     performerId: 0,
   });
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchContracts();
@@ -93,6 +95,26 @@ const Contracts = () => {
     });
     setEditingContract(null);
     setIsModalOpen(false);
+  };
+
+  const toggleRowExpansion = (contractId: number) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(contractId)) {
+      newExpanded.delete(contractId);
+    } else {
+      newExpanded.add(contractId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  // Helper function to determine phase number for document upload
+  const getPhaseForContract = (contract: ContractDto): number => {
+    // Phase 5 is Final Agreement - when contract should be signed
+    if (contract.status === 'Signed' || contract.status === 'Active') {
+      return 5;
+    }
+    // For other statuses, assume we're not in phase 5 yet
+    return 4;
   };
 
   const formatDate = (date: Date | string) => {
@@ -219,40 +241,103 @@ const Contracts = () => {
             </thead>
             <tbody>
               {contracts.map((contract) => (
-                <tr key={contract.contractId} className="border-b border-neutral-700/50 hover:bg-neutral-700/30 transition-all duration-200">
-                  <td className="p-4 pl-10 text-white font-semibold">{contract.contractId}</td>
-                  <td className="p-4 text-white font-medium">{contract.title}</td>
-                  <td className="p-4 text-neutral-300">{contract.contractType}</td>
-                  <td className="p-4 font-semibold text-lime-400">{formatPrice(contract.price)}</td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                      contract.status === 'Active' ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
-                      contract.status === 'Pending' ? 'bg-blue-950/50 text-blue-400 border-blue-900/50' :
-                      contract.status === 'Signed' ? 'bg-purple-950/50 text-purple-400 border-purple-900/50' :
-                      'bg-orange-950/50 text-orange-400 border-orange-900/50'
-                    }`}>
-                      {contract.status || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-neutral-300">{contract.version}</td>
-                  <td className="p-4 text-neutral-300">{formatDate(contract.createdAt)}</td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(contract)}
-                        className="p-1.5 hover:bg-neutral-600 rounded-lg transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(contract.contractId)}
-                        className="p-1.5 hover:bg-red-900/50 rounded-lg transition-all duration-200 text-neutral-400 hover:text-red-400 border border-transparent hover:border-red-400/30"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <React.Fragment key={contract.contractId}>
+                  <tr className="border-b border-neutral-700/50 hover:bg-neutral-700/30 transition-all duration-200">
+                    <td className="p-4 pl-6 text-white font-semibold">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleRowExpansion(contract.contractId)}
+                          className="p-1 hover:bg-neutral-600 rounded transition-all duration-200 text-neutral-400 hover:text-lime-400"
+                        >
+                          {expandedRows.has(contract.contractId) ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </button>
+                        {contract.contractId}
+                      </div>
+                    </td>
+                    <td className="p-4 text-white font-medium">{contract.title}</td>
+                    <td className="p-4 text-neutral-300">{contract.contractType}</td>
+                    <td className="p-4 font-semibold text-lime-400">{formatPrice(contract.price)}</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                        contract.status === 'Active' ? 'bg-lime-950/50 text-lime-400 border-lime-900/50' :
+                        contract.status === 'Pending' ? 'bg-blue-950/50 text-blue-400 border-blue-900/50' :
+                        contract.status === 'Signed' ? 'bg-purple-950/50 text-purple-400 border-purple-900/50' :
+                        'bg-orange-950/50 text-orange-400 border-orange-900/50'
+                      }`}>
+                        {contract.status || 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-neutral-300">{contract.version}</td>
+                    <td className="p-4 text-neutral-300">{formatDate(contract.createdAt)}</td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => toggleRowExpansion(contract.contractId)}
+                          className="p-1.5 hover:bg-neutral-600 rounded-lg transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
+                          title="View contract documents"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(contract)}
+                          className="p-1.5 hover:bg-neutral-600 rounded-lg transition-all duration-200 text-neutral-400 hover:text-lime-400 border border-transparent hover:border-lime-400/30"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(contract.contractId)}
+                          className="p-1.5 hover:bg-red-900/50 rounded-lg transition-all duration-200 text-neutral-400 hover:text-red-400 border border-transparent hover:border-red-400/30"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {/* Expanded row with contract document widget */}
+                  {expandedRows.has(contract.contractId) && (
+                    <tr className="border-b border-neutral-700/50 bg-neutral-800/30">
+                      <td colSpan={8} className="p-6">
+                        <div className="max-w-2xl">
+                          <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Contract Document Management
+                          </h4>
+                          <ContractDocumentWidget
+                            contractId={contract.contractId}
+                            phaseNumber={getPhaseForContract(contract)}
+                            onDocumentChange={() => {
+                              console.log(`Document updated for contract ${contract.contractId}`);
+                              // Optionally refresh contracts list
+                            }}
+                          />
+                          
+                          <div className="mt-4 p-3 bg-neutral-700/50 border border-neutral-600 rounded-lg">
+                            <div className="flex items-start gap-3">
+                              <CheckCircle className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
+                              <div className="text-sm">
+                                <p className="font-medium text-lime-300 mb-1">Contract Status: {contract.status}</p>
+                                <p className="text-neutral-400">
+                                  {getPhaseForContract(contract) === 5 
+                                    ? 'This contract is in Phase 5 (Final Agreement). You can upload the signed PDF document.'
+                                    : 'Contract documents can be uploaded when the contract reaches Phase 5 (Final Agreement).'
+                                  }
+                                </p>
+                                <p className="text-neutral-400 mt-1">
+                                  <strong>Phase:</strong> {getPhaseForContract(contract)} | <strong>Version:</strong> {contract.version}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
@@ -287,7 +372,7 @@ const Contracts = () => {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
                   placeholder="Enter contract title"
                   required
@@ -298,7 +383,7 @@ const Contracts = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Contract Type</label>
                 <select
                   value={formData.contractType}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contractType: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, contractType: e.target.value }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 >
@@ -316,7 +401,7 @@ const Contracts = () => {
                   type="number"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
                   placeholder="Enter contract price"
                   min="0"
@@ -329,7 +414,7 @@ const Contracts = () => {
                 <input
                   type="text"
                   value={formData.version}
-                  onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, version: e.target.value }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white placeholder-neutral-500 transition-all"
                   placeholder="e.g., 1.0"
                   required
@@ -340,7 +425,7 @@ const Contracts = () => {
                 <label className="block text-sm font-medium mb-2 text-neutral-300">Status</label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                   className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent text-white transition-all"
                   required
                 >
@@ -355,14 +440,14 @@ const Contracts = () => {
 
               <div className="flex gap-3 pt-4">
                 <button
-                  type="button"
+                  type={"button" as const}
                   onClick={resetForm}
                   className="flex-1 p-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-all duration-200 text-white border border-neutral-700 hover:border-neutral-500"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type={"submit" as const}
                   className="flex-1 p-3 bg-lime-500 hover:bg-lime-600 rounded-xl transition-all duration-200 text-black font-semibold border border-lime-400/30 hover:border-lime-400"
                 >
                   {editingContract ? 'Update' : 'Create'}

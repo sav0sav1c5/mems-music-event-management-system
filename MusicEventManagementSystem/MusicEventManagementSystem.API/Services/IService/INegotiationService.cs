@@ -47,5 +47,14 @@ namespace MusicEventManagementSystem.API.Services.IService
         
         // TEMPORARY DEBUG METHOD - REMOVE IN PRODUCTION
         Task<int> FixActivePhases();
+
+        // Analytics methods
+        Task<object> GetAnalyticsSummaryAsync(string timeRange);
+        Task<IEnumerable<object>> GetPhaseDistributionAsync(string timeRange);
+        Task<IEnumerable<object>> GetNegotiationTrendsAsync(string timeRange);
+        Task<IEnumerable<object>> GetPerformerAnalyticsAsync(string timeRange);
+        Task<IEnumerable<object>> GetRevenueByEventAsync(string timeRange);
+        Task<IEnumerable<object>> GetPhaseDurationAnalysisAsync(string timeRange);
+        Task<IEnumerable<object>> GetRecentActivityAsync(int limit);
     }
 }

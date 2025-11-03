@@ -653,5 +653,258 @@ namespace MusicEventManagementSystem.API.Services
         }
 
         #endregion
+
+        #region Analytics Methods
+
+        public async Task<object> GetAnalyticsSummaryAsync(string timeRange)
+        {
+            var dateFilter = GetDateFromTimeRange(timeRange);
+            var allNegotiations = await _negotiationRepository.GetNegotiationsWithBasicDetailsAsync();
+            
+            var filteredNegotiations = allNegotiations.Where(n => n.StartDate >= dateFilter).ToList();
+            var totalNegotiations = filteredNegotiations.Count;
+            var activeNegotiations = filteredNegotiations.Count(n => n.Status != "Completed" && n.Status != "Cancelled");
+            var completedNegotiations = filteredNegotiations.Count(n => n.Status == "Completed");
+            var totalValue = filteredNegotiations.Where(n => n.Status == "Completed").Sum(n => n.ProposedFee);
+            var averageValue = completedNegotiations > 0 ? totalValue / completedNegotiations : 0;
+            var successRate = totalNegotiations > 0 ? (double)completedNegotiations / totalNegotiations * 100 : 0;
+            
+            // Calculate average duration for completed negotiations
+            var completedWithDuration = filteredNegotiations
+                .Where(n => n.Status == "Completed" && n.EndDate > n.StartDate)
+                .ToList();
+            var averageDuration = completedWithDuration.Any() 
+                ? completedWithDuration.Average(n => (n.EndDate - n.StartDate).TotalDays) 
+                : 0;
+
+            return new
+            {
+                totalNegotiations,
+                activeNegotiations,
+                completedNegotiations,
+                totalValue,
+                averageValue,
+                successRate = Math.Round(successRate, 1),
+                averageDuration = Math.Round(averageDuration, 1),
+                conversionRate = Math.Round(successRate, 1) // Using success rate as conversion rate
+            };
+        }
+
+        public async Task<IEnumerable<object>> GetPhaseDistributionAsync(string timeRange)
+        {
+            var dateFilter = GetDateFromTimeRange(timeRange);
+            var negotiations = await _negotiationRepository.GetNegotiationsWithBasicDetailsAsync();
+            var filteredNegotiations = negotiations.Where(n => n.StartDate >= dateFilter).ToList();
+
+            // Get all phases to get proper names
+            var phases = await _phaseRepository.GetAllAsync();
+            var phaseDict = phases.ToDictionary(p => p.OrderNumber, p => p.PhaseName);
+
+            var phaseDistribution = filteredNegotiations
+                .GroupBy(n => n.CurrentPhaseOrder)
+                .Select(g => new
+                {
+                    name = phaseDict.ContainsKey(g.Key) ? phaseDict[g.Key] : $"Phase {g.Key}",
+                    value = g.Count(),
+                    color = GetPhaseColor(g.Key)
+                })
+                .OrderBy(p => p.value)
+                .ToList();
+
+            return phaseDistribution;
+        }
+
+        public async Task<IEnumerable<object>> GetNegotiationTrendsAsync(string timeRange)
+        {
+            var dateFilter = GetDateFromTimeRange(timeRange);
+            var negotiations = await _negotiationRepository.GetNegotiationsWithBasicDetailsAsync();
+            var filteredNegotiations = negotiations.Where(n => n.StartDate >= dateFilter).ToList();
+
+            var trends = filteredNegotiations
+                .GroupBy(n => new { Year = n.StartDate.Year, Month = n.StartDate.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => new
+                {
+                    date = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    started = g.Count(),
+                    completed = g.Count(n => n.Status == "Completed"),
+                    revenue = g.Where(n => n.Status == "Completed").Sum(n => n.ProposedFee),
+                    avgDuration = g.Where(n => n.Status == "Completed" && n.EndDate > n.StartDate)
+                                   .Select(n => (n.EndDate - n.StartDate).TotalDays)
+                                   .DefaultIfEmpty(0)
+                                   .Average()
+                })
+                .ToList();
+
+            return trends;
+        }
+
+        public async Task<IEnumerable<object>> GetPerformerAnalyticsAsync(string timeRange)
+        {
+            var dateFilter = GetDateFromTimeRange(timeRange);
+            var negotiations = await _negotiationRepository.GetNegotiationsWithBasicDetailsAsync();
+            var filteredNegotiations = negotiations.Where(n => n.StartDate >= dateFilter).ToList();
+
+            var performerAnalytics = filteredNegotiations
+                .GroupBy(n => new { n.PerformerId, n.Performer.Name })
+                .Select(g => new
+                {
+                    name = g.Key.Name,
+                    negotiations = g.Count(),
+                    success = g.Count(n => n.Status == "Completed"),
+                    revenue = g.Where(n => n.Status == "Completed").Sum(n => n.ProposedFee),
+                    avgDuration = g.Where(n => n.Status == "Completed" && n.EndDate > n.StartDate)
+                                   .Select(n => (n.EndDate - n.StartDate).TotalDays)
+                                   .DefaultIfEmpty(0)
+                                   .Average()
+                })
+                .OrderByDescending(p => p.revenue)
+                .Take(10)
+                .ToList();
+
+            return performerAnalytics;
+        }
+
+        public async Task<IEnumerable<object>> GetRevenueByEventAsync(string timeRange)
+        {
+            var dateFilter = GetDateFromTimeRange(timeRange);
+            var negotiations = await _negotiationRepository.GetNegotiationsWithBasicDetailsAsync();
+            var filteredNegotiations = negotiations.Where(n => n.StartDate >= dateFilter).ToList();
+
+            var revenueByEvent = filteredNegotiations
+                .Where(n => n.Status == "Completed")
+                .GroupBy(n => new { n.EventId, n.Event.Name })
+                .Select(g => new
+                {
+                    @event = g.Key.Name,
+                    revenue = g.Sum(n => n.ProposedFee),
+                    negotiations = g.Count(),
+                    avgValue = g.Average(n => n.ProposedFee)
+                })
+                .OrderByDescending(e => e.revenue)
+                .Take(10)
+                .ToList();
+
+            return revenueByEvent;
+        }
+
+        public async Task<IEnumerable<object>> GetPhaseDurationAnalysisAsync(string timeRange)
+        {
+            var dateFilter = GetDateFromTimeRange(timeRange);
+            var phases = await _phaseRepository.GetAllAsync();
+            var negotiationPhases = await _negotiationPhaseRepository.GetAllAsync();
+
+            var phaseDurations = phases
+                .Select(p => new
+                {
+                    phase = p.PhaseName,
+                    avgDays = negotiationPhases
+                        .Where(np => np.PhaseId == p.PhaseId && 
+                                   np.StartDate.HasValue && np.CompletedDate.HasValue &&
+                                   np.StartDate >= dateFilter)
+                        .Select(np => (np.CompletedDate!.Value - np.StartDate!.Value).TotalDays)
+                        .DefaultIfEmpty(0)
+                        .Average(),
+                    minDays = negotiationPhases
+                        .Where(np => np.PhaseId == p.PhaseId && 
+                                   np.StartDate.HasValue && np.CompletedDate.HasValue &&
+                                   np.StartDate >= dateFilter)
+                        .Select(np => (np.CompletedDate!.Value - np.StartDate!.Value).TotalDays)
+                        .DefaultIfEmpty(0)
+                        .Min(),
+                    maxDays = negotiationPhases
+                        .Where(np => np.PhaseId == p.PhaseId && 
+                                   np.StartDate.HasValue && np.CompletedDate.HasValue &&
+                                   np.StartDate >= dateFilter)
+                        .Select(np => (np.CompletedDate!.Value - np.StartDate!.Value).TotalDays)
+                        .DefaultIfEmpty(0)
+                        .Max()
+                })
+                .Where(p => p.avgDays > 0)
+                .OrderBy(p => p.avgDays)
+                .ToList();
+
+            return phaseDurations;
+        }
+
+        public async Task<IEnumerable<object>> GetRecentActivityAsync(int limit)
+        {
+            var negotiations = await _negotiationRepository.GetNegotiationsWithBasicDetailsAsync();
+            var recentNegotiations = negotiations
+                .OrderByDescending(n => n.StartDate)
+                .Take(limit)
+                .ToList();
+
+            var activities = new List<object>();
+
+            foreach (var negotiation in recentNegotiations)
+            {
+                // Add negotiation started activity
+                activities.Add(new
+                {
+                    id = negotiation.NegotiationId,
+                    type = "negotiation_started",
+                    description = $"New negotiation started with {negotiation.Performer?.Name ?? "Unknown Performer"}",
+                    time = GetRelativeTime(negotiation.StartDate),
+                    value = negotiation.ProposedFee
+                });
+
+                // Add completed activity if applicable
+                if (negotiation.Status == "Completed")
+                {
+                    activities.Add(new
+                    {
+                        id = negotiation.NegotiationId,
+                        type = "contract_signed",
+                        description = $"Contract finalized for {negotiation.Event?.Name ?? "Unknown Event"}",
+                        time = GetRelativeTime(negotiation.EndDate),
+                        value = negotiation.ProposedFee
+                    });
+                }
+            }
+
+            return activities.OrderByDescending(a => a.GetType().GetProperty("time")?.GetValue(a))
+                           .Take(limit);
+        }
+
+        private DateTime GetDateFromTimeRange(string timeRange)
+        {
+            return timeRange switch
+            {
+                "7d" => DateTime.Now.AddDays(-7),
+                "30d" => DateTime.Now.AddDays(-30),
+                "90d" => DateTime.Now.AddDays(-90),
+                "1y" => DateTime.Now.AddYears(-1),
+                _ => DateTime.Now.AddDays(-30)
+            };
+        }
+
+        private string GetPhaseColor(int phaseOrder)
+        {
+            return phaseOrder switch
+            {
+                1 => "#8b5cf6", // Purple
+                2 => "#06b6d4", // Cyan
+                3 => "#10b981", // Emerald
+                4 => "#f59e0b", // Amber
+                _ => "#6b7280"  // Gray
+            };
+        }
+
+        private string GetRelativeTime(DateTime dateTime)
+        {
+            var timeSpan = DateTime.Now - dateTime;
+            
+            if (timeSpan.TotalDays >= 1)
+                return $"{(int)timeSpan.TotalDays} day{(timeSpan.TotalDays >= 2 ? "s" : "")} ago";
+            if (timeSpan.TotalHours >= 1)
+                return $"{(int)timeSpan.TotalHours} hour{(timeSpan.TotalHours >= 2 ? "s" : "")} ago";
+            if (timeSpan.TotalMinutes >= 1)
+                return $"{(int)timeSpan.TotalMinutes} minute{(timeSpan.TotalMinutes >= 2 ? "s" : "")} ago";
+            
+            return "Just now";
+        }
+
+        #endregion
     }
 }

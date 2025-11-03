@@ -557,5 +557,107 @@ namespace MusicEventManagementSystem.API.Controllers
         }
 
         #endregion
+
+        #region Analytics Endpoints
+
+        [HttpGet("analytics/summary")]
+        public async Task<ActionResult> GetAnalyticsSummary([FromQuery] string timeRange = "30d")
+        {
+            try
+            {
+                var summary = await _negotiationService.GetAnalyticsSummaryAsync(timeRange);
+                return Ok(summary);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("analytics/phase-distribution")]
+        public async Task<ActionResult> GetPhaseDistribution([FromQuery] string timeRange = "30d")
+        {
+            try
+            {
+                var distribution = await _negotiationService.GetPhaseDistributionAsync(timeRange);
+                return Ok(distribution);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("analytics/trends")]
+        public async Task<ActionResult> GetNegotiationTrends([FromQuery] string timeRange = "30d")
+        {
+            try
+            {
+                var trends = await _negotiationService.GetNegotiationTrendsAsync(timeRange);
+                return Ok(trends);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("analytics/performer-analytics")]
+        public async Task<ActionResult> GetPerformerAnalytics([FromQuery] string timeRange = "30d")
+        {
+            try
+            {
+                var analytics = await _negotiationService.GetPerformerAnalyticsAsync(timeRange);
+                return Ok(analytics);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("analytics/revenue-by-event")]
+        public async Task<ActionResult> GetRevenueByEvent([FromQuery] string timeRange = "30d")
+        {
+            try
+            {
+                var revenue = await _negotiationService.GetRevenueByEventAsync(timeRange);
+                return Ok(revenue);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("analytics/phase-duration")]
+        public async Task<ActionResult> GetPhaseDurationAnalysis([FromQuery] string timeRange = "30d")
+        {
+            try
+            {
+                var duration = await _negotiationService.GetPhaseDurationAnalysisAsync(timeRange);
+                return Ok(duration);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("analytics/recent-activity")]
+        public async Task<ActionResult> GetRecentActivity([FromQuery] int limit = 10)
+        {
+            try
+            {
+                var activity = await _negotiationService.GetRecentActivityAsync(limit);
+                return Ok(activity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }
