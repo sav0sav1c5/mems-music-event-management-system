@@ -186,7 +186,7 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
 
         // Seed roles for the entire system
-        string[] roles = { "MEMSClient", "Administrator" };
+        string[] roles = { "MEMSClient", "Administrator", "TicketSales", "EventOrganization", "ArtistCommunication", "MediaCampaign" };
 
         foreach (var role in roles)
         {
@@ -195,6 +195,9 @@ using (var scope = app.Services.CreateScope())
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
+
+        // Seed domain data
+        await MusicEventManagementSystem.Infrastructure.Database.Seeders.DatabaseSeeder.SeedAsync(context);
     }
     catch (Exception ex)
     {
